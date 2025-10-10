@@ -1,0 +1,6 @@
+Spotkając się na ogniskach i imprezach często chwytamy za gitary i śpiewamy razem piosenki. Jak jestem gitarzystą -amatorem który akompaniuje przy takich biesiadach. zwykle przed daną imprezą przygotowuję sobie zestaw piosenek do śpiewania i ćwiczę je wcześniej.  do tej pory teksty piosenek z chwytami miałem w notatniku. przed samą imprezą wybrany zestaw drukuję sobie na kartkach a4, a dla gości osobny zestaw bez akordów.  to jest trochę uciążliwe aby spinać takie kartki i przygotowywać inne zestawy na każdą imprezę. 
+pomył na aplikację jest taki, że gromadzę w bazie danych teksty piosenek wraz z akordami. na komputerze mogę sobie je wyświetlać i ćwiczyć. przed impreza wybieram zestaw piosenek i przygotowuje repertuar który nazywam unikalną nazwą. 
+na imprezie mogę zalogować się do mojej aplikacji na komórce i wyświetlić tekst z akordami i go zagrać. każdy repertuar (oraz każda piosenka) ma kod qr który dowolna osoba moze zeskanować i wyświetlić na swojej komórce w przeglądarce test piosenek z repertuaru albo tekst pojedynczej piosenki. 
+rozwiązuje w ten sposób problem drukowania tekstów i przygotowani papierowych siewników czy tez wyszukiwanie tekstów w Internecie dla uczestników imprezy.
+
+docelowo chce aby ta aplikacja posiadała funkcję transpozycji akordów, odnośniki do referencji , skanowanie papierowych śpiewników  zapisywanie piosenek w bazie
