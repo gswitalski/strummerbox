@@ -1,5 +1,8 @@
 1. Lista tabel z ich kolumnami, typami danych i ograniczeniami
 
+- `users`
+this table is managed by Supabase Auth
+
 - `profiles`
   - `id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE`
   - `display_name TEXT NOT NULL CHECK (char_length(display_name) BETWEEN 1 AND 120)`
