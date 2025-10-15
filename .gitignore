@@ -42,3 +42,8 @@ testem.log
 Thumbs.db
 
 .knowledge
+
+# Environment files
+.env
+.env.*
+!.env.example
