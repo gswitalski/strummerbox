@@ -467,4 +467,5 @@ export type ErrorCode =
     | 'conflict'
     | 'resource_not_found'
     | 'resource_gone'
-    | 'rate_limited';
+    | 'rate_limited'
+    | 'internal_error';
