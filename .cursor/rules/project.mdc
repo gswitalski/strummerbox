@@ -71,3 +71,4 @@ When modifying the directory structure, always update this section.
 - Use guard clauses to handle preconditions and invalid states early.
 - Implement proper error logging and user-friendly error messages.
 - Consider using custom error types or error factories for consistent error handling.
+- use 4 cahracters as an indent

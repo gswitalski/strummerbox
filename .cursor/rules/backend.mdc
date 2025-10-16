@@ -1,0 +1,105 @@
+---
+alwaysApply: false
+---
+# Zasady implementacji REST API w Supabase z użyciem TypeScript
+
+Ten dokument określa najlepsze praktyki i standardy tworzenia backendu w architekturze "Backend as a Service" z wykorzystaniem Supabase i TypeScript. Celem jest zapewnienie spójności, bezpieczeństwa i wysokiej jakości kodu.
+
+## Struktura Projektu i Nazewnictwo
+
+-   Organizuj funkcje Supabase (Edge Functions) według logiki domenowej lub funkcji biznesowej.
+-   Stosuj spójne nazewnictwo dla plików, funkcji i zmiennych (np. `kebab-case` dla plików, `camelCase` dla funkcji i zmiennych).
+-   Grupuj powiązane funkcje, typy i logikę w dedykowanych katalogach.
+
+## Walidacja i Oczyszczanie Danych
+
+-   Do walidacji wszystkich danych przychodzących (body, parametry, zapytania) używaj biblioteki takiej jak Zod.
+-   Definiuj precyzyjne schematy dla obiektów transferu danych (DTO), aby zapewnić integralność danych wejściowych.
+-   Oczyszczaj dane wejściowe, aby chronić system przed atakami typu XSS i innymi zagrożeniami.
+
+## Uwierzytelnianie i Autoryzacja
+
+-   Wykorzystuj wbudowane mechanizmy uwierzytelniania Supabase oparte na JWT.
+-   Implementuj polityki bezpieczeństwa na poziomie wiersza (Row Level Security - RLS) bezpośrednio w bazie danych, aby zapewnić szczegółową kontrolę dostępu.
+-   Weryfikuj tożsamość i uprawnienia użytkownika na początku każdej chronionej funkcji.
+
+## Obsługa Błędów
+
+-   Zaimplementuj spójny, scentralizowany mechanizm obsługi błędów.
+-   Zwracaj jasne i ustrukturyzowane komunikaty o błędach wraz z odpowiednimi kodami statusu HTTP.
+-   Prowadź logi błędów w celu ułatwienia debugowania i monitorowania aplikacji.
+
+## Logika Biznesowa
+
+-   Oddzielaj logikę biznesową od warstwy obsługi żądań i odpowiedzi (request/response).
+-   Twórz dedykowane warstwy serwisowe lub funkcje pomocnicze do obsługi złożonych operacji.
+-   Korzystaj z oficjalnej biblioteki klienckiej Supabase (`supabase-js`) do interakcji z bazą danych.
+
+## Interakcja z Bazą Danych
+
+-   Do złożonych zapytań i operacji wykorzystuj widoki oraz funkcje RPC (Remote Procedure Call) w bazie danych PostgreSQL.
+-   Pobieraj z bazy danych tylko te kolumny, które są niezbędne do wykonania danej operacji.
+-   Wykorzystuj transakcje bazodanowe do zapewnienia atomowości operacji składających się z wielu kroków.
+
+## Typowanie w TypeScript
+
+-   Generuj typy TypeScript bezpośrednio ze schematu bazy danych za pomocą komendy `supabase gen types typescript`.
+-   Używaj wygenerowanych typów w DTO, warstwach serwisowych i podczas interakcji z bazą danych, aby zapewnić pełne bezpieczeństwo typów.
+-   Definiuj jawne interfejsy i typy dla argumentów wejściowych oraz wartości zwracanych przez funkcje.
+
+## Projektowanie API
+
+-   Projektuj punkty końcowe API zgodnie z zasadami i konwencjami RESTful.
+-   Używaj odpowiednich metod HTTP (GET, POST, PUT, DELETE, PATCH) zgodnie z ich semantycznym przeznaczeniem.
+-   Zachowaj spójną i przewidywalną strukturę adresów URL w całym API.
+# Zasady implementacji REST API w Supabase z użyciem TypeScript
+
+Ten dokument określa najlepsze praktyki i standardy tworzenia backendu w architekturze "Backend as a Service" z wykorzystaniem Supabase i TypeScript. Celem jest zapewnienie spójności, bezpieczeństwa i wysokiej jakości kodu.
+
+## Struktura Projektu i Nazewnictwo
+
+-   Organizuj funkcje Supabase (Edge Functions) według logiki domenowej lub funkcji biznesowej.
+-   Stosuj spójne nazewnictwo dla plików, funkcji i zmiennych (np. `kebab-case` dla plików, `camelCase` dla funkcji i zmiennych).
+-   Grupuj powiązane funkcje, typy i logikę w dedykowanych katalogach.
+
+## Walidacja i Oczyszczanie Danych
+
+-   Do walidacji wszystkich danych przychodzących (body, parametry, zapytania) używaj biblioteki takiej jak Zod.
+-   Definiuj precyzyjne schematy dla obiektów transferu danych (DTO), aby zapewnić integralność danych wejściowych.
+-   Oczyszczaj dane wejściowe, aby chronić system przed atakami typu XSS i innymi zagrożeniami.
+
+## Uwierzytelnianie i Autoryzacja
+
+-   Wykorzystuj wbudowane mechanizmy uwierzytelniania Supabase oparte na JWT.
+-   Implementuj polityki bezpieczeństwa na poziomie wiersza (Row Level Security - RLS) bezpośrednio w bazie danych, aby zapewnić szczegółową kontrolę dostępu.
+-   Weryfikuj tożsamość i uprawnienia użytkownika na początku każdej chronionej funkcji.
+
+## Obsługa Błędów
+
+-   Zaimplementuj spójny, scentralizowany mechanizm obsługi błędów.
+-   Zwracaj jasne i ustrukturyzowane komunikaty o błędach wraz z odpowiednimi kodami statusu HTTP.
+-   Prowadź logi błędów w celu ułatwienia debugowania i monitorowania aplikacji.
+
+## Logika Biznesowa
+
+-   Oddzielaj logikę biznesową od warstwy obsługi żądań i odpowiedzi (request/response).
+-   Twórz dedykowane warstwy serwisowe lub funkcje pomocnicze do obsługi złożonych operacji.
+-   Korzystaj z oficjalnej biblioteki klienckiej Supabase (`supabase-js`) do interakcji z bazą danych.
+
+## Interakcja z Bazą Danych
+
+-   Do złożonych zapytań i operacji wykorzystuj widoki oraz funkcje RPC (Remote Procedure Call) w bazie danych PostgreSQL.
+-   Pobieraj z bazy danych tylko te kolumny, które są niezbędne do wykonania danej operacji.
+-   Wykorzystuj transakcje bazodanowe do zapewnienia atomowości operacji składających się z wielu kroków.
+
+## Typowanie w TypeScript
+
+-   Generuj typy TypeScript bezpośrednio ze schematu bazy danych za pomocą komendy `supabase gen types typescript`.
+-   Używaj wygenerowanych typów w DTO, warstwach serwisowych i podczas interakcji z bazą danych, aby zapewnić pełne bezpieczeństwo typów.
+-   Definiuj jawne interfejsy i typy dla argumentów wejściowych oraz wartości zwracanych przez funkcje.
+
+## Projektowanie API
+
+-   Projektuj punkty końcowe API zgodnie z zasadami i konwencjami RESTful.
+-   Używaj odpowiednich metod HTTP (GET, POST, PUT, DELETE, PATCH) zgodnie z ich semantycznym przeznaczeniem.
+-   Zachowaj spójną i przewidywalną strukturę adresów URL w całym API.
