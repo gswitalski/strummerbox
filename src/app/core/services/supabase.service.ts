@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { environment } from '../../../environments/environment';
-import type { Database } from '../../../types/database.types';
+import type { Database } from '../../../../packages/database/database.types';
 
 @Injectable({
     providedIn: 'root',
