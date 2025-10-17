@@ -1,7 +1,7 @@
-import type { OrganizerProfileDto } from '../../../../packages/contracts/types.ts';
-import { createNotFoundError, createInternalError } from '../../_shared/errors.ts';
-import type { RequestSupabaseClient } from '../../_shared/supabase-client.ts';
-import { logger } from '../../_shared/logger.ts';
+import type { OrganizerProfileDto } from '../../../packages/contracts/types.ts';
+import { createNotFoundError, createInternalError } from '../_shared/errors.ts';
+import type { RequestSupabaseClient } from '../_shared/supabase-client.ts';
+import { logger } from '../_shared/logger.ts';
 
 const PROFILE_COLUMNS = 'id, display_name, created_at, updated_at';
 

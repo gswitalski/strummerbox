@@ -5,11 +5,97 @@ alwaysApply: false
 
 Ten dokument określa najlepsze praktyki i standardy tworzenia backendu w architekturze "Backend as a Service" z wykorzystaniem Supabase i TypeScript. Celem jest zapewnienie spójności, bezpieczeństwa i wysokiej jakości kodu.
 
+## Struktura Supabase Edge Functions
+
+**KRYTYCZNE: Supabase rozpoznaje funkcje TYLKO na pierwszym poziomie katalogu `supabase/functions/`**
+
+### ✅ Prawidłowa struktura:
+
+```
+supabase/
+  functions/
+    nazwa-funkcji/           ← Główny katalog funkcji (nazwa-funkcji staje się nazwą endpointa)
+      index.ts              ← WYMAGANY - główny plik z handlerem serve()
+      *.service.ts          ← Pliki z logiką biznesową
+      *.types.ts            ← Typy specyficzne dla funkcji
+      utils/                ← Dodatkowe katalogi pomocnicze
+```
+
+**URL endpointa**: `https://projekt.supabase.co/functions/v1/nazwa-funkcji`
+
+### ❌ NIEPRAWIDŁOWA struktura (funkcja NIE zostanie wykryta):
+
+```
+supabase/
+  functions/
+    grupa/
+      nazwa-funkcji/        ← ❌ Za głęboko! Supabase tego nie znajdzie!
+        index.ts
+```
+
+### Organizacja funkcji z wewnętrznym routingiem
+
+Dla endpointów pogrupowanych logicznie (np. `/me/profile`, `/me/settings`), używaj **jednej funkcji z wewnętrznym routingiem**:
+
+```typescript
+// supabase/functions/me/index.ts
+import { serve } from 'https://deno.land/std@0.224.0/http/server.ts';
+
+serve(async (request) => {
+    const url = new URL(request.url);
+    const path = url.pathname;
+
+    // Routing dla różnych endpointów
+    if (path.endsWith('/profile')) {
+        return handleProfile(request);
+    }
+
+    if (path.endsWith('/settings')) {
+        return handleSettings(request);
+    }
+
+    return new Response(JSON.stringify({ error: 'Not found' }), {
+        status: 404,
+        headers: { 'Content-Type': 'application/json' },
+    });
+});
+```
+
+**Wywołanie**:
+- `GET /functions/v1/me/profile`
+- `GET /functions/v1/me/settings`
+
+### Struktura katalogów dla funkcji
+
+```
+supabase/
+  functions/
+    me/                          ← Główna funkcja (endpoint: /me)
+      index.ts                   ← Handler z routingiem
+      profile.service.ts         ← Logika biznesowa dla /profile
+      settings.service.ts        ← Logika biznesowa dla /settings
+    songs/                       ← Funkcja zarządzania piosenkami
+      index.ts
+      songs.service.ts
+    _shared/                     ← Współdzielone narzędzia
+      auth.ts
+      errors.ts
+      http.ts
+```
+
+### Zasady nazewnictwa
+
+-   Nazwy katalogów funkcji: `kebab-case` (np. `my-function`, nie `myFunction`)
+-   Nazwa katalogu = nazwa endpointa (np. `me` → `/functions/v1/me`)
+-   Plik główny zawsze: `index.ts`
+-   Pliki pomocnicze: `nazwa.service.ts`, `nazwa.types.ts`, `nazwa.utils.ts`
+
 ## Struktura Projektu i Nazewnictwo
 
 -   Organizuj funkcje Supabase (Edge Functions) według logiki domenowej lub funkcji biznesowej.
 -   Stosuj spójne nazewnictwo dla plików, funkcji i zmiennych (np. `kebab-case` dla plików, `camelCase` dla funkcji i zmiennych).
--   Grupuj powiązane funkcje, typy i logikę w dedykowanych katalogach.
+-   Grupuj powiązaną logikę biznesową w plikach `*.service.ts` w katalogu funkcji.
+-   Współdzielone narzędzia i funkcje pomocnicze trzymaj w katalogu `functions/_shared/`.
 
 ## Walidacja i Oczyszczanie Danych
 
@@ -51,55 +137,10 @@ Ten dokument określa najlepsze praktyki i standardy tworzenia backendu w archit
 
 -   Projektuj punkty końcowe API zgodnie z zasadami i konwencjami RESTful.
 -   Używaj odpowiednich metod HTTP (GET, POST, PUT, DELETE, PATCH) zgodnie z ich semantycznym przeznaczeniem.
--   Zachowaj spójną i przewidywalną strukturę adresów URL w całym API.
-# Zasady implementacji REST API w Supabase z użyciem TypeScript
+-   Zachowuj spójną i przewidywalną strukturę adresów URL w całym API.
 
-Ten dokument określa najlepsze praktyki i standardy tworzenia backendu w architekturze "Backend as a Service" z wykorzystaniem Supabase i TypeScript. Celem jest zapewnienie spójności, bezpieczeństwa i wysokiej jakości kodu.
+## Testowanie Lokalnie
 
-## Struktura Projektu i Nazewnictwo
-
--   Organizuj funkcje Supabase (Edge Functions) według logiki domenowej lub funkcji biznesowej.
--   Stosuj spójne nazewnictwo dla plików, funkcji i zmiennych (np. `kebab-case` dla plików, `camelCase` dla funkcji i zmiennych).
--   Grupuj powiązane funkcje, typy i logikę w dedykowanych katalogach.
-
-## Walidacja i Oczyszczanie Danych
-
--   Do walidacji wszystkich danych przychodzących (body, parametry, zapytania) używaj biblioteki takiej jak Zod.
--   Definiuj precyzyjne schematy dla obiektów transferu danych (DTO), aby zapewnić integralność danych wejściowych.
--   Oczyszczaj dane wejściowe, aby chronić system przed atakami typu XSS i innymi zagrożeniami.
-
-## Uwierzytelnianie i Autoryzacja
-
--   Wykorzystuj wbudowane mechanizmy uwierzytelniania Supabase oparte na JWT.
--   Implementuj polityki bezpieczeństwa na poziomie wiersza (Row Level Security - RLS) bezpośrednio w bazie danych, aby zapewnić szczegółową kontrolę dostępu.
--   Weryfikuj tożsamość i uprawnienia użytkownika na początku każdej chronionej funkcji.
-
-## Obsługa Błędów
-
--   Zaimplementuj spójny, scentralizowany mechanizm obsługi błędów.
--   Zwracaj jasne i ustrukturyzowane komunikaty o błędach wraz z odpowiednimi kodami statusu HTTP.
--   Prowadź logi błędów w celu ułatwienia debugowania i monitorowania aplikacji.
-
-## Logika Biznesowa
-
--   Oddzielaj logikę biznesową od warstwy obsługi żądań i odpowiedzi (request/response).
--   Twórz dedykowane warstwy serwisowe lub funkcje pomocnicze do obsługi złożonych operacji.
--   Korzystaj z oficjalnej biblioteki klienckiej Supabase (`supabase-js`) do interakcji z bazą danych.
-
-## Interakcja z Bazą Danych
-
--   Do złożonych zapytań i operacji wykorzystuj widoki oraz funkcje RPC (Remote Procedure Call) w bazie danych PostgreSQL.
--   Pobieraj z bazy danych tylko te kolumny, które są niezbędne do wykonania danej operacji.
--   Wykorzystuj transakcje bazodanowe do zapewnienia atomowości operacji składających się z wielu kroków.
-
-## Typowanie w TypeScript
-
--   Generuj typy TypeScript bezpośrednio ze schematu bazy danych za pomocą komendy `supabase gen types typescript`.
--   Używaj wygenerowanych typów w DTO, warstwach serwisowych i podczas interakcji z bazą danych, aby zapewnić pełne bezpieczeństwo typów.
--   Definiuj jawne interfejsy i typy dla argumentów wejściowych oraz wartości zwracanych przez funkcje.
-
-## Projektowanie API
-
--   Projektuj punkty końcowe API zgodnie z zasadami i konwencjami RESTful.
--   Używaj odpowiednich metod HTTP (GET, POST, PUT, DELETE, PATCH) zgodnie z ich semantycznym przeznaczeniem.
--   Zachowaj spójną i przewidywalną strukturę adresów URL w całym API.
+-   Uruchamiaj funkcje lokalnie: `supabase functions serve nazwa-funkcji`
+-   Testuj endpoint pod adresem: `http://localhost:54321/functions/v1/nazwa-funkcji`
+-   Używaj nagłówka `Authorization: Bearer TOKEN` dla endpointów wymagających uwierzytelnienia
