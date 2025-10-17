@@ -1,0 +1,37 @@
+<main class="login-page">
+    <mat-card class="login-card">
+        <h1 class="login-title">Logowanie</h1>
+
+        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+            <mat-form-field appearance="outline" class="login-field">
+                <mat-label>Adres e-mail</mat-label>
+                <input matInput type="email" formControlName="email" />
+                <mat-error>@if (loginForm.controls.email.hasError('required')) { Adres e-mail jest wymagany. } @else if (loginForm.controls.email.hasError('email')) { Proszę podać poprawny adres e-mail. }</mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="login-field">
+                <mat-label>Hasło</mat-label>
+                <input matInput type="password" formControlName="password" />
+                <mat-error>@if (loginForm.controls.password.hasError('required')) { Hasło jest wymagane. }</mat-error>
+            </mat-form-field>
+
+            @if (isLoading()) {
+                <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+            }
+
+            @if (errorMessage()) {
+                <div class="login-error" role="alert">{{ errorMessage() }}</div>
+            }
+
+            <button
+                mat-raised-button
+                color="primary"
+                type="submit"
+                [disabled]="loginForm.invalid || isLoading()"
+            >
+                Zaloguj
+            </button>
+        </form>
+    </mat-card>
+</main>
+
