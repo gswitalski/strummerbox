@@ -15,7 +15,12 @@ import { ProfileService } from '../../core/services/profile.service';
 @Component({
     selector: 'stbo-default-layout',
     standalone: true,
-    imports: [MatSidenavModule, RouterOutlet, ToolbarComponent, SidenavComponent],
+    imports: [
+        MatSidenavModule,
+        RouterOutlet,
+        ToolbarComponent,
+        SidenavComponent,
+    ],
     templateUrl: './default-layout.component.html',
     styleUrl: './default-layout.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -25,14 +30,19 @@ export class DefaultLayoutComponent implements OnInit {
     private readonly profileService = inject(ProfileService);
 
     public readonly isMobile: Signal<boolean> = this.layoutService.isMobile;
-    public readonly sidenavMode: Signal<'side' | 'over'> = this.layoutService.sidenavMode;
-    public readonly isSidenavOpened: Signal<boolean> = this.layoutService.isSidenavOpen;
+    public readonly sidenavMode: Signal<'side' | 'over'> =
+        this.layoutService.sidenavMode;
+    public readonly isSidenavOpened: Signal<boolean> =
+        this.layoutService.isSidenavOpen;
 
     public ngOnInit(): void {
         void this.profileService.loadProfile();
     }
+    public onSidenavOpenedChange(isOpen: boolean | undefined): void {
+        if (typeof isOpen !== 'boolean') {
+            return;
+        }
 
-    public onSidenavOpenedChange(isOpen: boolean): void {
         this.layoutService.setSidenavOpen(isOpen);
     }
 

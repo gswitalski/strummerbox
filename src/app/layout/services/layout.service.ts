@@ -56,24 +56,18 @@ export class LayoutService {
             { initialValue: false }
         );
 
-        effect(
-            () => {
-                this.isMobileState.set(isHandsetSignal());
-            },
-            { allowSignalWrites: true }
-        );
+        effect(() => {
+            this.isMobileState.set(isHandsetSignal() ?? false);
+        });
 
-        effect(
-            () => {
-                if (this.isMobileState()) {
-                    this.isSidenavOpenState.set(false);
-                    return;
-                }
+        effect(() => {
+            if (this.isMobileState()) {
+                this.isSidenavOpenState.set(false);
+                return;
+            }
 
-                this.isSidenavOpenState.set(true);
-            },
-            { allowSignalWrites: true }
-        );
+            this.isSidenavOpenState.set(true);
+        });
     }
 
     public toggleSidenav(): void {
