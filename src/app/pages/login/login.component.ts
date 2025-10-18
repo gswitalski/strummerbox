@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import {
     FormBuilder,
@@ -14,6 +14,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import type { SignInWithPasswordCredentials } from '@supabase/supabase-js';
 
 import { SupabaseService } from '../../core/services/supabase.service';
+import { ProfileService } from '../../core/services/profile.service';
 
 @Component({
     selector: 'stbo-login',
@@ -34,7 +35,9 @@ import { SupabaseService } from '../../core/services/supabase.service';
 export class LoginComponent {
     private readonly formBuilder = inject(FormBuilder);
     private readonly router = inject(Router);
+    private readonly route = inject(ActivatedRoute);
     private readonly supabase = inject(SupabaseService);
+    private readonly profileService = inject(ProfileService);
 
     readonly loginForm = this.formBuilder.nonNullable.group({
         email: this.formBuilder.nonNullable.control('', {
@@ -81,7 +84,12 @@ export class LoginComponent {
                 return;
             }
 
-            await this.router.navigateByUrl('/dashboard');
+            this.profileService.reset();
+
+            const redirectTarget = this.route.snapshot.queryParamMap.get('redirect');
+            const targetUrl = redirectTarget && redirectTarget !== '/login' ? redirectTarget : '/dashboard';
+
+            await this.router.navigateByUrl(targetUrl);
         } catch (error) {
             console.error('Login error', error);
             this.errorMessage.set(

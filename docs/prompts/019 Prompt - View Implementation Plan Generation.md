@@ -5,24 +5,23 @@ Najpierw przejrzyj następujące informacje:
 1. Product Requirements Document (PRD):
 <prd>
 
+
 </prd>
 
-2. Opis widoku:
-<view_description>
-#### **1. Widok Logowania (Login View)**
+2. UI Plan:
+<ui_plan>
 
-*   **Ścieżka:** `/login`
-*   **Główny cel:** Umożliwienie Organizatorowi zalogowania się do aplikacji.
-*   **Kluczowe informacje:** Formularz z polami na e-mail i hasło.
-*   **Kluczowe komponenty:** `mat-card`, `mat-form-field`, `mat-input`, `mat-button`, `mat-progress-bar`.
-*   **UX, dostępność, bezpieczeństwo:**
-    *   **UX:** Wyraźne komunikaty o błędach walidacji (np. "Nieprawidłowy e-mail") i błędach logowania (np. "Błędne dane logowania"). Po pomyślnym zalogowaniu użytkownik jest przekierowywany do Dashboardu. Przycisk logowania jest nieaktywny, dopóki formularz nie jest poprawny.
-    *   **Dostępność:** Etykiety (`aria-label`) dla pól formularza, obsługa nawigacji klawiaturą.
-    *   **Bezpieczeństwo:** Komunikacja z API przez HTTPS.
 
-</view_description>
+</ui_plan>
 
-3. User Stories:
+3. Nazwa widoku do implementacji
+<view_name>
+
+
+
+</view_name>
+
+4. User Stories:
 <user_stories>
 
 -   ID: US-002
@@ -36,24 +35,24 @@ Najpierw przejrzyj następujące informacje:
 
 </user_stories>
 
-4. Endpoint Description:
+5. Endpoint Description:
 <endpoint_description>
 
 użyj standardowego endpointa logowania z Supabase
 
 </endpoint_description>
 
-5. Endpoint Implementation:
+6. Endpoint Implementation:
 <endpoint_implementation>
 {{endpoint-implementation}} <- zamień na referencję do implementacji endpointów, z których będzie korzystał widok (np. @generations.ts, @flashcards.ts)
 </endpoint_implementation>
 
-6. Type Definitions:
+7. Type Definitions:
 <type_definitions>
 {{types}} <- zamień na referencję do pliku z definicjami DTOsów (np. @types.ts)
 </type_definitions>
 
-7. Tech Stack:
+8. Tech Stack:
 <tech_stack>
 {{tech-stack}} <- zamień na referencję do pliku @tech-stack.md
 </tech_stack>
@@ -151,4 +150,4 @@ Oto przykład tego, jak powinien wyglądać plik wyjściowy (treść jest do zas
 3. [...]
 ```
 
-Rozpocznij analizę i planowanie już teraz. Twój ostateczny wynik powinien składać się wyłącznie z planu wdrożenia w języku polskim w formacie markdown, który zapiszesz w pliku .ai/{view-name}-view-implementation-plan.md i nie powinien powielać ani powtarzać żadnej pracy wykonanej w podziale implementacji.
+Rozpocznij analizę i planowanie już teraz. Twój ostateczny wynik powinien składać się wyłącznie z planu wdrożenia w języku polskim w formacie markdown, który zapiszesz w pliku docs/results/{view-name}-view-implementation-plan.md i nie powinien powielać ani powtarzać żadnej pracy wykonanej w podziale implementacji.

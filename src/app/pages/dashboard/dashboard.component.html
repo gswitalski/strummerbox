@@ -1,0 +1,49 @@
+<section class="dashboard">
+    <header class="dashboard__header">
+        <h1 class="dashboard__title" aria-live="polite">
+            @if (displayName(); as name) {
+                Witaj, {{ name }}!
+            } @else {
+                Witaj w StrummerBox!
+            }
+        </h1>
+        <p class="dashboard__subtitle">
+            Co chcesz dzisiaj zrobić?
+        </p>
+    </header>
+
+    @if (error(); as errorMessage) {
+        <p class="dashboard__error" role="status">
+            {{ errorMessage }}
+        </p>
+    }
+
+    <div class="dashboard__actions" role="group" aria-label="Szybkie akcje">
+        <button
+            mat-raised-button
+            color="primary"
+            type="button"
+            (click)="navigateToAddSong()"
+            data-testid="dashboard-add-song"
+        >
+            Dodaj nową piosenkę
+        </button>
+        <button
+            mat-raised-button
+            type="button"
+            (click)="navigateToCreateRepertoire()"
+            data-testid="dashboard-create-repertoire"
+        >
+            Stwórz nowy repertuar
+        </button>
+    </div>
+
+    @if (isLoading()) {
+        <p class="dashboard__loading" aria-live="polite" data-testid="dashboard-loading">
+            Ładuję dane profilu...
+        </p>
+    }
+</section>
+
+
+
