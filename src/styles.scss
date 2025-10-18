@@ -1,4 +1,29 @@
 /* You can add global styles to this file, and also import other style files */
 
-html, body { height: 100%; }
+:root {
+    /* Cyan-Orange Theme Colors (Dark Theme) */
+    --stbo-primary-color: #00bcd4;
+    --stbo-primary-light: #62efff;
+    --stbo-primary-lighter: #84ffff;
+    --stbo-primary-dark: #006064;
+
+    --stbo-accent-color: #ff9800;
+    --stbo-accent-light: #ffc947;
+    --stbo-accent-dark: #c66900;
+
+    --stbo-background-color: #1e1e1e;
+    --stbo-surface-color: #2d2d2d;
+    --stbo-surface-lighter: #3a3a3a;
+    --stbo-error-color: #ff5252;
+
+    --stbo-text-primary: rgba(255, 255, 255, 0.87);
+    --stbo-text-secondary: rgba(255, 255, 255, 0.6);
+    --stbo-text-disabled: rgba(255, 255, 255, 0.38);
+}
+
+html, body {
+    height: 100%;
+    background-color: var(--mat-sys-background);
+    color: var(--stbo-text-primary);
+}
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }

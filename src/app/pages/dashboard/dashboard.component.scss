@@ -21,7 +21,8 @@
 
 .dashboard__subtitle {
     margin: 0;
-    color: rgba(0, 0, 0, 0.6);
+    color: var(--stbo-text-secondary);
+    font-weight: 300;
 }
 
 .dashboard__actions {
@@ -36,7 +37,7 @@
 }
 
 .dashboard__error {
-    color: #b00020;
+    color: var(--stbo-error-color);
     text-align: center;
     margin: 0;
 }
@@ -44,5 +45,5 @@
 .dashboard__loading {
     margin: 0;
     text-align: center;
-    color: rgba(0, 0, 0, 0.6);
+    color: var(--stbo-text-secondary);
 }

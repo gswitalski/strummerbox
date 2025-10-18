@@ -4,6 +4,8 @@
     padding-inline: 16px;
     justify-content: space-between;
     align-items: center;
+    background-color: var(--mat-sys-primary-container) !important;
+    color: var(--mat-sys-on-primary-container);
 }
 
 .toolbar__title {
