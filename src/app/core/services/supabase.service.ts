@@ -12,7 +12,22 @@ export class SupabaseService {
     constructor() {
         this.supabase = createClient<Database>(
             environment.supabase.url,
-            environment.supabase.anonKey
+            environment.supabase.anonKey,
+            {
+                auth: {
+                    // Konfiguracja auth
+                    flowType: 'pkce',
+                    detectSessionInUrl: true,
+                    persistSession: true,
+                    autoRefreshToken: true,
+                    // Wyłączenie Web Locks API - rozwiązuje błąd "lock:sb-127-auth-token immediately failed"
+                    // który może występować w trybie incognito lub gdy Web Locks API nie jest dostępne
+                    // Używamy noop funkcji która natychmiast wykonuje callback bez używania Web Locks API
+                    lock: async (_name: string, acquireTimeout: number, fn: () => Promise<any>) => {
+                        return await fn();
+                    },
+                },
+            }
         );
     }
 

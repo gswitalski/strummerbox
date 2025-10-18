@@ -16,21 +16,31 @@ Najpierw przejrzyj następujące informacje:
 
 3. Nazwa widoku do implementacji
 <view_name>
-
-
+Layout Główny (Chroniony)
+ **Layout Główny (Chroniony):** Aplikacja dla zalogowanego użytkownika opiera się na komponencie `DefaultLayout`, który zawiera `mat-toolbar` u góry i kontener `mat-sidenav-container`.
+    *   **`mat-sidenav` (Panel Boczny):** Jest to główna nawigacja. Na desktopie jest stale widoczna. Na mobile jest ukryta i wysuwana za pomocą przycisku "hamburger".
+    *   **Struktura Menu:**
+        *   Nagłówek: **Panel Zarządzania**
+            *   Link: `Dashboard` (ikona `dashboard`) -> `/dashboard`
+            *   Link: `Piosenki` (ikona `music_note`) -> `/management/songs`
+            *   Link: `Repertuary` (ikona `library_music`) -> `/management/repertoires`
+        *   Separator (`mat-divider`)
+        *   Nagłówek: **Tryb Biesiada**
+            *   Link: `Moje Biesiady` (ikona `outdoor_grill`) -> `/biesiada/repertoires`
+        *   W stopce panelu:
+            *   Link: `Profil` / `Wyloguj`
+*   **Layout Publiczny:** Brak stałej nawigacji. Użytkownicy podążają za linkami.
 
 </view_name>
 
 4. User Stories:
 <user_stories>
-
--   ID: US-002
--   Title: Logowanie Organizatora
--   Description: Jako zarejestrowany Organizator, chcę móc zalogować się na moje konto, aby uzyskać dostęp do moich piosenek i repertuarów.
+  ID: US-003
+-   Title: Dostęp do chronionych zasobów
+-   Description: Jako użytkownik, chcę mieć pewność, że tylko zalogowani Organizatorzy mogą uzyskać dostęp do panelu zarządzania.
 -   Acceptance Criteria:
-    -   Formularz logowania zawiera pola na adres e-mail i hasło.
-    -   Po podaniu poprawnych danych jestem zalogowany i przekierowany do panelu zarządzania.
-    -   W przypadku podania błędnych danych, wyświetlany jest stosowny komunikat.
+    -   Próba wejścia na adres URL panelu zarządzania przez niezalogowanego użytkownika skutkuje przekierowaniem na stronę logowania.
+    -   Tylko zalogowany użytkownik może wykonywać operacje tworzenia, edycji i usuwania.
 
 
 </user_stories>
