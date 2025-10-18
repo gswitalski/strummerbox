@@ -11,17 +11,31 @@ export const routes: Routes = [
             ),
     },
     {
-        path: 'dashboard',
+        path: 'management',
         canActivate: [authGuard],
         loadComponent: () =>
-            import('./pages/dashboard/dashboard.component').then(
-                (m) => m.DashboardComponent
+            import('./layout/default-layout/default-layout.component').then(
+                (m) => m.DefaultLayoutComponent
             ),
+        children: [
+            {
+                path: 'dashboard',
+                loadComponent: () =>
+                    import('./pages/dashboard/dashboard.component').then(
+                        (m) => m.DashboardComponent
+                    ),
+            },
+            {
+                path: '',
+                pathMatch: 'full',
+                redirectTo: 'dashboard',
+            },
+        ],
     },
     {
         path: '',
         pathMatch: 'full',
-        redirectTo: 'login',
+        redirectTo: 'management',
     },
     {
         path: '**',

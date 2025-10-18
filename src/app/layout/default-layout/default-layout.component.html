@@ -1,0 +1,18 @@
+<mat-sidenav-container class="default-layout__container">
+    <mat-sidenav
+        #sidenav
+        [mode]="sidenavMode()"
+        [opened]="isSidenavOpened()"
+        (openedChange)="onSidenavOpenedChange($event)"
+    >
+        <stbo-sidenav (navigateRequest)="handleSidenavAction()"></stbo-sidenav>
+    </mat-sidenav>
+
+    <mat-sidenav-content class="default-layout__content">
+        <stbo-toolbar></stbo-toolbar>
+        <main class="default-layout__main">
+            <router-outlet></router-outlet>
+        </main>
+    </mat-sidenav-content>
+</mat-sidenav-container>
+

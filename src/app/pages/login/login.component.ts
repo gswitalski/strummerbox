@@ -87,7 +87,10 @@ export class LoginComponent {
             this.profileService.reset();
 
             const redirectTarget = this.route.snapshot.queryParamMap.get('redirect');
-            const targetUrl = redirectTarget && redirectTarget !== '/login' ? redirectTarget : '/dashboard';
+            const targetUrl =
+                redirectTarget && redirectTarget !== '/login'
+                    ? redirectTarget
+                    : '/management/dashboard';
 
             await this.router.navigateByUrl(targetUrl);
         } catch (error) {

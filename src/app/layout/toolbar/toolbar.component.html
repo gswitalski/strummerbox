@@ -1,0 +1,21 @@
+<mat-toolbar color="primary" class="toolbar">
+    @if (isMobile()) {
+        <button
+            type="button"
+            mat-icon-button
+            aria-label="Otwórz nawigację"
+            (click)="toggleSidenav()"
+        >
+            <mat-icon>menu</mat-icon>
+        </button>
+    }
+
+    <span class="toolbar__title">StrummerBox</span>
+
+    @if (userInitials(); as initials) {
+        <div class="toolbar__avatar" aria-hidden="true">
+            {{ initials }}
+        </div>
+    }
+</mat-toolbar>
+

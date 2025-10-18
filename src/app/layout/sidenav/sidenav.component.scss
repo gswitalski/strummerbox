@@ -1,0 +1,37 @@
+.sidenav {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding-block: 16px;
+    padding-inline: 12px;
+}
+
+.sidenav__header {
+    padding-inline: 12px;
+    margin-bottom: 16px;
+}
+
+.sidenav__user-name {
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.sidenav__section {
+    margin-bottom: 8px;
+}
+
+.sidenav__link--active {
+    background-color: rgba(255, 255, 255, 0.08);
+}
+
+.sidenav__footer {
+    margin-top: auto;
+    padding-inline: 4px;
+}
+
+.sidenav__logout-error {
+    margin-top: 8px;
+    color: var(--stbo-error-color, #f44336);
+    font-size: 0.875rem;
+}
+

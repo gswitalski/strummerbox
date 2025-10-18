@@ -1,0 +1,59 @@
+<aside class="sidenav" role="navigation" aria-label="Główne menu">
+    <header class="sidenav__header">
+        <div class="sidenav__user" aria-live="polite">
+            @if (profile(); as user) {
+                <span class="sidenav__user-name">{{ user.displayName || user.email }}</span>
+            } @else {
+                <span class="sidenav__user-name">Ładuję profil...</span>
+            }
+        </div>
+    </header>
+
+    <mat-nav-list class="sidenav__section" dense>
+        <h3 matSubheader>Panel zarządzania</h3>
+        @for (link of managementLinks(); track link.path) {
+            <a
+                mat-list-item
+                [routerLink]="link.path"
+                routerLinkActive="sidenav__link--active"
+                (click)="handleNavigate()"
+            >
+                <mat-icon matListItemIcon>{{ link.icon }}</mat-icon>
+                <span matListItemTitle>{{ link.label }}</span>
+            </a>
+        }
+    </mat-nav-list>
+
+    <mat-divider></mat-divider>
+
+    <mat-nav-list class="sidenav__section" dense>
+        <h3 matSubheader>Tryb Biesiada</h3>
+        @for (link of biesiadaLinks(); track link.path) {
+            <a
+                mat-list-item
+                [routerLink]="link.path"
+                routerLinkActive="sidenav__link--active"
+                (click)="handleNavigate()"
+            >
+                <mat-icon matListItemIcon>{{ link.icon }}</mat-icon>
+                <span matListItemTitle>{{ link.label }}</span>
+            </a>
+        }
+    </mat-nav-list>
+
+    <div class="sidenav__footer">
+        <button
+            mat-list-item
+            type="button"
+            (click)="logout()"
+            [disabled]="isLoggingOut()"
+        >
+            <mat-icon matListItemIcon>logout</mat-icon>
+            <span matListItemTitle>Wyloguj się</span>
+        </button>
+        @if (logoutError(); as errorMessage) {
+            <p class="sidenav__logout-error" role="alert">{{ errorMessage }}</p>
+        }
+    </div>
+</aside>
+
