@@ -23,43 +23,9 @@ supabase/
 
 **URL endpointa**: `https://projekt.supabase.co/functions/v1/nazwa-funkcji`
 
-### ❌ NIEPRAWIDŁOWA struktura (funkcja NIE zostanie wykryta):
-
-```
-supabase/
-  functions/
-    grupa/
-      nazwa-funkcji/        ← ❌ Za głęboko! Supabase tego nie znajdzie!
-        index.ts
-```
-
 ### Organizacja funkcji z wewnętrznym routingiem
 
 Dla endpointów pogrupowanych logicznie (np. `/me/profile`, `/me/settings`), używaj **jednej funkcji z wewnętrznym routingiem**:
-
-```typescript
-// supabase/functions/me/index.ts
-import { serve } from 'https://deno.land/std@0.224.0/http/server.ts';
-
-serve(async (request) => {
-    const url = new URL(request.url);
-    const path = url.pathname;
-
-    // Routing dla różnych endpointów
-    if (path.endsWith('/profile')) {
-        return handleProfile(request);
-    }
-
-    if (path.endsWith('/settings')) {
-        return handleSettings(request);
-    }
-
-    return new Response(JSON.stringify({ error: 'Not found' }), {
-        status: 404,
-        headers: { 'Content-Type': 'application/json' },
-    });
-});
-```
 
 **Wywołanie**:
 - `GET /functions/v1/me/profile`
@@ -89,6 +55,113 @@ supabase/
 -   Nazwa katalogu = nazwa endpointa (np. `me` → `/functions/v1/me`)
 -   Plik główny zawsze: `index.ts`
 -   Pliki pomocnicze: `nazwa.service.ts`, `nazwa.types.ts`, `nazwa.utils.ts`
+
+## Modularyzacja Edge Functions
+
+**ZALECANE: Stosuj modularną strukturę dla KAŻDEJ Edge Function, niezależnie od liczby endpointów.**
+
+### Architektura modularna
+
+Każda Edge Function powinna być zorganizowana według następującego wzorca separacji odpowiedzialności:
+
+1. **`index.ts`** - tylko routing i obsługa błędów na najwyższym poziomie
+2. **`*.handlers.ts`** - handlery dla poszczególnych endpointów/zasobów
+3. **`*.service.ts`** - logika biznesowa i operacje na danych
+4. **`*.types.ts`** - typy specyficzne dla danego zasobu (opcjonalnie)
+
+### Struktura dla małej funkcji (1-2 endpointy)
+
+```
+supabase/functions/profile/
+  ├── index.ts              # routing
+  ├── profile.handlers.ts   # handlery GET, PUT
+  └── profile.service.ts    # logika biznesowa
+```
+
+### Struktura dla średniej funkcji (3-5 endpointów)
+
+```
+supabase/functions/me/
+  ├── index.ts                  # główny router
+  ├── profile.handlers.ts       # handlery dla /me/profile
+  ├── profile.service.ts        # logika profilu
+  ├── biesiada.handlers.ts      # handlery dla /me/biesiada/*
+  └── biesiada.service.ts       # logika biesiada
+```
+
+### Struktura dla dużej funkcji (6+ endpointów)
+
+```
+supabase/functions/songs/
+  ├── index.ts                      # główny router
+  ├── handlers/
+  │   ├── songs.handlers.ts         # CRUD dla piosenek
+  │   ├── publish.handlers.ts       # publikacja/odpublikowanie
+  │   └── share.handlers.ts         # generowanie linków
+  ├── services/
+  │   ├── songs.service.ts          # operacje na piosenkach
+  │   ├── publish.service.ts        # logika publikacji
+  │   └── share.service.ts          # logika udostępniania
+  └── types/
+      └── songs.types.ts            # typy specyficzne dla piosenek
+```
+
+### Wzorzec implementacji - index.ts (Router)
+
+**Rola**: Przyjmowanie requestów, routing do właściwych handlerów, obsługa błędów na najwyższym poziomie.
+
+**Kluczowe zasady dla `index.ts`**:
+- ❌ NIGDY nie umieszczaj logiki biznesowej bezpośrednio w `index.ts`
+- ❌ NIGDY nie wykonuj zapytań do bazy danych w `index.ts`
+- ✅ TYLKO routing, autoryzacja na wysokim poziomie i obsługa błędów
+- ✅ Import routerów z plików `*.handlers.ts`
+
+### Wzorzec implementacji - *.handlers.ts (Handlers + Router)
+
+**Rola**: Obsługa konkretnych endpointów, walidacja requestów, wywołanie serwisów, formatowanie odpowiedzi.
+
+**Kluczowe zasady dla `*.handlers.ts`**:
+- ✅ Eksportuj osobne funkcje dla każdego handlera (np. `handleGetProfile`, `handleUpdateProfile`)
+- ✅ Eksportuj funkcję router (np. `profileRouter`) do użycia w `index.ts`
+- ✅ Handlery odpowiadają za walidację requestu i formatowanie response
+- ✅ Handlery delegują logikę biznesową do plików `*.service.ts`
+- ❌ Handlery NIE wykonują złożonych operacji na danych - to rola serwisów
+- ✅ Każdy handler loguje operację (info level minimum)
+
+### Wzorzec implementacji dla zagnieżdżonych ścieżek
+
+Dla endpointów typu `/me/biesiada/repertoires/{id}/songs/{songId}`:
+
+**Kluczowe zasady dla routerów z regex**:
+- ✅ Sprawdzaj NAJPIERW dłuższe/bardziej specyficzne ścieżki
+- ✅ Używaj capture groups `([^/]+)` do wyciągania parametrów z URL
+- ✅ Zwracaj `null` gdy ścieżka nie pasuje (pozwala na próbę innych routerów)
+- ✅ Waliduj HTTP method osobno dla każdej ścieżki
+- ✅ Parametry URL przekazuj jako argumenty do handlerów
+
+### Wzorzec implementacji - *.service.ts (Business Logic)
+
+**Rola**: Logika biznesowa, operacje na danych, zapytania do bazy.
+
+**Kluczowe zasady dla `*.service.ts`**:
+- ✅ Eksportuj funkcje z prefiksem akcji (np. `get`, `update`, `create`, `delete`)
+- ✅ Przyjmuj parametry jako obiekt z nazwanymi właściwościami
+- ✅ Definiuj stałe dla kolumn SELECT na początku pliku
+- ✅ Wykonuj walidację logiki biznesowej (długość, format, relacje)
+- ✅ Rzucaj ApplicationError dla błędów biznesowych
+- ✅ Loguj operacje na poziomie error i warn
+- ✅ Zwracaj typy DTO, nie raw types z bazy
+- ❌ Serwisy NIE formatują HTTP response - to rola handlerów
+
+### Konwencje nazewnictwa plików modularnych
+
+| Typ pliku | Nazwa | Przykład | Opis |
+|-----------|-------|----------|------|
+| Router główny | `index.ts` | `index.ts` | Zawsze w głównym katalogu funkcji |
+| Handlery | `{zasób}.handlers.ts` | `profile.handlers.ts` | Handlery HTTP dla zasobu |
+| Serwisy | `{zasób}.service.ts` | `profile.service.ts` | Logika biznesowa |
+| Typy | `{zasób}.types.ts` | `songs.types.ts` | Typy specyficzne dla zasobu |
+| Utilities | `{zasób}.utils.ts` | `validation.utils.ts` | Funkcje pomocnicze |
 
 ## Struktura Projektu i Nazewnictwo
 
