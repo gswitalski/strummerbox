@@ -47,6 +47,23 @@
 - **Success:** `200 OK`, `201 Created` (first time profile created).
 - **Errors:** `400 Bad Request` (missing/invalid field), `401 Unauthorized`.
 
+#### POST /me/profile
+- **Method:** POST
+- **Path:** `/register`
+- **Description:** Register a new organizer. Creates a user in Supabase Auth and a corresponding profile entry.
+- **Query Parameters:** none
+- **Request JSON:**
+```json
+{
+  "email": "organizer@example.com",
+  "password": "supersecretpassword",
+  "displayName": "Basia"
+}
+```
+- **Response JSON:** same as `GET /me/profile`.
+- **Success:** `201 Created`
+- **Errors:** `400 Bad Request` (invalid payload, e.g. weak password), `409 Conflict` (email already exists).
+
 ### 2.2 Songs (Authenticated Organizer)
 
 #### POST /songs
