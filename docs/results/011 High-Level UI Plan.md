@@ -33,9 +33,9 @@ Zarządzanie stanem aplikacji będzie realizowane za pomocą serwisów Angulara 
 
 #### **2. Widok Rejestracji (Register View)**
 
-*   **Ścieżka:** `/register`
+*   **Ścieżka:** `/register` - wejscie do ściezki poprzez dodanie dodatkowego przycisku "Zarejestruj się" na formularzu logowania
 *   **Główny cel:** Umożliwienie nowemu Organizatorowi założenia konta.
-*   **Kluczowe informacje:** Formularz z polami na e-mail i hasło (z potwierdzeniem).
+*   **Kluczowe informacje:** Formularz z polami na e-mail, nick (displayName) i hasło (z potwierdzeniem).
 *   **Kluczowe komponenty:** Takie same jak w Widoku Logowania.
 *   **UX, dostępność, bezpieczeństwo:**
     *   **UX:** Walidacja hasła (np. minimalna długość) i jego potwierdzenia po stronie klienta. Komunikaty o błędach (np. "Konto o tym adresie e-mail już istnieje"). Po sukcesie użytkownik jest automatycznie logowany i przekierowywany do Dashboardu.

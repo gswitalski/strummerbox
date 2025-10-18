@@ -6,41 +6,32 @@ Najpierw przejrzyj następujące informacje:
 <prd>
 
 
+
 </prd>
 
 2. UI Plan:
 <ui_plan>
 
 
+
 </ui_plan>
 
 3. Nazwa widoku do implementacji
 <view_name>
-Layout Główny (Chroniony)
- **Layout Główny (Chroniony):** Aplikacja dla zalogowanego użytkownika opiera się na komponencie `DefaultLayout`, który zawiera `mat-toolbar` u góry i kontener `mat-sidenav-container`.
-    *   **`mat-sidenav` (Panel Boczny):** Jest to główna nawigacja. Na desktopie jest stale widoczna. Na mobile jest ukryta i wysuwana za pomocą przycisku "hamburger".
-    *   **Struktura Menu:**
-        *   Nagłówek: **Panel Zarządzania**
-            *   Link: `Dashboard` (ikona `dashboard`) -> `/dashboard`
-            *   Link: `Piosenki` (ikona `music_note`) -> `/management/songs`
-            *   Link: `Repertuary` (ikona `library_music`) -> `/management/repertoires`
-        *   Separator (`mat-divider`)
-        *   Nagłówek: **Tryb Biesiada**
-            *   Link: `Moje Biesiady` (ikona `outdoor_grill`) -> `/biesiada/repertoires`
-        *   W stopce panelu:
-            *   Link: `Profil` / `Wyloguj`
-*   **Layout Publiczny:** Brak stałej nawigacji. Użytkownicy podążają za linkami.
-
+2. Widok Rejestracji (Register View)
 </view_name>
 
 4. User Stories:
 <user_stories>
-  ID: US-003
--   Title: Dostęp do chronionych zasobów
--   Description: Jako użytkownik, chcę mieć pewność, że tylko zalogowani Organizatorzy mogą uzyskać dostęp do panelu zarządzania.
+-   ID: US-001
+-   Title: Rejestracja nowego Organizatora
+-   Description: Jako nowy użytkownik, chcę móc założyć konto w aplikacji przy użyciu mojego adresu e-mail i hasła, aby uzyskać dostęp do funkcji zarządzania piosenkami i repertuarami.
 -   Acceptance Criteria:
-    -   Próba wejścia na adres URL panelu zarządzania przez niezalogowanego użytkownika skutkuje przekierowaniem na stronę logowania.
-    -   Tylko zalogowany użytkownik może wykonywać operacje tworzenia, edycji i usuwania.
+    -   Formularz logownanie jest rozszerzony o przycisk "Zarejestruj" sie, który prrzekierowuje użytkownika do formularza rejestracji
+    -   Formularz rejestracji zawiera pola na adres e-mail, nick i hasło.
+    -   System waliduje, czy podany e-mail jest w poprawnym formacie.
+    -   System sprawdza, czy e-mail nie jest już zarejestrowany.
+    -   Po pomyślnej rejestracji jestem automatycznie zalogowany i przekierowany do panelu zarządzania.
 
 
 </user_stories>
@@ -48,23 +39,29 @@ Layout Główny (Chroniony)
 5. Endpoint Description:
 <endpoint_description>
 
-użyj standardowego endpointa logowania z Supabase
+
 
 </endpoint_description>
 
 6. Endpoint Implementation:
 <endpoint_implementation>
-{{endpoint-implementation}} <- zamień na referencję do implementacji endpointów, z których będzie korzystał widok (np. @generations.ts, @flashcards.ts)
+
+
+
 </endpoint_implementation>
 
 7. Type Definitions:
 <type_definitions>
-{{types}} <- zamień na referencję do pliku z definicjami DTOsów (np. @types.ts)
+
+
+
 </type_definitions>
 
 8. Tech Stack:
 <tech_stack>
-{{tech-stack}} <- zamień na referencję do pliku @tech-stack.md
+
+
+
 </tech_stack>
 
 Przed utworzeniem ostatecznego planu wdrożenia przeprowadź analizę i planowanie wewnątrz tagów <implementation_breakdown> w swoim bloku myślenia. Ta sekcja może być dość długa, ponieważ ważne jest, aby być dokładnym.
