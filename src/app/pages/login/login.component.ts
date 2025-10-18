@@ -11,6 +11,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { RouterModule } from '@angular/router';
 import type { SignInWithPasswordCredentials } from '@supabase/supabase-js';
 
 import { SupabaseService } from '../../core/services/supabase.service';
@@ -27,6 +28,7 @@ import { ProfileService } from '../../core/services/profile.service';
         MatFormFieldModule,
         MatInputModule,
         MatProgressBarModule,
+        RouterModule,
     ],
     templateUrl: './login.component.html',
     styleUrls: ['./login.component.scss'],

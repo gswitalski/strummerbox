@@ -1,0 +1,9 @@
+<main class="register-page">
+    <stbo-register-form
+        [isLoading]="isLoading()"
+        [serverError]="serverError()"
+        (formSubmit)="handleRegister($event)"
+    ></stbo-register-form>
+</main>
+
+

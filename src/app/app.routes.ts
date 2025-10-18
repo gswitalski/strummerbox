@@ -11,6 +11,13 @@ export const routes: Routes = [
             ),
     },
     {
+        path: 'register',
+        loadComponent: () =>
+            import('./pages/register/register-page.component').then(
+                (m) => m.RegisterPageComponent
+            ),
+    },
+    {
         path: 'management',
         canActivate: [authGuard],
         loadComponent: () =>
