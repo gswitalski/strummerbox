@@ -1,12 +1,48 @@
 @use 'sass:map';
 
 .register-page {
-    min-height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 16px;
+    min-height: 100vh;
     background-color: var(--mat-sys-background);
+    padding: 16px;
+}
+
+.register-card {
+    width: min(400px, 100%);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.register-title {
+    margin: 0;
+    text-align: center;
+}
+
+.register-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.register-field {
+    width: 100%;
+}
+
+.register-error {
+    color: var(--stbo-error-color);
+    background-color: rgba(255, 82, 82, 0.1);
+    border: 1px solid var(--stbo-error-color);
+    border-radius: 4px;
+    padding: 12px;
+}
+
+.register-login-prompt {
+    margin: 0;
+    text-align: center;
 }
 
 

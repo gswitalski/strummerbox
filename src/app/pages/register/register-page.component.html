@@ -1,9 +1,105 @@
 <main class="register-page">
-    <stbo-register-form
-        [isLoading]="isLoading()"
-        [serverError]="serverError()"
-        (formSubmit)="handleRegister($event)"
-    ></stbo-register-form>
+    <mat-card class="register-card">
+        <h1 class="register-title">Rejestracja</h1>
+
+        <form
+            [formGroup]="registerForm"
+            (ngSubmit)="onSubmit()"
+            class="register-form"
+            novalidate
+        >
+            <mat-form-field appearance="outline" class="register-field">
+                <mat-label>Adres e-mail</mat-label>
+                <input matInput type="email" formControlName="email" autocomplete="email" />
+                <mat-error>
+                    @if (registerForm.controls.email.hasError('required')) {
+                        Adres e-mail jest wymagany.
+                    } @else if (registerForm.controls.email.hasError('email')) {
+                        Proszę podać poprawny adres e-mail.
+                    }
+                </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="register-field">
+                <mat-label>Nazwa wyświetlana</mat-label>
+                <input
+                    matInput
+                    type="text"
+                    formControlName="displayName"
+                    autocomplete="nickname"
+                />
+                <mat-error>
+                    @if (registerForm.controls.displayName.hasError('required')) {
+                        Nazwa wyświetlana jest wymagana.
+                    } @else if (registerForm.controls.displayName.hasError('minlength')) {
+                        Nazwa musi mieć co najmniej 1 znak.
+                    } @else if (registerForm.controls.displayName.hasError('maxlength')) {
+                        Nazwa może mieć maksymalnie 120 znaków.
+                    }
+                </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="register-field">
+                <mat-label>Hasło</mat-label>
+                <input
+                    matInput
+                    type="password"
+                    formControlName="password"
+                    autocomplete="new-password"
+                    (input)="onPasswordInput()"
+                />
+                <mat-error>
+                    @if (registerForm.controls.password.hasError('required')) {
+                        Hasło jest wymagane.
+                    } @else if (registerForm.controls.password.hasError('minlength')) {
+                        Hasło musi mieć co najmniej 8 znaków.
+                    } @else if (registerForm.controls.password.hasError('maxlength')) {
+                        Hasło może mieć maksymalnie 256 znaków.
+                    }
+                </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="register-field">
+                <mat-label>Potwierdź hasło</mat-label>
+                <input
+                    matInput
+                    type="password"
+                    formControlName="confirmPassword"
+                    autocomplete="new-password"
+                    (input)="onPasswordInput()"
+                />
+                <mat-error>
+                    @if (registerForm.controls.confirmPassword.hasError('required')) {
+                        Potwierdzenie hasła jest wymagane.
+                    } @else if (passwordsMismatch()) {
+                        Hasła muszą być identyczne.
+                    }
+                </mat-error>
+            </mat-form-field>
+
+            @if (isLoading()) {
+                <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+            }
+
+            @if (errorMessage()) {
+                <div class="register-error" role="alert">{{ errorMessage() }}</div>
+            }
+
+            <button
+                mat-raised-button
+                color="primary"
+                type="submit"
+                [disabled]="registerForm.invalid || isLoading()"
+            >
+                Zarejestruj się
+            </button>
+        </form>
+
+        <p class="register-login-prompt">
+            Masz już konto?
+            <a routerLink="/login">Zaloguj się</a>
+        </p>
+    </mat-card>
 </main>
 
 
