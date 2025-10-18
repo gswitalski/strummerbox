@@ -5,6 +5,7 @@ import { buildErrorResponse, withErrorHandling } from '../_shared/http.ts';
 import { logger } from '../_shared/logger.ts';
 import { ApplicationError, createInternalError } from '../_shared/errors.ts';
 import { profileRouter } from './profile.handlers.ts';
+import { registerRouter } from './register.handlers.ts';
 
 serve(async (request) => {
     const url = new URL(request.url);
@@ -13,11 +14,17 @@ serve(async (request) => {
     const supabase = createSupabaseClient(request);
 
     const execute = withErrorHandling(async () => {
+        if (path.endsWith('/register')) {
+            return await registerRouter(request);
+        }
+
         const user = await requireAuth(supabase);
 
         if (path.endsWith('/profile')) {
             return await profileRouter(request, supabase, user);
         }
+
+        logger.warn('Nieobsłużona ścieżka w funkcji /me', { path });
 
         return new Response(JSON.stringify({ error: 'Not found' }), {
             status: 404,

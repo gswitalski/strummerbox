@@ -34,11 +34,29 @@ export const createNotFoundError = (message: string, details?: unknown): Applica
     });
 };
 
+export const createValidationError = (message: string, details?: unknown): ApplicationError => {
+    return new ApplicationError({
+        code: 'validation_error',
+        status: 400,
+        message,
+        details,
+    });
+};
+
 export const createUnauthorizedError = (message: string): ApplicationError => {
     return new ApplicationError({
         code: 'unauthorized',
         status: 401,
         message,
+    });
+};
+
+export const createConflictError = (message: string, details?: unknown): ApplicationError => {
+    return new ApplicationError({
+        code: 'conflict',
+        status: 409,
+        message,
+        details,
     });
 };
 
