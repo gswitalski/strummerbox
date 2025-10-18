@@ -43,13 +43,14 @@
 
     <div class="sidenav__footer">
         <button
-            mat-list-item
+            mat-stroked-button
             type="button"
+            class="sidenav__logout-button"
             (click)="logout()"
             [disabled]="isLoggingOut()"
         >
-            <mat-icon matListItemIcon>logout</mat-icon>
-            <span matListItemTitle>Wyloguj się</span>
+            <mat-icon>logout</mat-icon>
+            <span>Wyloguj się</span>
         </button>
         @if (logoutError(); as errorMessage) {
             <p class="sidenav__logout-error" role="alert">{{ errorMessage }}</p>

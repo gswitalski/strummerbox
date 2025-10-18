@@ -4,6 +4,7 @@
     height: 100%;
     padding-block: 16px;
     padding-inline: 12px;
+    box-sizing: border-box;
 }
 
 .sidenav__header {
@@ -29,9 +30,19 @@
     padding-inline: 4px;
 }
 
+.sidenav__logout-button {
+    width: 100%;
+    display: flex;
+    justify-content: flex-start;
+    gap: 12px;
+}
+
 .sidenav__logout-error {
     margin-top: 8px;
     color: var(--stbo-error-color, #f44336);
     font-size: 0.875rem;
 }
 
+aside {
+    border-right: 1px solid var(--mat-sys-outline-variant);
+}
