@@ -5,24 +5,23 @@ Zanim zaczniemy, zapoznaj się z poniższymi informacjami:
 1. Route API specification:
 <route_api_specification>
 
-#### GET /me/profile
-- **Method:** GET
-- **Path:** `/me/profile`
-- **Description:** Return the authenticated organizer profile.
+#### POST /me/profile
+- **Method:** POST
+- **Path:** `/register`
+- **Description:** Register a new organizer. Creates a user in Supabase Auth and a corresponding profile entry.
 - **Query Parameters:** none
-- **Request JSON:** _none_
-- **Response JSON:**
+- **Request JSON:**
 ```json
 {
-  "id": "c2b20c72-9a4a-4e1e-8d4f-52d0c2cf72cf",
   "email": "organizer@example.com",
-  "displayName": "Basia",
-  "createdAt": "2025-10-15T08:20:51Z",
-  "updatedAt": "2025-10-15T08:22:03Z"
+  "password": "supersecretpassword",
+  "displayName": "Basia"
 }
 ```
-- **Success:** `200 OK`
-- **Errors:** `401 Unauthorized` (missing/invalid token), `404 Not Found` (profile not initialized).
+- **Response JSON:** same as `GET /me/profile`.
+- **Success:** `201 Created`
+- **Errors:** `400 Bad Request` (invalid payload, e.g. weak password), `409 Conflict` (email already exists).
+
 
 
 </route_api_specification>
@@ -57,7 +56,9 @@ this table is managed by Supabase Auth
 
 4. Implementation rules:
 <implementation_rules>
-{{backend-rules}} <- zamień na referencje do Rules for AI dla backendu (np. @shared.mdc, @backend.mdc, @astro.mdc)
+
+
+
 </implementation_rules>
 
 Twoim zadaniem jest stworzenie kompleksowego planu wdrożenia endpointu interfejsu API REST. Przed dostarczeniem ostatecznego planu użyj znaczników <analysis>, aby przeanalizować informacje i nakreślić swoje podejście. W tej analizie upewnij się, że:
@@ -136,4 +137,4 @@ Końcowym wynikiem powinien być dobrze zorganizowany plan wdrożenia w formacie
 
 Końcowe wyniki powinny składać się wyłącznie z planu wdrożenia w formacie markdown i nie powinny powielać ani powtarzać żadnej pracy wykonanej w sekcji analizy.
 
-Pamiętaj, aby zapisać swój plan wdrożenia jako .docs/view-implementation-plan.md. Upewnij się, że plan jest szczegółowy, przejrzysty i zapewnia kompleksowe wskazówki dla zespołu programistów.
+Pamiętaj, aby zapisać swój plan wdrożenia jako docs/results/api-impl-plan/post-user-implementation-plan.md. Upewnij się, że plan jest szczegółowy, przejrzysty i zapewnia kompleksowe wskazówki dla zespołu programistów.

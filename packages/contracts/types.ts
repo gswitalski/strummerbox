@@ -43,6 +43,16 @@ export type OrganizerProfileUpsertCommand = {
     displayName: ProfileRow['display_name'];
 };
 
+/**
+ * Command to register a new organizer.
+ * Used in: POST /register
+ */
+export type OrganizerRegisterCommand = {
+    email: string;
+    password: string;
+    displayName: ProfileRow['display_name'];
+};
+
 // ============================================================================
 // Song DTOs and Commands (Section 2.2)
 // ============================================================================
