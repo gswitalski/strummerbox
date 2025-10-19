@@ -5,7 +5,7 @@ import { createValidationError } from '../_shared/errors.ts';
 import { logger } from '../_shared/logger.ts';
 import type { AuthenticatedUser } from '../_shared/auth.ts';
 import type { RequestSupabaseClient } from '../_shared/supabase-client.ts';
-import { createSong, getSongDetails, getSongs, updateSong, type SongPutCommand } from './songs.service.ts';
+import { createSong, getSongDetails, getSongs, updateSong, type SongPatchCommand } from './songs.service.ts';
 import type { GetSongsFilters } from './songs.service.ts';
 
 const SONG_ID_SCHEMA = z.string().uuid('Nieprawidłowy identyfikator piosenki');
@@ -56,7 +56,7 @@ const POST_COMMAND_SCHEMA = z
     })
     .strict();
 
-const PUT_COMMAND_SCHEMA = z
+const PATCH_COMMAND_SCHEMA = z
     .object({
         title: z
             .string({ required_error: 'Tytuł piosenki jest wymagany' })
@@ -66,7 +66,6 @@ const PUT_COMMAND_SCHEMA = z
         content: z
             .string({ required_error: 'Treść piosenki jest wymagana' })
             .min(1, 'Treść piosenki nie może być pusta'),
-        published: z.boolean().optional(),
     })
     .strict();
 
@@ -93,7 +92,7 @@ const parsePostRequestBody = async (request: Request): Promise<SongCreateCommand
     return result.data;
 };
 
-const parsePutRequestBody = async (request: Request): Promise<SongPutCommand> => {
+const parsePatchRequestBody = async (request: Request): Promise<SongPatchCommand> => {
     let payload: unknown;
 
     try {
@@ -103,7 +102,7 @@ const parsePutRequestBody = async (request: Request): Promise<SongPutCommand> =>
         throw createValidationError('Nieprawidłowy format JSON w żądaniu');
     }
 
-    const result = PUT_COMMAND_SCHEMA.safeParse(payload);
+    const result = PATCH_COMMAND_SCHEMA.safeParse(payload);
 
     if (!result.success) {
         logger.warn('Błędy walidacji żądania aktualizacji piosenki', {
@@ -375,20 +374,19 @@ export const handlePostSong = async (
     return jsonResponse({ data: song }, { status: 201 });
 };
 
-export const handlePutSong = async (
+export const handlePatchSong = async (
     request: Request,
     supabase: RequestSupabaseClient,
     user: AuthenticatedUser,
     rawSongId: string,
 ): Promise<Response> => {
     const songId = parseSongId(rawSongId);
-    const command = await parsePutRequestBody(request);
+    const command = await parsePatchRequestBody(request);
 
-    logger.info('Rozpoczęto aktualizację piosenki', {
+    logger.info('Rozpoczęto częściową aktualizację piosenki', {
         userId: user.id,
         songId,
         title: command.title,
-        published: command.published ?? 'no_change',
     });
 
     const song = await updateSong({
@@ -429,8 +427,8 @@ export const songsRouter = async (
     if (songMatch) {
         const songId = songMatch[1];
 
-        if (request.method === 'PUT') {
-            return await handlePutSong(request, supabase, user, songId);
+        if (request.method === 'PATCH') {
+            return await handlePatchSong(request, supabase, user, songId);
         }
 
         if (request.method === 'GET') {
@@ -440,7 +438,7 @@ export const songsRouter = async (
         return new Response(null, {
             status: 405,
             headers: {
-                Allow: 'GET, PUT',
+                Allow: 'GET, PATCH',
             },
         });
     }

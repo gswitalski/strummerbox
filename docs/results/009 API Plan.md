@@ -136,22 +136,6 @@
 - **Success:** `200 OK`
 - **Errors:** `401 Unauthorized`, `403 Forbidden` (not owner), `404 Not Found`.
 
-#### PUT /songs/{id}
-- **Method:** PUT
-- **Path:** `/songs/{id}`
-- **Description:** Fully update a song's title and content. This is an idempotent operation that replaces the entire resource. For partial updates, use the PATCH method.
-- **Query Parameters:** none
-- **Request JSON:**
-```json
-{
-  "title": "Knockin' on Heaven's Door (New Version)",
-  "content": "[G] [D] [C]\n..."
-}
-```
-- **Response JSON:** The full, updated song resource, similar to `GET /songs/{id}`.
-- **Success:** `200 OK`
-- **Errors:** `400 Bad Request` (invalid payload, missing fields), `401 Unauthorized`, `403 Forbidden` (not owner), `404 Not Found`, `409 Conflict` (title already used by organizer).
-
 #### PATCH /songs/{id}
 - **Method:** PATCH
 - **Path:** `/songs/{id}`

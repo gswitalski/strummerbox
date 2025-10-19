@@ -140,17 +140,16 @@ export const createSong = async ({
     return mapToSongDto(data);
 };
 
-export type SongPutCommand = {
+export type SongPatchCommand = {
     title: string;
     content: string;
-    published?: boolean;
 };
 
 export type UpdateSongParams = {
     supabase: RequestSupabaseClient;
     organizerId: string;
     songId: string;
-    command: SongPutCommand;
+    command: SongPatchCommand;
 };
 
 export const updateSong = async ({
@@ -159,7 +158,7 @@ export const updateSong = async ({
     songId,
     command,
 }: UpdateSongParams): Promise<SongDto> => {
-    const { title, content, published } = command;
+    const { title, content } = command;
     const trimmedTitle = title.trim();
 
     const { data: existingSong, error: fetchError } = await supabase
@@ -186,18 +185,11 @@ export const updateSong = async ({
         throw createNotFoundError('Piosenka nie została znaleziona', { songId });
     }
 
-    const publishedAt = published === undefined
-        ? existingSong.published_at
-        : published
-            ? new Date().toISOString()
-            : null;
-
     const { data, error } = await supabase
         .from('songs')
         .update({
             title: trimmedTitle,
             content,
-            published_at: publishedAt,
         })
         .eq('id', songId)
         .eq('organizer_id', organizerId)
