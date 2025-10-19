@@ -5,39 +5,52 @@ Zanim zaczniemy, zapoznaj się z poniższymi informacjami:
 1. Route API specification:
 <route_api_specification>
 
-#### POST /me/profile
+#### POST /songs
 - **Method:** POST
-- **Path:** `/register`
-- **Description:** Register a new organizer. Creates a user in Supabase Auth and a corresponding profile entry.
+- **Path:** `/songs`
+- **Description:** Create a new song owned by the organizer.
 - **Query Parameters:** none
 - **Request JSON:**
 ```json
 {
-  "email": "organizer@example.com",
-  "password": "supersecretpassword",
-  "displayName": "Basia"
+  "title": "Knockin' on Heaven's Door",
+  "content": "[G]Mama, take this badge off of me...",
+  "published": false
 }
 ```
-- **Response JSON:** same as `GET /me/profile`.
+- **Response JSON:**
+```json
+{
+  "id": "58b8a0d0-5bf4-4d8a-82de-a2ad8c37b8a5",
+  "publicId": "6e42f88a-2d46-4c27-8371-98dd621b6af2",
+  "title": "Knockin' on Heaven's Door",
+  "content": "[G]Mama, take this badge off of me...",
+  "publishedAt": null,
+  "createdAt": "2025-10-15T08:20:51Z",
+  "updatedAt": "2025-10-15T08:20:51Z"
+}
+```
 - **Success:** `201 Created`
-- **Errors:** `400 Bad Request` (invalid payload, e.g. weak password), `409 Conflict` (email already exists).
-
+- **Errors:** `400 Bad Request` (invalid payload), `401 Unauthorized`, `409 Conflict` (title already used by organizer).
 
 
 </route_api_specification>
 
 2. Related database resources:
 <related_db_resources>
-
 - `users`
 this table is managed by Supabase Auth
 
-- `profiles`
-  - `id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE`
-  - `display_name TEXT NOT NULL CHECK (char_length(display_name) BETWEEN 1 AND 120)`
+- `songs`
+  - `id UUID PRIMARY KEY DEFAULT gen_random_uuid()`
+  - `organizer_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE`
+  - `public_id UUID NOT NULL UNIQUE DEFAULT gen_random_uuid()`
+  - `title TEXT NOT NULL CHECK (char_length(trim(title)) BETWEEN 1 AND 180)`
+  - `content TEXT NOT NULL CHECK (char_length(trim(content)) > 0)`
+  - `published_at TIMESTAMPTZ NULL`
   - `created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc', now())`
   - `updated_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc', now())`
-
+  - `UNIQUE (organizer_id, title)`
 </related_db_resources>
 
 3. Definicje typów:
@@ -137,4 +150,4 @@ Końcowym wynikiem powinien być dobrze zorganizowany plan wdrożenia w formacie
 
 Końcowe wyniki powinny składać się wyłącznie z planu wdrożenia w formacie markdown i nie powinny powielać ani powtarzać żadnej pracy wykonanej w sekcji analizy.
 
-Pamiętaj, aby zapisać swój plan wdrożenia jako docs/results/api-impl-plan/post-user-implementation-plan.md. Upewnij się, że plan jest szczegółowy, przejrzysty i zapewnia kompleksowe wskazówki dla zespołu programistów.
+Pamiętaj, aby zapisać swój plan wdrożenia jako docs/results/impl-plans/post-song-api-implementation-plan.md. Upewnij się, że plan jest szczegółowy, przejrzysty i zapewnia kompleksowe wskazówki dla zespołu programistów.
