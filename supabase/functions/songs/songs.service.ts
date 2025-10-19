@@ -1,5 +1,5 @@
 import type { SongDto, SongCreateCommand } from '../../../packages/contracts/types.ts';
-import { createConflictError, createInternalError } from '../_shared/errors.ts';
+import { createConflictError, createInternalError, createNotFoundError } from '../_shared/errors.ts';
 import type { RequestSupabaseClient } from '../_shared/supabase-client.ts';
 import { logger } from '../_shared/logger.ts';
 
@@ -64,6 +64,108 @@ export const createSong = async ({
         organizerId,
         songId: data.id,
         title: data.title,
+    });
+
+    return {
+        id: data.id,
+        publicId: data.public_id,
+        title: data.title,
+        content: data.content,
+        publishedAt: data.published_at,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at,
+    };
+};
+
+export type SongPutCommand = {
+    title: string;
+    content: string;
+    published?: boolean;
+};
+
+export type UpdateSongParams = {
+    supabase: RequestSupabaseClient;
+    organizerId: string;
+    songId: string;
+    command: SongPutCommand;
+};
+
+export const updateSong = async ({
+    supabase,
+    organizerId,
+    songId,
+    command,
+}: UpdateSongParams): Promise<SongDto> => {
+    const { title, content, published } = command;
+    const trimmedTitle = title.trim();
+
+    const { data: existingSong, error: fetchError } = await supabase
+        .from('songs')
+        .select(SONG_COLUMNS)
+        .eq('id', songId)
+        .eq('organizer_id', organizerId)
+        .maybeSingle();
+
+    if (fetchError) {
+        logger.error('Failed to fetch song before update', {
+            organizerId,
+            songId,
+            error: fetchError,
+        });
+        throw createInternalError('Nie udało się pobrać danych piosenki', fetchError);
+    }
+
+    if (!existingSong) {
+        logger.warn('Song not found for update', {
+            organizerId,
+            songId,
+        });
+        throw createNotFoundError('Piosenka nie została znaleziona', { songId });
+    }
+
+    const publishedAt = published === undefined
+        ? existingSong.published_at
+        : published
+            ? new Date().toISOString()
+            : null;
+
+    const { data, error } = await supabase
+        .from('songs')
+        .update({
+            title: trimmedTitle,
+            content,
+            published_at: publishedAt,
+        })
+        .eq('id', songId)
+        .eq('organizer_id', organizerId)
+        .select(SONG_COLUMNS)
+        .single();
+
+    if (error) {
+        if (error.code === '23505') {
+            logger.warn('Song title conflict during update', {
+                organizerId,
+                songId,
+                title: trimmedTitle,
+            });
+
+            throw createConflictError('Piosenka o podanym tytule już istnieje', {
+                title: trimmedTitle,
+            });
+        }
+
+        logger.error('Failed to update song', {
+            organizerId,
+            songId,
+            error,
+        });
+
+        throw createInternalError('Nie udało się zaktualizować piosenki', error);
+    }
+
+    logger.info('Song updated successfully', {
+        organizerId,
+        songId,
     });
 
     return {

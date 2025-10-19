@@ -13,9 +13,11 @@ serve(async (request) => {
     const supabase = createSupabaseClient(request);
 
     const execute = withErrorHandling(async () => {
-        if (path.endsWith('/songs')) {
+        const songsPathRegex = /\/songs(?:\/[^/]+)?$/;
+
+        if (songsPathRegex.test(path)) {
             const user = await requireAuth(supabase);
-            return await songsRouter(request, supabase, user);
+            return await songsRouter(request, supabase, user, path);
         }
 
         logger.warn('Nieobsłużona ścieżka w funkcji /songs', { path });
