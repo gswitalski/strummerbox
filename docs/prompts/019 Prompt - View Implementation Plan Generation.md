@@ -18,20 +18,18 @@ Najpierw przejrzyj następujące informacje:
 
 3. Nazwa widoku do implementacji
 <view_name>
-2. Widok Rejestracji (Register View)
+6. Lista Piosenek (Song List View)
 </view_name>
 
 4. User Stories:
 <user_stories>
--   ID: US-001
--   Title: Rejestracja nowego Organizatora
--   Description: Jako nowy użytkownik, chcę móc założyć konto w aplikacji przy użyciu mojego adresu e-mail i hasła, aby uzyskać dostęp do funkcji zarządzania piosenkami i repertuarami.
+-   ID: US-005
+-   Title: Przeglądanie listy piosenek
+-   Description: Jako Organizator, chcę widzieć listę wszystkich moich piosenek, aby móc nimi zarządzać.
 -   Acceptance Criteria:
-    -   Formularz logownanie jest rozszerzony o przycisk "Zarejestruj" sie, który prrzekierowuje użytkownika do formularza rejestracji
-    -   Formularz rejestracji zawiera pola na adres e-mail, nick i hasło.
-    -   System waliduje, czy podany e-mail jest w poprawnym formacie.
-    -   System sprawdza, czy e-mail nie jest już zarejestrowany.
-    -   Po pomyślnej rejestracji jestem automatycznie zalogowany i przekierowany do panelu zarządzania.
+    -   W panelu zarządzania znajduje się sekcja z listą wszystkich dodanych przeze mnie piosenek.
+    -   Dla każdej piosenki na liście widoczne są opcje edycji i usunięcia.
+    -   Jeśli nie dodałem żadnej piosenki, widzę komunikat "pustego stanu" z zachętą do działania.
 
 
 </user_stories>
@@ -39,6 +37,38 @@ Najpierw przejrzyj następujące informacje:
 5. Endpoint Description:
 <endpoint_description>
 
+#### GET /songs
+- **Method:** GET
+- **Path:** `/songs`
+- **Description:** List organizer songs with pagination, search and filtering.
+- **Query Parameters:**
+  - `page` (default 1)
+  - `pageSize` (default 20, max 100)
+  - `search` (substring matched with trigram index against `title`)
+  - `published` (`true|false|null`)
+  - `sort` (`title|createdAt|updatedAt|publishedAt`, prefix with `-` for descending)
+- **Request JSON:** _none_
+- **Response JSON:**
+```json
+{
+  "items": [
+    {
+      "id": "58b8a0d0-5bf4-4d8a-82de-a2ad8c37b8a5",
+      "publicId": "6e42f88a-2d46-4c27-8371-98dd621b6af2",
+      "title": "Knockin' on Heaven's Door",
+      "publishedAt": null,
+      "createdAt": "2025-10-15T08:20:51Z",
+      "updatedAt": "2025-10-15T08:22:03Z"
+    }
+  ],
+  "page": 1,
+  "pageSize": 20,
+  "total": 42
+}
+```
+- **Headers:** `X-Total-Count`
+- **Success:** `200 OK`
+- **Errors:** `401 Unauthorized`.
 
 
 </endpoint_description>
