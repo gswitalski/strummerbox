@@ -1,8 +1,10 @@
 import type {
+    SongDetailDto,
     SongDto,
     SongCreateCommand,
     SongListResponseDto,
     SongSummaryDto,
+    SongUsageDto,
 } from '../../../packages/contracts/types.ts';
 import { createConflictError, createInternalError, createNotFoundError } from '../_shared/errors.ts';
 import type { RequestSupabaseClient } from '../_shared/supabase-client.ts';
@@ -12,6 +14,26 @@ const SONG_COLUMNS =
     'id, public_id, title, content, published_at, created_at, updated_at';
 
 const SONG_SUMMARY_COLUMNS = 'id, public_id, title, published_at, created_at, updated_at';
+
+const SONG_USAGE_COLUMNS = 'repertoire_id, repertoires!inner(id, name, organizer_id)';
+
+const mapToSongDto = (row: {
+    id: string;
+    public_id: string;
+    title: string;
+    content: string;
+    published_at: string | null;
+    created_at: string;
+    updated_at: string;
+}): SongDto => ({
+    id: row.id,
+    publicId: row.public_id,
+    title: row.title,
+    content: row.content,
+    publishedAt: row.published_at,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+});
 
 const SORT_COLUMN_MAP = {
     title: 'title',
@@ -115,15 +137,7 @@ export const createSong = async ({
         title: data.title,
     });
 
-    return {
-        id: data.id,
-        publicId: data.public_id,
-        title: data.title,
-        content: data.content,
-        publishedAt: data.published_at,
-        createdAt: data.created_at,
-        updatedAt: data.updated_at,
-    };
+    return mapToSongDto(data);
 };
 
 export type SongPutCommand = {
@@ -217,15 +231,7 @@ export const updateSong = async ({
         songId,
     });
 
-    return {
-        id: data.id,
-        publicId: data.public_id,
-        title: data.title,
-        content: data.content,
-        publishedAt: data.published_at,
-        createdAt: data.created_at,
-        updatedAt: data.updated_at,
-    };
+    return mapToSongDto(data);
 };
 
 const calculatePaginationRange = (page: number, pageSize: number): { from: number; to: number } => {
@@ -308,5 +314,95 @@ export const getSongs = async ({
         pageSize,
         total,
     };
+};
+
+export type GetSongDetailsParams = {
+    supabase: RequestSupabaseClient;
+    organizerId: string;
+    songId: string;
+    includeUsage: boolean;
+};
+
+export const getSongDetails = async ({
+    supabase,
+    organizerId,
+    songId,
+    includeUsage,
+}: GetSongDetailsParams): Promise<SongDetailDto> => {
+    const { data: songRow, error: songError } = await supabase
+        .from('songs')
+        .select(SONG_COLUMNS)
+        .eq('id', songId)
+        .eq('organizer_id', organizerId)
+        .maybeSingle();
+
+    if (songError) {
+        logger.error('Failed to fetch song details', {
+            organizerId,
+            songId,
+            error: songError,
+        });
+        throw createInternalError('Nie udało się pobrać danych piosenki', songError);
+    }
+
+    if (!songRow) {
+        logger.warn('Song not found when fetching details', {
+            organizerId,
+            songId,
+        });
+        throw createNotFoundError('Piosenka nie została znaleziona', { songId });
+    }
+
+    const song = mapToSongDto(songRow);
+
+    if (!includeUsage) {
+        logger.info('Song details fetched without usage info', {
+            organizerId,
+            songId,
+        });
+        return song;
+    }
+
+    const { data: usageRows, error: usageError } = await supabase
+        .from('repertoire_songs')
+        .select(SONG_USAGE_COLUMNS)
+        .eq('song_id', songId)
+        .eq('repertoires.organizer_id', organizerId);
+
+    if (usageError) {
+        logger.error('Failed to fetch song usage information', {
+            organizerId,
+            songId,
+            error: usageError,
+        });
+        throw createInternalError('Nie udało się pobrać informacji o wykorzystaniu piosenki', usageError);
+    }
+
+    const usages: SongUsageDto[] = (usageRows ?? []).map((row) => {
+        const repertoire = row.repertoires;
+
+        if (!repertoire) {
+            logger.warn('Song usage row missing joined repertoire', {
+                songId,
+                repertoireId: row.repertoire_id,
+            });
+            return null;
+        }
+
+        return {
+            repertoireId: repertoire.id,
+            name: repertoire.name,
+        } satisfies SongUsageDto;
+    }).filter((usage): usage is SongUsageDto => usage !== null);
+
+    logger.info('Song details fetched with usage info', {
+        organizerId,
+        songId,
+        usageCount: usages.length,
+    });
+
+    const songWithUsage: SongDetailDto = usages.length > 0 ? { ...song, repertoires: usages } : song;
+
+    return songWithUsage;
 };
 

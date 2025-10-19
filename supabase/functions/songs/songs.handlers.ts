@@ -1,11 +1,11 @@
 import { z } from 'https://deno.land/x/zod@v3.23.8/mod.ts';
-import type { SongCreateCommand, SongListResponseDto } from '../../../packages/contracts/types.ts';
+import type { SongCreateCommand, SongDetailDto, SongListResponseDto } from '../../../packages/contracts/types.ts';
 import { jsonResponse } from '../_shared/http.ts';
 import { createValidationError } from '../_shared/errors.ts';
 import { logger } from '../_shared/logger.ts';
 import type { AuthenticatedUser } from '../_shared/auth.ts';
 import type { RequestSupabaseClient } from '../_shared/supabase-client.ts';
-import { createSong, getSongs, updateSong, type SongPutCommand } from './songs.service.ts';
+import { createSong, getSongDetails, getSongs, updateSong, type SongPutCommand } from './songs.service.ts';
 import type { GetSongsFilters } from './songs.service.ts';
 
 const SONG_ID_SCHEMA = z.string().uuid('Nieprawidłowy identyfikator piosenki');
@@ -129,6 +129,32 @@ const parseSongId = (rawSongId: string): string => {
     }
 
     return result.data;
+};
+
+const parseIncludeUsageFlag = (request: Request): boolean => {
+    const url = new URL(request.url);
+    const includeUsageParam = url.searchParams.get('includeUsage');
+
+    if (includeUsageParam === null) {
+        return false;
+    }
+
+    if (includeUsageParam === 'true') {
+        return true;
+    }
+
+    if (includeUsageParam === 'false') {
+        return false;
+    }
+
+    logger.warn('Nieprawidłowa wartość parametru includeUsage', {
+        value: includeUsageParam,
+    });
+
+    throw createValidationError('Parametr includeUsage musi mieć wartość true lub false', {
+        field: 'includeUsage',
+        value: includeUsageParam,
+    });
 };
 
 const parsePositiveInteger = (
@@ -295,6 +321,39 @@ export const handleGetSongs = async (
     return jsonResponse<{ data: SongListResponseDto }>({ data: result }, { headers });
 };
 
+export const handleGetSong = async (
+    request: Request,
+    supabase: RequestSupabaseClient,
+    user: AuthenticatedUser,
+    rawSongId: string,
+): Promise<Response> => {
+    const songId = parseSongId(rawSongId);
+    const includeUsage = parseIncludeUsageFlag(request);
+
+    logger.info('Rozpoczęto pobieranie szczegółów piosenki', {
+        userId: user.id,
+        songId,
+        includeUsage,
+    });
+
+    const song = await getSongDetails({
+        supabase,
+        organizerId: user.id,
+        songId,
+        includeUsage,
+    });
+
+    const responseBody: { data: SongDetailDto } = {
+        data: song,
+    };
+
+    const headers = new Headers({
+        'Cache-Control': 'no-store',
+    });
+
+    return jsonResponse(responseBody, { status: 200, headers });
+};
+
 export const handlePostSong = async (
     request: Request,
     supabase: RequestSupabaseClient,
@@ -374,10 +433,14 @@ export const songsRouter = async (
             return await handlePutSong(request, supabase, user, songId);
         }
 
+        if (request.method === 'GET') {
+            return await handleGetSong(request, supabase, user, songId);
+        }
+
         return new Response(null, {
             status: 405,
             headers: {
-                Allow: 'PUT',
+                Allow: 'GET, PUT',
             },
         });
     }
