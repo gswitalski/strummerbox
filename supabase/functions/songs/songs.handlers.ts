@@ -1,13 +1,46 @@
 import { z } from 'https://deno.land/x/zod@v3.23.8/mod.ts';
-import type { SongCreateCommand } from '../../../packages/contracts/types.ts';
+import type { SongCreateCommand, SongListResponseDto } from '../../../packages/contracts/types.ts';
 import { jsonResponse } from '../_shared/http.ts';
 import { createValidationError } from '../_shared/errors.ts';
 import { logger } from '../_shared/logger.ts';
 import type { AuthenticatedUser } from '../_shared/auth.ts';
 import type { RequestSupabaseClient } from '../_shared/supabase-client.ts';
-import { createSong, updateSong, type SongPutCommand } from './songs.service.ts';
+import { createSong, getSongs, updateSong, type SongPutCommand } from './songs.service.ts';
+import type { GetSongsFilters } from './songs.service.ts';
 
 const SONG_ID_SCHEMA = z.string().uuid('Nieprawidłowy identyfikator piosenki');
+
+const RAW_GET_QUERY_SCHEMA = z
+    .object({
+        page: z.string().optional(),
+        pageSize: z.string().optional(),
+        search: z.string().optional(),
+        published: z.enum(['true', 'false']).optional(),
+        sort: z.string().optional(),
+    })
+    .strict();
+
+const SORTABLE_FIELDS = ['title', 'createdAt', 'updatedAt', 'publishedAt'] as const;
+
+type SortField = typeof SORTABLE_FIELDS[number];
+
+type SortDirection = 'asc' | 'desc';
+
+type ParsedSort = GetSongsFilters['sort'];
+
+type GetSongsQuery = {
+    page: number;
+    pageSize: number;
+    search?: string;
+    published?: boolean;
+    sort: ParsedSort;
+};
+
+const DEFAULT_PAGE = 1;
+const DEFAULT_PAGE_SIZE = 20;
+const MAX_PAGE_SIZE = 100;
+const DEFAULT_SORT = '-createdAt';
+const MAX_SEARCH_LENGTH = 200;
 
 const POST_COMMAND_SCHEMA = z
     .object({
@@ -98,6 +131,170 @@ const parseSongId = (rawSongId: string): string => {
     return result.data;
 };
 
+const parsePositiveInteger = (
+    rawValue: string,
+    field: 'page' | 'pageSize',
+    { min, max }: { min: number; max?: number },
+): number => {
+    if (!/^\d+$/.test(rawValue)) {
+        logger.warn('Parametr zapytania nie jest dodatnią liczbą całkowitą', {
+            field,
+            value: rawValue,
+        });
+        throw createValidationError(`Parametr ${field} musi być dodatnią liczbą całkowitą`, {
+            field,
+        });
+    }
+
+    const parsed = Number.parseInt(rawValue, 10);
+
+    if (!Number.isSafeInteger(parsed)) {
+        logger.warn('Parametr zapytania przekracza bezpieczny zakres liczb', {
+            field,
+            value: rawValue,
+        });
+        throw createValidationError(`Parametr ${field} ma nieprawidłową wartość`, {
+            field,
+        });
+    }
+
+    if (parsed < min) {
+        logger.warn('Parametr zapytania jest mniejszy od minimalnej wartości', {
+            field,
+            value: parsed,
+            min,
+        });
+        throw createValidationError(`Parametr ${field} nie może być mniejszy niż ${min}`, {
+            field,
+        });
+    }
+
+    if (max !== undefined && parsed > max) {
+        logger.warn('Parametr zapytania przekracza maksymalną dozwoloną wartość', {
+            field,
+            value: parsed,
+            max,
+        });
+        throw createValidationError(`Parametr ${field} nie może być większy niż ${max}`, {
+            field,
+        });
+    }
+
+    return parsed;
+};
+
+const parseSort = (rawSort?: string): ParsedSort => {
+    const value = rawSort ?? DEFAULT_SORT;
+    const direction: SortDirection = value.startsWith('-') ? 'desc' : 'asc';
+    const fieldName = direction === 'desc' ? value.slice(1) : value;
+
+    if (!SORTABLE_FIELDS.includes(fieldName as SortField)) {
+        logger.warn('Nieprawidłowa wartość sortowania', { value });
+        throw createValidationError('Nieprawidłowy parametr sortowania', {
+            field: 'sort',
+            value,
+        });
+    }
+
+    return {
+        field: fieldName as SortField,
+        direction,
+    };
+};
+
+const normalizeSearch = (rawValue?: string): string | undefined => {
+    if (rawValue === undefined) {
+        return undefined;
+    }
+
+    const trimmed = rawValue.trim();
+
+    if (trimmed.length === 0) {
+        return undefined;
+    }
+
+    if (trimmed.length > MAX_SEARCH_LENGTH) {
+        logger.warn('Parametr search przekracza maksymalną długość', {
+            length: trimmed.length,
+            max: MAX_SEARCH_LENGTH,
+        });
+        throw createValidationError(`Parametr search nie może przekraczać ${MAX_SEARCH_LENGTH} znaków`, {
+            field: 'search',
+        });
+    }
+
+    return trimmed;
+};
+
+const parseGetSongsQuery = (request: Request): GetSongsQuery => {
+    const url = new URL(request.url);
+    const rawParams = Object.fromEntries(url.searchParams.entries());
+
+    const result = RAW_GET_QUERY_SCHEMA.safeParse(rawParams);
+
+    if (!result.success) {
+        logger.warn('Błędy walidacji parametrów zapytania GET /songs', {
+            issues: result.error.issues,
+        });
+        throw createValidationError('Nieprawidłowe parametry zapytania', result.error.format());
+    }
+
+    const { page, pageSize, search, published, sort } = result.data;
+
+    const parsedPage = page ? parsePositiveInteger(page, 'page', { min: 1 }) : DEFAULT_PAGE;
+    const parsedPageSize = pageSize
+        ? parsePositiveInteger(pageSize, 'pageSize', { min: 1, max: MAX_PAGE_SIZE })
+        : DEFAULT_PAGE_SIZE;
+
+    const normalizedSearch = normalizeSearch(search);
+    const parsedPublished = published === undefined ? undefined : published === 'true';
+    const parsedSort = parseSort(sort);
+
+    return {
+        page: parsedPage,
+        pageSize: parsedPageSize,
+        search: normalizedSearch,
+        published: parsedPublished,
+        sort: parsedSort,
+    };
+};
+
+export const handleGetSongs = async (
+    request: Request,
+    supabase: RequestSupabaseClient,
+    user: AuthenticatedUser,
+): Promise<Response> => {
+    const query = parseGetSongsQuery(request);
+
+    logger.info('Rozpoczęto pobieranie listy piosenek', {
+        userId: user.id,
+        page: query.page,
+        pageSize: query.pageSize,
+        search: query.search ?? null,
+        published: query.published ?? 'all',
+        sort: `${query.sort.direction === 'desc' ? '-' : ''}${query.sort.field}`,
+    });
+
+    const result = await getSongs({
+        organizerId: user.id,
+        supabase,
+        filters: {
+            page: query.page,
+            pageSize: query.pageSize,
+            search: query.search,
+            published: query.published,
+            sort: query.sort,
+        },
+    });
+
+    const headers = new Headers({
+        'X-Total-Count': String(result.total),
+        'Cache-Control': 'no-store',
+    });
+
+    return jsonResponse<{ data: SongListResponseDto }>({ data: result }, { headers });
+};
+
 export const handlePostSong = async (
     request: Request,
     supabase: RequestSupabaseClient,
@@ -152,6 +349,10 @@ export const songsRouter = async (
     path: string,
 ): Promise<Response> => {
     if (path.endsWith('/songs')) {
+        if (request.method === 'GET') {
+            return await handleGetSongs(request, supabase, user);
+        }
+
         if (request.method === 'POST') {
             return await handlePostSong(request, supabase, user);
         }
@@ -159,7 +360,7 @@ export const songsRouter = async (
         return new Response(null, {
             status: 405,
             headers: {
-                Allow: 'POST',
+                Allow: 'GET, POST',
             },
         });
     }

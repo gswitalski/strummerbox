@@ -1,10 +1,59 @@
-import type { SongDto, SongCreateCommand } from '../../../packages/contracts/types.ts';
+import type {
+    SongDto,
+    SongCreateCommand,
+    SongListResponseDto,
+    SongSummaryDto,
+} from '../../../packages/contracts/types.ts';
 import { createConflictError, createInternalError, createNotFoundError } from '../_shared/errors.ts';
 import type { RequestSupabaseClient } from '../_shared/supabase-client.ts';
 import { logger } from '../_shared/logger.ts';
 
 const SONG_COLUMNS =
     'id, public_id, title, content, published_at, created_at, updated_at';
+
+const SONG_SUMMARY_COLUMNS = 'id, public_id, title, published_at, created_at, updated_at';
+
+const SORT_COLUMN_MAP = {
+    title: 'title',
+    createdAt: 'created_at',
+    updatedAt: 'updated_at',
+    publishedAt: 'published_at',
+} as const;
+
+export type GetSongsSortField = keyof typeof SORT_COLUMN_MAP;
+
+export type GetSongsFilters = {
+    page: number;
+    pageSize: number;
+    search?: string;
+    published?: boolean;
+    sort: {
+        field: GetSongsSortField;
+        direction: 'asc' | 'desc';
+    };
+};
+
+export type GetSongsParams = {
+    supabase: RequestSupabaseClient;
+    organizerId: string;
+    filters: GetSongsFilters;
+};
+
+const mapToSongSummaryDto = (row: {
+    id: string;
+    public_id: string;
+    title: string;
+    published_at: string | null;
+    created_at: string;
+    updated_at: string;
+}): SongSummaryDto => ({
+    id: row.id,
+    publicId: row.public_id,
+    title: row.title,
+    publishedAt: row.published_at,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+});
 
 export type CreateSongParams = {
     supabase: RequestSupabaseClient;
@@ -176,6 +225,88 @@ export const updateSong = async ({
         publishedAt: data.published_at,
         createdAt: data.created_at,
         updatedAt: data.updated_at,
+    };
+};
+
+const calculatePaginationRange = (page: number, pageSize: number): { from: number; to: number } => {
+    const from = (page - 1) * pageSize;
+    const to = from + pageSize - 1;
+
+    return { from, to };
+};
+
+export const getSongs = async ({
+    supabase,
+    organizerId,
+    filters,
+}: GetSongsParams): Promise<SongListResponseDto> => {
+    const { page, pageSize, search, published, sort } = filters;
+
+    const query = supabase
+        .from('songs')
+        .select(SONG_SUMMARY_COLUMNS, { count: 'exact' })
+        .eq('organizer_id', organizerId);
+
+    if (search) {
+        query.ilike('title', `%${search}%`);
+    }
+
+    if (published !== undefined) {
+        if (published) {
+            query.not('published_at', 'is', null);
+        } else {
+            query.is('published_at', null);
+        }
+    }
+
+    const sortColumn = SORT_COLUMN_MAP[sort.field];
+    const ascending = sort.direction === 'asc';
+
+    query.order(sortColumn, {
+        ascending,
+        nullsFirst: ascending,
+        nullsLast: !ascending,
+    });
+
+    const { from, to } = calculatePaginationRange(page, pageSize);
+    query.range(from, to);
+
+    const { data, count, error } = await query;
+
+    if (error) {
+        logger.error('Nie udało się pobrać listy piosenek', {
+            organizerId,
+            filters,
+            error,
+        });
+        throw createInternalError('Nie udało się pobrać listy piosenek', error);
+    }
+
+    if (!data) {
+        logger.error('Supabase zwróciło pustą odpowiedź przy pobieraniu piosenek', {
+            organizerId,
+            filters,
+        });
+        throw createInternalError('Nie udało się pobrać listy piosenek');
+    }
+
+    const items = data.map(mapToSongSummaryDto);
+
+    const total = count ?? 0;
+
+    logger.info('Pomyślnie pobrano listę piosenek', {
+        organizerId,
+        page,
+        pageSize,
+        itemCount: items.length,
+        total,
+    });
+
+    return {
+        items,
+        page,
+        pageSize,
+        total,
     };
 };
 
