@@ -5,72 +5,35 @@ alwaysApply: false
 
 Ten dokument określa najlepsze praktyki i standardy tworzenia backendu w architekturze "Backend as a Service" z wykorzystaniem Supabase i TypeScript. Celem jest zapewnienie spójności, bezpieczeństwa i wysokiej jakości kodu.
 
-## Struktura Supabase Edge Functions
+## Architektura i Struktura Edge Functions
+
+Ta sekcja opisuje zarówno wymaganą przez Supabase strukturę plików, jak i zalecaną, modularną architekturę wewnętrzną dla każdej funkcji, która zapewnia skalowalność i łatwość utrzymania kodu.
+
+**ZALECANE: Stosuj poniższą modularną strukturę dla KAŻDEJ Edge Function, niezależnie od jej początkowej złożoności.**
+
+### Podstawowe Zasady Supabase
 
 **KRYTYCZNE: Supabase rozpoznaje funkcje TYLKO na pierwszym poziomie katalogu `supabase/functions/`**
 
-### ✅ Prawidłowa struktura:
+-   **Struktura katalogu funkcji:** Każda funkcja musi znajdować się w osobnym katalogu wewnątrz `supabase/functions/`.
+-   **Nazwa endpointa:** Nazwa katalogu funkcji staje się bezpośrednio nazwą endpointa (np. katalog `me` tworzy endpoint `/functions/v1/me`).
+-   **Plik wejściowy:** Każda funkcja musi zawierać plik `index.ts`, który jest punktem wejściowym i obsługuje przychodzące żądania.
+-   **Nazewnictwo:** Nazwy katalogów funkcji powinny być w formacie `kebab-case`.
 
-```
-supabase/
-  functions/
-    nazwa-funkcji/           ← Główny katalog funkcji (nazwa-funkcji staje się nazwą endpointa)
-      index.ts              ← WYMAGANY - główny plik z handlerem serve()
-      *.service.ts          ← Pliki z logiką biznesową
-      *.types.ts            ← Typy specyficzne dla funkcji
-      utils/                ← Dodatkowe katalogi pomocnicze
-```
+### Rekomendowana Architektura Modularna
 
-**URL endpointa**: `https://projekt.supabase.co/functions/v1/nazwa-funkcji`
+Każda funkcja powinna być zorganizowana według wzorca separacji odpowiedzialności, aby oddzielić routing, obsługę żądań i logikę biznesową.
 
-### Organizacja funkcji z wewnętrznym routingiem
+1.  **`index.ts`** - Tylko routing i obsługa błędów na najwyższym poziomie.
+2.  **`*.handlers.ts`** - Handlery dla poszczególnych endpointów/zasobów (walidacja, formatowanie odpowiedzi).
+3.  **`*.service.ts`** - Czysta logika biznesowa i operacje na danych.
+4.  **`*.types.ts`** - Typy specyficzne dla danego zasobu (opcjonalnie).
 
-Dla endpointów pogrupowanych logicznie (np. `/me/profile`, `/me/settings`), używaj **jednej funkcji z wewnętrznym routingiem**:
+### Przykładowe Struktury Katalogów
 
-**Wywołanie**:
-- `GET /functions/v1/me/profile`
-- `GET /functions/v1/me/settings`
+Poniższe przykłady pokazują, jak skalować architekturę w zależności od złożoności funkcji.
 
-### Struktura katalogów dla funkcji
-
-```
-supabase/
-  functions/
-    me/                          ← Główna funkcja (endpoint: /me)
-      index.ts                   ← Handler z routingiem
-      profile.service.ts         ← Logika biznesowa dla /profile
-      settings.service.ts        ← Logika biznesowa dla /settings
-    songs/                       ← Funkcja zarządzania piosenkami
-      index.ts
-      songs.service.ts
-    _shared/                     ← Współdzielone narzędzia
-      auth.ts
-      errors.ts
-      http.ts
-```
-
-### Zasady nazewnictwa
-
--   Nazwy katalogów funkcji: `kebab-case` (np. `my-function`, nie `myFunction`)
--   Nazwa katalogu = nazwa endpointa (np. `me` → `/functions/v1/me`)
--   Plik główny zawsze: `index.ts`
--   Pliki pomocnicze: `nazwa.service.ts`, `nazwa.types.ts`, `nazwa.utils.ts`
-
-## Modularyzacja Edge Functions
-
-**ZALECANE: Stosuj modularną strukturę dla KAŻDEJ Edge Function, niezależnie od liczby endpointów.**
-
-### Architektura modularna
-
-Każda Edge Function powinna być zorganizowana według następującego wzorca separacji odpowiedzialności:
-
-1. **`index.ts`** - tylko routing i obsługa błędów na najwyższym poziomie
-2. **`*.handlers.ts`** - handlery dla poszczególnych endpointów/zasobów
-3. **`*.service.ts`** - logika biznesowa i operacje na danych
-4. **`*.types.ts`** - typy specyficzne dla danego zasobu (opcjonalnie)
-
-### Struktura dla małej funkcji (1-2 endpointy)
-
+#### Mała funkcja (1-2 endpointy)
 ```
 supabase/functions/profile/
   ├── index.ts              # routing
@@ -78,19 +41,19 @@ supabase/functions/profile/
   └── profile.service.ts    # logika biznesowa
 ```
 
-### Struktura dla średniej funkcji (3-5 endpointów)
+#### Średnia funkcja (3-5 endpointów, np. `/me/*`)
+Dla logicznie powiązanych endpointów (np. `/me/profile`, `/me/settings`), użyj jednej funkcji z wewnętrznym routingiem.
 
 ```
 supabase/functions/me/
   ├── index.ts                  # główny router
   ├── profile.handlers.ts       # handlery dla /me/profile
   ├── profile.service.ts        # logika profilu
-  ├── biesiada.handlers.ts      # handlery dla /me/biesiada/*
-  └── biesiada.service.ts       # logika biesiada
+  ├── settings.handlers.ts      # handlery dla /me/settings
+  └── settings.service.ts       # logika ustawień
 ```
 
-### Struktura dla dużej funkcji (6+ endpointów)
-
+#### Duża funkcja (6+ endpointów)
 ```
 supabase/functions/songs/
   ├── index.ts                      # główny router
@@ -163,12 +126,14 @@ Dla endpointów typu `/me/biesiada/repertoires/{id}/songs/{songId}`:
 | Typy | `{zasób}.types.ts` | `songs.types.ts` | Typy specyficzne dla zasobu |
 | Utilities | `{zasób}.utils.ts` | `validation.utils.ts` | Funkcje pomocnicze |
 
+## Współdzielony Kod
+
+Współdzielone narzędzia i funkcje pomocnicze (np. obsługa błędów, klient Supabase, logger) trzymaj w katalogu `functions/_shared/`.
+
 ## Struktura Projektu i Nazewnictwo
 
 -   Organizuj funkcje Supabase (Edge Functions) według logiki domenowej lub funkcji biznesowej.
 -   Stosuj spójne nazewnictwo dla plików, funkcji i zmiennych (np. `kebab-case` dla plików, `camelCase` dla funkcji i zmiennych).
--   Grupuj powiązaną logikę biznesową w plikach `*.service.ts` w katalogu funkcji.
--   Współdzielone narzędzia i funkcje pomocnicze trzymaj w katalogu `functions/_shared/`.
 
 ## Walidacja i Oczyszczanie Danych
 
