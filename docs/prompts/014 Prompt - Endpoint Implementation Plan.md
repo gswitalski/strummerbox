@@ -5,38 +5,14 @@ Zanim zaczniemy, zapoznaj się z poniższymi informacjami:
 1. Route API specification:
 <route_api_specification>
 
-#### GET /songs
+#### GET /songs/{id}
 - **Method:** GET
-- **Path:** `/songs`
-- **Description:** List organizer songs with pagination, search and filtering.
-- **Query Parameters:**
-  - `page` (default 1)
-  - `pageSize` (default 20, max 100)
-  - `search` (substring matched with trigram index against `title`)
-  - `published` (`true|false|null`)
-  - `sort` (`title|createdAt|updatedAt|publishedAt`, prefix with `-` for descending)
-- **Request JSON:** _none_
-- **Response JSON:**
-```json
-{
-  "items": [
-    {
-      "id": "58b8a0d0-5bf4-4d8a-82de-a2ad8c37b8a5",
-      "publicId": "6e42f88a-2d46-4c27-8371-98dd621b6af2",
-      "title": "Knockin' on Heaven's Door",
-      "publishedAt": null,
-      "createdAt": "2025-10-15T08:20:51Z",
-      "updatedAt": "2025-10-15T08:22:03Z"
-    }
-  ],
-  "page": 1,
-  "pageSize": 20,
-  "total": 42
-}
-```
-- **Headers:** `X-Total-Count`
+- **Path:** `/songs/{id}`
+- **Description:** Fetch full song with chords for editing/Biesiada organizer view.
+- **Query Parameters:** `includeUsage` (`true` adds repertoires using the song)
+- **Response JSON:** song resource plus optional `repertoires` array.
 - **Success:** `200 OK`
-- **Errors:** `401 Unauthorized`.
+- **Errors:** `401 Unauthorized`, `403 Forbidden` (not owner), `404 Not Found`.
 
 </route_api_specification>
 
