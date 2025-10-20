@@ -164,7 +164,7 @@ export class AuthService {
     }
 }
 
-type RegisterResponse = {
+interface RegisterResponse {
     data: OrganizerProfileDto;
-};
+}
 

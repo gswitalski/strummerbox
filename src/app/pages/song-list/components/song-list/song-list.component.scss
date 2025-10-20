@@ -1,0 +1,60 @@
+.song-list__table-wrapper {
+    position: relative;
+    overflow-x: auto;
+}
+
+.song-list__table-wrapper.is-loading::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-color: rgba(255, 255, 255, 0.6);
+    pointer-events: none;
+}
+
+table {
+    width: 100%;
+}
+
+.song-list__status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: rgba(0, 0, 0, 0.6);
+
+    &--published {
+        color: #2e7d32;
+    }
+}
+
+.song-list__actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.song-list__cards {
+    display: grid;
+    gap: 1rem;
+}
+
+@media (min-width: 600px) {
+    .song-list__cards {
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    }
+}
+
+.song-list__card {
+    display: flex;
+    flex-direction: column;
+}
+
+.song-list__overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(255, 255, 255, 0.6);
+    pointer-events: none;
+}
+

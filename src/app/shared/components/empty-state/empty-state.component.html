@@ -1,0 +1,14 @@
+<section class="empty-state" role="status" aria-live="polite">
+    <mat-icon class="empty-state__icon" aria-hidden="true">{{ icon }}</mat-icon>
+    <p class="empty-state__message">{{ message }}</p>
+    @if (buttonText) {
+        <button
+            mat-raised-button
+            type="button"
+            (click)="onCtaClick()"
+            [disabled]="disableButton"
+        >
+            {{ buttonText }}
+        </button>
+    }
+</section>

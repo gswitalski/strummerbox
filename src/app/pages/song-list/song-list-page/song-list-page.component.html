@@ -1,0 +1,78 @@
+<section class="song-list-page">
+    <header class="song-list-page__header">
+        <h1 class="song-list-page__title">Piosenki</h1>
+        <div class="song-list-page__actions">
+            <button mat-raised-button color="primary" (click)="navigateToCreateSong()">
+                <mat-icon aria-hidden="true">add</mat-icon>
+                Dodaj piosenkę
+            </button>
+        </div>
+    </header>
+
+    <div class="song-list-page__filters">
+        <mat-form-field appearance="outline" class="song-list-page__search-field">
+            <mat-label>Wyszukaj</mat-label>
+            <input
+                matInput
+                type="search"
+                [value]="searchTerm()"
+                (input)="onSearchChange($any($event.target).value)"
+                placeholder="Wpisz fragment tytułu"
+                aria-label="Pole wyszukiwania piosenek"
+            />
+        </mat-form-field>
+    </div>
+
+    @if (viewState().error) {
+        <section class="song-list-page__error" role="alert">
+            <p>{{ viewState().error }}</p>
+            <button mat-stroked-button type="button" (click)="retryLoad()">
+                Spróbuj ponownie
+            </button>
+        </section>
+    }
+
+    @if (isInitialLoading()) {
+        <div class="song-list-page__loading" aria-live="polite">
+            <mat-progress-spinner mode="indeterminate" diameter="48"></mat-progress-spinner>
+        </div>
+    }
+
+    @if (shouldShowEmptyState()) {
+        <stbo-empty-state
+            class="song-list-page__empty"
+            message="Nie masz jeszcze żadnych piosenek. Dodaj pierwszą, aby zacząć budować własną bibliotekę."
+            buttonText="Dodaj piosenkę"
+            (ctaClick)="navigateToCreateSong()"
+        ></stbo-empty-state>
+    }
+
+    @if (hasResults()) {
+        <section class="song-list-page__list-wrapper" [class.song-list-page__list-wrapper--loading]="isLoading()">
+            <stbo-song-list
+                [songs]="viewState().songs"
+                [isLoading]="isLoading()"
+                [currentSort]="viewState().sort"
+                (editSong)="onEditSong($event)"
+                (deleteSong)="onDeleteSong($event)"
+                (shareSong)="onShareSong($event)"
+                (sortChange)="onSortChange($event)"
+            ></stbo-song-list>
+
+            @if (isLoading()) {
+                <div class="song-list-page__list-overlay" aria-hidden="true">
+                    <mat-progress-spinner mode="indeterminate" diameter="32"></mat-progress-spinner>
+                </div>
+            }
+        </section>
+
+        <mat-paginator
+            [length]="totalCount()"
+            [pageSize]="viewState().pageSize"
+            [pageSizeOptions]="pageSizeOptions"
+            [pageIndex]="viewState().currentPage"
+            showFirstLastButtons
+            (page)="onPageChange($event)"
+        ></mat-paginator>
+    }
+</section>

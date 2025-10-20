@@ -1,0 +1,99 @@
+.song-list-page {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 1.5rem;
+}
+
+.song-list-page__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.song-list-page__title {
+    margin: 0;
+    font-size: 1.75rem;
+    font-weight: 600;
+}
+
+.song-list-page__filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: center;
+}
+
+.song-list-page__search-field {
+    flex: 1;
+    min-width: 200px;
+    max-width: 400px;
+}
+
+.song-list-page__error {
+    background-color: rgba(198, 40, 40, 0.08);
+    color: #c62828;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.song-list-page__loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 0;
+}
+
+.song-list-page__empty {
+    margin-top: 2rem;
+}
+
+.song-list-page__list-wrapper {
+    position: relative;
+}
+
+.song-list-page__list-wrapper--loading {
+    opacity: 0.5;
+}
+
+.song-list-page__list-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(255, 255, 255, 0.6);
+    pointer-events: none;
+}
+
+@media (max-width: 600px) {
+    .song-list-page {
+        padding: 1rem;
+    }
+
+    .song-list-page__header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .song-list-page__actions {
+        width: 100%;
+        display: flex;
+        justify-content: flex-start;
+    }
+
+    .song-list-page__filters {
+        flex-direction: column;
+    }
+
+    .song-list-page__search-field {
+        width: 100%;
+        max-width: none;
+    }
+}
+

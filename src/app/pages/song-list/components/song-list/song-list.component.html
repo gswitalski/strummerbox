@@ -1,0 +1,135 @@
+@if (displayMode() === 'table') {
+    <div class="song-list__table-wrapper" [class.song-list__table-wrapper--loading]="isLoading">
+        <table
+            mat-table
+            [dataSource]="songs"
+            matSort
+            [matSortActive]="currentSort.active"
+            [matSortDirection]="currentSort.direction"
+            (matSortChange)="handleSortChange($event)"
+            aria-label="Tabela piosenek"
+        >
+            <ng-container matColumnDef="title">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header disableClear="true"> Tytuł </th>
+                <td mat-cell *matCellDef="let song"> {{ song.title }} </td>
+            </ng-container>
+
+            <ng-container matColumnDef="createdAt">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header disableClear="true"> Utworzono </th>
+                <td mat-cell *matCellDef="let song"> {{ song.createdAt }} </td>
+            </ng-container>
+
+            <ng-container matColumnDef="updatedAt">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header disableClear="true"> Zaktualizowano </th>
+                <td mat-cell *matCellDef="let song"> {{ song.updatedAt }} </td>
+            </ng-container>
+
+            <ng-container matColumnDef="status">
+                <th mat-header-cell *matHeaderCellDef> Status </th>
+                <td mat-cell *matCellDef="let song">
+                    <span class="song-list__status" [ngClass]="{ 'song-list__status--published': song.isPublished }">
+                        <mat-icon aria-hidden="true">{{ song.isPublished ? 'public' : 'lock' }}</mat-icon>
+                        {{ song.isPublished ? 'Opublikowana' : 'Szkic' }}
+                    </span>
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef> Akcje </th>
+                <td mat-cell *matCellDef="let song">
+                    <div class="song-list__actions">
+                        <button
+                            mat-icon-button
+                            type="button"
+                            (click)="handleEditSong(song.id)"
+                            [attr.aria-label]="'Edytuj piosenkę ' + song.title"
+                        >
+                            <mat-icon>edit</mat-icon>
+                        </button>
+                        <button
+                            mat-icon-button
+                            type="button"
+                            (click)="handleShareSong(song.id)"
+                            [attr.aria-label]="'Udostępnij piosenkę ' + song.title"
+                        >
+                            <mat-icon>share</mat-icon>
+                        </button>
+                        <button
+                            mat-icon-button
+                            type="button"
+                            color="warn"
+                            (click)="handleDeleteSong(song.id)"
+                            [attr.aria-label]="'Usuń piosenkę ' + song.title"
+                        >
+                            <mat-icon>delete</mat-icon>
+                        </button>
+                    </div>
+                </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="columns"></tr>
+            <tr mat-row *matRowDef="let row; columns: columns" (click)="handleEditSong(row.id)"></tr>
+        </table>
+
+        @if (isLoading) {
+            <div class="song-list__overlay" aria-hidden="true" aria-live="polite">
+                <mat-progress-spinner mode="indeterminate" diameter="32"></mat-progress-spinner>
+            </div>
+        }
+    </div>
+} @else {
+    <div class="song-list__cards" role="list">
+        @for (song of songs; track trackBySongId($index, song)) {
+            <mat-card class="song-list__card" role="listitem">
+                <mat-card-header>
+                    <mat-card-title>{{ song.title }}</mat-card-title>
+                    <mat-card-subtitle>
+                        Utworzono: {{ song.createdAt }} • Zaktualizowano: {{ song.updatedAt }}
+                    </mat-card-subtitle>
+                </mat-card-header>
+                <mat-card-content>
+                    <span class="song-list__status" [ngClass]="{ 'song-list__status--published': song.isPublished }">
+                        <mat-icon aria-hidden="true">{{ song.isPublished ? 'public' : 'lock' }}</mat-icon>
+                        {{ song.isPublished ? 'Opublikowana' : 'Szkic' }}
+                    </span>
+                </mat-card-content>
+                <mat-card-actions>
+                    <button
+                        mat-button
+                        type="button"
+                        (click)="handleEditSong(song.id)"
+                        [attr.aria-label]="'Edytuj piosenkę ' + song.title"
+                    >
+                        <mat-icon>edit</mat-icon>
+                        Edytuj
+                    </button>
+                    <button
+                        mat-button
+                        type="button"
+                        (click)="handleShareSong(song.id)"
+                        [attr.aria-label]="'Udostępnij piosenkę ' + song.title"
+                    >
+                        <mat-icon>share</mat-icon>
+                        Udostępnij
+                    </button>
+                    <button
+                        mat-button
+                        color="warn"
+                        type="button"
+                        (click)="handleDeleteSong(song.id)"
+                        [attr.aria-label]="'Usuń piosenkę ' + song.title"
+                    >
+                        <mat-icon>delete</mat-icon>
+                        Usuń
+                    </button>
+                </mat-card-actions>
+            </mat-card>
+        }
+
+        @if (isLoading) {
+            <div class="song-list__overlay" aria-hidden="true" aria-live="polite">
+                <mat-progress-spinner mode="indeterminate" diameter="32"></mat-progress-spinner>
+            </div>
+        }
+    </div>
+}

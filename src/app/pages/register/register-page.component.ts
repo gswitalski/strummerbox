@@ -153,11 +153,11 @@ export class RegisterPageComponent {
 
 type RegisterFormGroup = FormGroup<RegisterFormControls>;
 
-type RegisterFormControls = {
+interface RegisterFormControls {
     email: FormControl<string>;
     displayName: FormControl<string>;
     password: FormControl<string>;
     confirmPassword: FormControl<string>;
-};
+}
 
 

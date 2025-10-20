@@ -33,6 +33,13 @@ export const routes: Routes = [
                     ),
             },
             {
+                path: 'songs',
+                loadComponent: () =>
+                    import('./pages/song-list/song-list-page/song-list-page.component').then(
+                        (m) => m.SongListPageComponent
+                    ),
+            },
+            {
                 path: '',
                 pathMatch: 'full',
                 redirectTo: 'dashboard',
