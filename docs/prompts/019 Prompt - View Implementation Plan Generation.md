@@ -18,57 +18,53 @@ Najpierw przejrzyj następujące informacje:
 
 3. Nazwa widoku do implementacji
 <view_name>
-6. Lista Piosenek (Song List View)
+7. Tworzenie / Edycja Piosenki (Song Create/Edit View) - tylko tworzenie (bez edycji)
 </view_name>
 
 4. User Stories:
 <user_stories>
--   ID: US-005
--   Title: Przeglądanie listy piosenek
--   Description: Jako Organizator, chcę widzieć listę wszystkich moich piosenek, aby móc nimi zarządzać.
+-   ID: US-004
+-   Title: Tworzenie nowej piosenki
+-   Description: Jako Organizator, chcę móc dodać nową piosenkę do mojej bazy, wpisując jej tytuł oraz tekst z akordami w formacie ChordPro.
 -   Acceptance Criteria:
-    -   W panelu zarządzania znajduje się sekcja z listą wszystkich dodanych przeze mnie piosenek.
-    -   Dla każdej piosenki na liście widoczne są opcje edycji i usunięcia.
-    -   Jeśli nie dodałem żadnej piosenki, widzę komunikat "pustego stanu" z zachętą do działania.
-
+    -   Formularz dodawania piosenki zawiera pole na tytuł i edytor tekstu.
+    -   Edytor wyświetla podgląd piosenki w czasie rzeczywistym.
+    -   System nie pozwala na zapisanie piosenki bez tytułu.
+    -   System nie pozwala na zapisanie piosenki o tytule, który już istnieje w mojej bazie.
+    -   Po zapisaniu, nowa piosenka jest widoczna na liście moich piosenek.
 
 </user_stories>
 
 5. Endpoint Description:
 <endpoint_description>
 
-#### GET /songs
-- **Method:** GET
+#### POST /songs
+- **Method:** POST
 - **Path:** `/songs`
-- **Description:** List organizer songs with pagination, search and filtering.
-- **Query Parameters:**
-  - `page` (default 1)
-  - `pageSize` (default 20, max 100)
-  - `search` (substring matched with trigram index against `title`)
-  - `published` (`true|false|null`)
-  - `sort` (`title|createdAt|updatedAt|publishedAt`, prefix with `-` for descending)
-- **Request JSON:** _none_
+- **Description:** Create a new song owned by the organizer.
+- **Query Parameters:** none
+- **Request JSON:**
+```json
+{
+  "title": "Knockin' on Heaven's Door",
+  "content": "[G]Mama, take this badge off of me...",
+  "published": false
+}
+```
 - **Response JSON:**
 ```json
 {
-  "items": [
-    {
-      "id": "58b8a0d0-5bf4-4d8a-82de-a2ad8c37b8a5",
-      "publicId": "6e42f88a-2d46-4c27-8371-98dd621b6af2",
-      "title": "Knockin' on Heaven's Door",
-      "publishedAt": null,
-      "createdAt": "2025-10-15T08:20:51Z",
-      "updatedAt": "2025-10-15T08:22:03Z"
-    }
-  ],
-  "page": 1,
-  "pageSize": 20,
-  "total": 42
+  "id": "58b8a0d0-5bf4-4d8a-82de-a2ad8c37b8a5",
+  "publicId": "6e42f88a-2d46-4c27-8371-98dd621b6af2",
+  "title": "Knockin' on Heaven's Door",
+  "content": "[G]Mama, take this badge off of me...",
+  "publishedAt": null,
+  "createdAt": "2025-10-15T08:20:51Z",
+  "updatedAt": "2025-10-15T08:20:51Z"
 }
 ```
-- **Headers:** `X-Total-Count`
-- **Success:** `200 OK`
-- **Errors:** `401 Unauthorized`.
+- **Success:** `201 Created`
+- **Errors:** `400 Bad Request` (invalid payload), `401 Unauthorized`, `409 Conflict` (title already used by organizer).
 
 
 </endpoint_description>
