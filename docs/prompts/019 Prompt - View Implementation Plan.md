@@ -18,54 +18,39 @@ Najpierw przejrzyj następujące informacje:
 
 3. Nazwa widoku do implementacji
 <view_name>
-7. Tworzenie / Edycja Piosenki (Song Create/Edit View) - tylko tworzenie (bez edycji)
+7. Tworzenie / Edycja Piosenki (Song Create/Edit View) - tylko edycja
 </view_name>
 
 4. User Stories:
 <user_stories>
--   ID: US-004
--   Title: Tworzenie nowej piosenki
--   Description: Jako Organizator, chcę móc dodać nową piosenkę do mojej bazy, wpisując jej tytuł oraz tekst z akordami w formacie ChordPro.
+-   ID: US-006
+-   Title: Edycja istniejącej piosenki
+-   Description: Jako Organizator, chcę móc edytować tytuł i treść wcześniej dodanej piosenki.
 -   Acceptance Criteria:
-    -   Formularz dodawania piosenki zawiera pole na tytuł i edytor tekstu.
-    -   Edytor wyświetla podgląd piosenki w czasie rzeczywistym.
-    -   System nie pozwala na zapisanie piosenki bez tytułu.
-    -   System nie pozwala na zapisanie piosenki o tytule, który już istnieje w mojej bazie.
-    -   Po zapisaniu, nowa piosenka jest widoczna na liście moich piosenek.
+    -   Po kliknięciu opcji "edytuj" przy piosence, przechodzę do formularza edycji.
+    -   Formularz jest wypełniony aktualnymi danymi piosenki.
+    -   Mogę zmienić tytuł i treść, a następnie zapisać zmiany.
+    -   Zaktualizowana piosenka jest widoczna na liście.
 
 </user_stories>
 
 5. Endpoint Description:
 <endpoint_description>
 
-#### POST /songs
-- **Method:** POST
-- **Path:** `/songs`
-- **Description:** Create a new song owned by the organizer.
-- **Query Parameters:** none
+#### PATCH /songs/{id}
+- **Method:** PATCH
+- **Path:** `/songs/{id}`
+- **Description:** Partially update song title/content.
 - **Request JSON:**
 ```json
 {
-  "title": "Knockin' on Heaven's Door",
-  "content": "[G]Mama, take this badge off of me...",
-  "published": false
+  "title": "Heaven's Door",
+  "content": "[D]Mama..."
 }
 ```
-- **Response JSON:**
-```json
-{
-  "id": "58b8a0d0-5bf4-4d8a-82de-a2ad8c37b8a5",
-  "publicId": "6e42f88a-2d46-4c27-8371-98dd621b6af2",
-  "title": "Knockin' on Heaven's Door",
-  "content": "[G]Mama, take this badge off of me...",
-  "publishedAt": null,
-  "createdAt": "2025-10-15T08:20:51Z",
-  "updatedAt": "2025-10-15T08:20:51Z"
-}
-```
-- **Success:** `201 Created`
-- **Errors:** `400 Bad Request` (invalid payload), `401 Unauthorized`, `409 Conflict` (title already used by organizer).
-
+- **Response JSON:** updated song resource.
+- **Success:** `200 OK`
+- **Errors:** `400 Bad Request`, `401 Unauthorized`, `403 Forbidden`, `404 Not Found`, `409 Conflict` (duplicate title).
 
 </endpoint_description>
 
@@ -130,6 +115,8 @@ Po przeprowadzeniu analizy dostarcz plan wdrożenia w formacie Markdown z nastę
 11. Kroki implementacji: Przewodnik krok po kroku dotyczący implementacji widoku.
 
 Upewnij się, że Twój plan jest zgodny z PRD, historyjkami użytkownika i uwzględnia dostarczony stack technologiczny.
+
+uwzględnij juz zaiplementowany formularz do tworzenia piosenki aby optymalnie uzywać reużywalnych komponentów
 
 Ostateczne wyniki powinny być w języku polskim i zapisane w pliku o nazwie .ai/{view-name}-view-implementation-plan.md. Nie uwzględniaj żadnej analizy i planowania w końcowym wyniku.
 
