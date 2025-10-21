@@ -40,6 +40,13 @@ export const routes: Routes = [
                     ),
             },
             {
+                path: 'songs/new',
+                loadComponent: () =>
+                    import('./pages/song-create/song-create-page/song-create-page.component').then(
+                        (m) => m.SongCreatePageComponent
+                    ),
+            },
+            {
                 path: '',
                 pathMatch: 'full',
                 redirectTo: 'dashboard',

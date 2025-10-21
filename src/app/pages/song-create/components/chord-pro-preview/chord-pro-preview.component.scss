@@ -1,0 +1,64 @@
+.chord-pro-preview {
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+    gap: 1rem;
+
+    &__empty {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--mat-sys-on-surface-variant);
+        font-size: 0.95rem;
+        text-align: center;
+        background: var(--mat-sys-surface-container-highest);
+        border-radius: 0.75rem;
+        padding: 2rem;
+    }
+
+    &__content {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        font-family: 'Fira Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+            'Liberation Mono', 'Courier New', monospace;
+        font-size: 0.95rem;
+        white-space: pre;
+    }
+
+    &__line {
+        display: block;
+    }
+
+    &__lyrics-line {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    &__chords {
+        min-height: 1rem;
+        color: var(--mat-sys-primary);
+        font-weight: 600;
+        white-space: pre;
+    }
+
+    &__lyrics {
+        white-space: pre;
+    }
+
+    &__directive {
+        font-style: italic;
+        color: var(--mat-sys-on-surface-variant);
+    }
+
+    &__comment {
+        color: var(--mat-sys-primary);
+        opacity: 0.85;
+    }
+
+    &__spacer {
+        height: 1.25rem;
+    }
+}
+

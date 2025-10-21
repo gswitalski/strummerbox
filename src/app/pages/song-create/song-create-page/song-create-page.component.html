@@ -1,0 +1,60 @@
+<div class="song-create" [ngClass]="['song-create--' + viewState().layoutMode]">
+    <header class="song-create__header">
+        <div class="song-create__header-title">
+            <button mat-icon-button type="button" class="song-create__back" (click)="onCancel()" aria-label="Powrót do listy piosenek">
+                <mat-icon>arrow_back</mat-icon>
+            </button>
+            <h1>Dodaj nową piosenkę</h1>
+        </div>
+        <div class="song-create__actions">
+            <button mat-stroked-button type="button" (click)="onCancel()" [disabled]="viewState().isSaving">
+                Anuluj
+            </button>
+            <button mat-flat-button color="primary" type="button" (click)="onSubmit()" [disabled]="!viewState().isFormValid || viewState().isSaving">
+                Zapisz
+            </button>
+        </div>
+    </header>
+
+    @if (viewState().isSaving) {
+        <mat-progress-bar mode="indeterminate" class="song-create__progress"></mat-progress-bar>
+    }
+
+    @if (viewState().error === 'save_failed') {
+        <div class="song-create__error">
+            Nie udało się zapisać piosenki. Spróbuj ponownie później.
+        </div>
+    }
+
+    @if (viewState().layoutMode === 'split') {
+        <div class="song-create__content song-create__content--split">
+            <stbo-song-form
+                class="song-create__form"
+                [initialState]="viewState().formValue"
+                [isSaving]="viewState().isSaving"
+                (formValueChange)="onFormValueChange($event)"
+                (formStatusChange)="onFormStatusChange($event)"
+                (formSubmit)="onFormSubmit($event)"
+            ></stbo-song-form>
+
+            <stbo-chord-pro-preview class="song-create__preview" [content]="currentContent()"></stbo-chord-pro-preview>
+        </div>
+    } @else {
+        <mat-tab-group class="song-create__tabs">
+            <mat-tab label="Formularz">
+                <stbo-song-form
+                    class="song-create__form"
+                    [initialState]="viewState().formValue"
+                    [isSaving]="viewState().isSaving"
+                    (formValueChange)="onFormValueChange($event)"
+                    (formStatusChange)="onFormStatusChange($event)"
+                    (formSubmit)="onFormSubmit($event)"
+                ></stbo-song-form>
+            </mat-tab>
+            <mat-tab label="Podgląd">
+                <stbo-chord-pro-preview class="song-create__preview" [content]="currentContent()"></stbo-chord-pro-preview>
+            </mat-tab>
+        </mat-tab-group>
+    }
+</div>
+
