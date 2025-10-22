@@ -5,14 +5,21 @@ Zanim zaczniemy, zapoznaj się z poniższymi informacjami:
 1. Route API specification:
 <route_api_specification>
 
-#### GET /songs/{id}
-- **Method:** GET
-- **Path:** `/songs/{id}`
-- **Description:** Fetch full song with chords for editing/Biesiada organizer view.
-- **Query Parameters:** `includeUsage` (`true` adds repertoires using the song)
-- **Response JSON:** song resource plus optional `repertoires` array.
-- **Success:** `200 OK`
-- **Errors:** `401 Unauthorized`, `403 Forbidden` (not owner), `404 Not Found`.
+#### POST /repertoires
+- **Method:** POST
+- **Path:** `/repertoires`
+- **Description:** Create new repertoire with optional initial songs.
+- **Request JSON:**
+```json
+{
+  "name": "Ognisko 2025",
+  "description": "Wieczorne granie",
+  "songIds": ["58b8a0d0-5bf4-4d8a-82de-a2ad8c37b8a5", "a1320a1b-4e2b-44b0-a1f6-8e37b406df1d"]
+}
+```
+- **Response JSON:** repertoire resource including ordered songs (positions auto-assigned).
+- **Success:** `201 Created`
+- **Errors:** `400 Bad Request`, `401 Unauthorized`, `409 Conflict` (duplicate name).
 
 </route_api_specification>
 
@@ -31,6 +38,27 @@ this table is managed by Supabase Auth
   - `created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc', now())`
   - `updated_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc', now())`
   - `UNIQUE (organizer_id, title)`
+
+- `repertoires`
+  - `id UUID PRIMARY KEY DEFAULT gen_random_uuid()`
+  - `organizer_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE`
+  - `public_id UUID NOT NULL UNIQUE DEFAULT gen_random_uuid()`
+  - `name TEXT NOT NULL CHECK (char_length(trim(name)) BETWEEN 1 AND 160)`
+  - `description TEXT`
+  - `published_at TIMESTAMPTZ NULL`
+  - `created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc', now())`
+  - `updated_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc', now())`
+  - `UNIQUE (organizer_id, name)`
+
+- `repertoire_songs`
+  - `id UUID PRIMARY KEY DEFAULT gen_random_uuid()`
+  - `repertoire_id UUID NOT NULL REFERENCES repertoires(id) ON DELETE CASCADE`
+  - `song_id UUID NOT NULL REFERENCES songs(id) ON DELETE CASCADE`
+  - `position INTEGER NOT NULL CHECK (position > 0)`
+  - `created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc', now())`
+  - `UNIQUE (repertoire_id, song_id)`
+  - `UNIQUE (repertoire_id, position)`
+
 </related_db_resources>
 
 3. Definicje typów:
@@ -130,4 +158,4 @@ Końcowym wynikiem powinien być dobrze zorganizowany plan wdrożenia w formacie
 
 Końcowe wyniki powinny składać się wyłącznie z planu wdrożenia w formacie markdown i nie powinny powielać ani powtarzać żadnej pracy wykonanej w sekcji analizy.
 
-Pamiętaj, aby zapisać swój plan wdrożenia jako docs/results/impl-plans/get-songs-api-implementation-plan.md. Upewnij się, że plan jest szczegółowy, przejrzysty i zapewnia kompleksowe wskazówki dla zespołu programistów.
+Pamiętaj, aby zapisać swój plan wdrożenia jako docs/results/impl-plans/{endpoint-name}-api-implementation-plan.md. Upewnij się, że plan jest szczegółowy, przejrzysty i zapewnia kompleksowe wskazówki dla zespołu programistów.
