@@ -4,7 +4,7 @@ import type {
     Tables,
     TablesInsert,
     TablesUpdate,
-} from '../database/database.types';
+} from '../database/database.types.ts';
 
 // ============================================================================
 // Database Type Aliases

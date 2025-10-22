@@ -1,4 +1,4 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.7?target=deno&no-check';
+import { createClient } from '@supabase/supabase-js';
 import type { Database } from '../../../packages/database/database.types.ts';
 import { createInternalError } from './errors.ts';
 

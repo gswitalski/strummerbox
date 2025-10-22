@@ -263,7 +263,6 @@ export const getSongs = async ({
     query.order(sortColumn, {
         ascending,
         nullsFirst: ascending,
-        nullsLast: !ascending,
     });
 
     const { from, to } = calculatePaginationRange(page, pageSize);

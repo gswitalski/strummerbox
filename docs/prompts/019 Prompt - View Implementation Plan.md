@@ -37,6 +37,15 @@ Najpierw przejrzyj następujące informacje:
 5. Endpoint Description:
 <endpoint_description>
 
+#### GET /songs/{id}
+- **Method:** GET
+- **Path:** `/songs/{id}`
+- **Description:** Fetch full song with chords for editing/Biesiada organizer view.
+- **Query Parameters:** `includeUsage` (`true` adds repertoires using the song)
+- **Response JSON:** song resource plus optional `repertoires` array.
+- **Success:** `200 OK`
+- **Errors:** `401 Unauthorized`, `403 Forbidden` (not owner), `404 Not Found`.
+
 #### PATCH /songs/{id}
 - **Method:** PATCH
 - **Path:** `/songs/{id}`
@@ -170,4 +179,4 @@ Oto przykład tego, jak powinien wyglądać plik wyjściowy (treść jest do zas
 3. [...]
 ```
 
-Rozpocznij analizę i planowanie już teraz. Twój ostateczny wynik powinien składać się wyłącznie z planu wdrożenia w języku polskim w formacie markdown, który zapiszesz w pliku docs/results/{view-name}-view-implementation-plan.md i nie powinien powielać ani powtarzać żadnej pracy wykonanej w podziale implementacji.
+Rozpocznij analizę i planowanie już teraz. Twój ostateczny wynik powinien składać się wyłącznie z planu wdrożenia w języku polskim w formacie markdown, który zapiszesz w pliku docs/results/impl-plans/{view-name}-view-implementation-plan.md i nie powinien powielać ani powtarzać żadnej pracy wykonanej w podziale implementacji.

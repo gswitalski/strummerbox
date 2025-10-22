@@ -2,9 +2,11 @@
   "[typescript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
+  "deno.enable": false,
   "deno.enablePaths": [
     "supabase/functions"
   ],
+  "deno.path": "C:\\Users\\gswit\\.deno\\bin\\deno.exe",
   "deno.lint": true,
   "deno.unstable": [
     "bare-node-builtins",
@@ -20,5 +22,14 @@
     "fs",
     "http",
     "net"
-  ]
+  ],
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+  "typescript.suggest.paths": true,
+  "typescript.preferences.importModuleSpecifier": "relative",
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "editor.gotoLocation.multipleDefinitions": "goto",
+  "editor.gotoLocation.multipleImplementations": "goto",
+  "editor.gotoLocation.multipleTypeDefinitions": "goto",
+  "editor.gotoLocation.multipleDeclarations": "goto"
 }
