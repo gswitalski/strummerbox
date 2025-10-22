@@ -1,0 +1,87 @@
+<div class="song-edit" [ngClass]="['song-edit--' + viewState().layoutMode]">
+    <header class="song-edit__header">
+        <div class="song-edit__header-title">
+            <button mat-icon-button type="button" class="song-edit__back" (click)="onCancel()" aria-label="Powrót do listy piosenek">
+                <mat-icon>arrow_back</mat-icon>
+            </button>
+            <h1>Edytuj piosenkę</h1>
+        </div>
+        @if (!viewState().isLoading && viewState().error !== 'not_found' && viewState().error !== 'load_failed') {
+            <div class="song-edit__actions">
+                <button mat-stroked-button type="button" (click)="onCancel()" [disabled]="viewState().isSaving">
+                    Anuluj
+                </button>
+                <button mat-flat-button color="primary" type="button" (click)="onSubmit()" [disabled]="!viewState().isFormValid || viewState().isSaving">
+                    Zapisz
+                </button>
+            </div>
+        }
+    </header>
+
+    @if (viewState().isSaving) {
+        <mat-progress-bar mode="indeterminate" class="song-edit__progress"></mat-progress-bar>
+    }
+
+    @if (viewState().isLoading) {
+        <div class="song-edit__loading">
+            <mat-spinner></mat-spinner>
+            <p>Ładowanie piosenki...</p>
+        </div>
+    } @else if (viewState().error === 'not_found') {
+        <div class="song-edit__error-page">
+            <mat-icon class="song-edit__error-icon">error_outline</mat-icon>
+            <h2>Nie znaleziono piosenki</h2>
+            <p>Piosenka, którą próbujesz edytować, nie istnieje lub została usunięta.</p>
+            <button mat-flat-button color="primary" (click)="onCancel()">
+                Wróć do listy piosenek
+            </button>
+        </div>
+    } @else if (viewState().error === 'load_failed') {
+        <div class="song-edit__error-page">
+            <mat-icon class="song-edit__error-icon">error_outline</mat-icon>
+            <h2>Wystąpił błąd</h2>
+            <p>Nie udało się załadować piosenki. Spróbuj ponownie później.</p>
+            <button mat-flat-button color="primary" (click)="onCancel()">
+                Wróć do listy piosenek
+            </button>
+        </div>
+    } @else {
+        @if (viewState().error === 'save_failed') {
+            <div class="song-edit__error">
+                Nie udało się zaktualizować piosenki. Spróbuj ponownie później.
+            </div>
+        }
+
+        @if (viewState().layoutMode === 'split') {
+            <div class="song-edit__content song-edit__content--split">
+                <stbo-song-form
+                    class="song-edit__form"
+                    [initialState]="viewState().formValue"
+                    [isSaving]="viewState().isSaving"
+                    (formValueChange)="onFormValueChange($event)"
+                    (formStatusChange)="onFormStatusChange($event)"
+                    (formSubmit)="onFormSubmit($event)"
+                ></stbo-song-form>
+
+                <stbo-chord-pro-preview class="song-edit__preview" [content]="currentContent()"></stbo-chord-pro-preview>
+            </div>
+        } @else {
+            <mat-tab-group class="song-edit__tabs">
+                <mat-tab label="Formularz">
+                    <stbo-song-form
+                        class="song-edit__form"
+                        [initialState]="viewState().formValue"
+                        [isSaving]="viewState().isSaving"
+                        (formValueChange)="onFormValueChange($event)"
+                        (formStatusChange)="onFormStatusChange($event)"
+                        (formSubmit)="onFormSubmit($event)"
+                    ></stbo-song-form>
+                </mat-tab>
+                <mat-tab label="Podgląd">
+                    <stbo-chord-pro-preview class="song-edit__preview" [content]="currentContent()"></stbo-chord-pro-preview>
+                </mat-tab>
+            </mat-tab-group>
+        }
+    }
+</div>
+

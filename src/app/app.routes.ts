@@ -47,6 +47,13 @@ export const routes: Routes = [
                     ),
             },
             {
+                path: 'songs/:id/edit',
+                loadComponent: () =>
+                    import('./pages/song-edit/song-edit-page/song-edit-page.component').then(
+                        (m) => m.SongEditPageComponent
+                    ),
+            },
+            {
                 path: '',
                 pathMatch: 'full',
                 redirectTo: 'dashboard',

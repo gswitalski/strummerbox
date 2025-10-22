@@ -5,6 +5,7 @@ import { firstValueFrom } from 'rxjs';
 import type {
     SongCreateCommand,
     SongDto,
+    SongPatchCommand,
 } from '../../../../../packages/contracts/types';
 import { environment } from '../../../../environments/environment';
 import { SupabaseService } from '../../../core/services/supabase.service';
@@ -31,6 +32,37 @@ export class SongsApiService {
                     Authorization: `Bearer ${session.access_token}`,
                 },
             })
+        ).then((response) => response.data);
+    }
+
+    public async getSong(id: string): Promise<SongDto> {
+        const session = await this.getSession();
+
+        return await firstValueFrom(
+            this.http.get<{ data: SongDto }>(`${this.baseUrl}/${id}`, {
+                headers: {
+                    Authorization: `Bearer ${session.access_token}`,
+                },
+            })
+        ).then((response) => response.data);
+    }
+
+    public async updateSong(
+        id: string,
+        command: SongPatchCommand
+    ): Promise<SongDto> {
+        const session = await this.getSession();
+
+        return await firstValueFrom(
+            this.http.patch<{ data: SongDto }>(
+                `${this.baseUrl}/${id}`,
+                command,
+                {
+                    headers: {
+                        Authorization: `Bearer ${session.access_token}`,
+                    },
+                }
+            )
         ).then((response) => response.data);
     }
 
