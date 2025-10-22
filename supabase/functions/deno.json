@@ -5,7 +5,8 @@
   },
   "imports": {
     "@supabase/supabase-js": "npm:@supabase/supabase-js@2",
-    "@shared/": "./_shared/"
+    "@shared/": "./_shared/",
+    "zod": "https://deno.land/x/zod@v3.23.8/mod.ts"
   },
   "tasks": {
     "test": "deno test --allow-all",

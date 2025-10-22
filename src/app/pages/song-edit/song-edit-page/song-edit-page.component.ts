@@ -30,21 +30,21 @@ import { SongFormComponent } from '../../song-create/components/song-form/song-f
 import { ChordProPreviewComponent } from '../../song-create/components/chord-pro-preview/chord-pro-preview.component';
 import { SongsApiService } from '../../song-create/services/songs-api.service';
 
-type SongEditFormViewModel = {
+interface SongEditFormViewModel {
     title: string;
     content: string;
-};
+}
 
 type SongEditError = 'load_failed' | 'not_found' | 'save_failed' | 'duplicate' | null;
 
-type SongEditState = {
+interface SongEditState {
     formValue: SongEditFormViewModel;
     isLoading: boolean;
     isSaving: boolean;
     error: SongEditError;
     layoutMode: 'split' | 'tabs';
     isFormValid: boolean;
-};
+}
 
 const LARGE_SCREEN_QUERY = '(min-width: 1024px)' as const;
 

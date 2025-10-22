@@ -1,4 +1,4 @@
-import { z } from 'https://deno.land/x/zod@v3.23.8/mod.ts';
+import { z } from 'zod';
 import type { SongCreateCommand, SongDetailDto, SongListResponseDto } from '../../../packages/contracts/types.ts';
 import { jsonResponse } from '../_shared/http.ts';
 import { createValidationError } from '../_shared/errors.ts';

@@ -118,9 +118,10 @@ export class SongFormComponent {
             return;
         }
 
-        const { unique, ...rest } = this.form.controls.title.errors ?? {};
+        const errors = { ...this.form.controls.title.errors };
+        delete errors['unique'];
         this.form.controls.title.setErrors(
-            Object.keys(rest).length > 0 ? rest : null
+            Object.keys(errors).length > 0 ? errors : null
         );
     }
 
