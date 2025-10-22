@@ -5,21 +5,19 @@ Zanim zaczniemy, zapoznaj się z poniższymi informacjami:
 1. Route API specification:
 <route_api_specification>
 
-#### POST /repertoires
-- **Method:** POST
+#### GET /repertoires
+- **Method:** GET
 - **Path:** `/repertoires`
-- **Description:** Create new repertoire with optional initial songs.
-- **Request JSON:**
-```json
-{
-  "name": "Ognisko 2025",
-  "description": "Wieczorne granie",
-  "songIds": ["58b8a0d0-5bf4-4d8a-82de-a2ad8c37b8a5", "a1320a1b-4e2b-44b0-a1f6-8e37b406df1d"]
-}
-```
-- **Response JSON:** repertoire resource including ordered songs (positions auto-assigned).
-- **Success:** `201 Created`
-- **Errors:** `400 Bad Request`, `401 Unauthorized`, `409 Conflict` (duplicate name).
+- **Description:** List organizer repertoires.
+- **Query Parameters:**
+  - `page`, `pageSize`
+  - `search` (trigram against `name`)
+  - `published` (`true|false|null`)
+  - `sort` (`name|createdAt|updatedAt|publishedAt`, prefix `-` for desc)
+  - `includeCounts` (`true` adds `songCount`)
+- **Response JSON:** paginated list similar to `GET /songs` with optional counts.
+- **Success:** `200 OK`
+- **Errors:** `401 Unauthorized`.
 
 </route_api_specification>
 
@@ -27,17 +25,6 @@ Zanim zaczniemy, zapoznaj się z poniższymi informacjami:
 <related_db_resources>
 - `users`
 this table is managed by Supabase Auth
-
-- `songs`
-  - `id UUID PRIMARY KEY DEFAULT gen_random_uuid()`
-  - `organizer_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE`
-  - `public_id UUID NOT NULL UNIQUE DEFAULT gen_random_uuid()`
-  - `title TEXT NOT NULL CHECK (char_length(trim(title)) BETWEEN 1 AND 180)`
-  - `content TEXT NOT NULL CHECK (char_length(trim(content)) > 0)`
-  - `published_at TIMESTAMPTZ NULL`
-  - `created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc', now())`
-  - `updated_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc', now())`
-  - `UNIQUE (organizer_id, title)`
 
 - `repertoires`
   - `id UUID PRIMARY KEY DEFAULT gen_random_uuid()`
@@ -50,14 +37,6 @@ this table is managed by Supabase Auth
   - `updated_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc', now())`
   - `UNIQUE (organizer_id, name)`
 
-- `repertoire_songs`
-  - `id UUID PRIMARY KEY DEFAULT gen_random_uuid()`
-  - `repertoire_id UUID NOT NULL REFERENCES repertoires(id) ON DELETE CASCADE`
-  - `song_id UUID NOT NULL REFERENCES songs(id) ON DELETE CASCADE`
-  - `position INTEGER NOT NULL CHECK (position > 0)`
-  - `created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc', now())`
-  - `UNIQUE (repertoire_id, song_id)`
-  - `UNIQUE (repertoire_id, position)`
 
 </related_db_resources>
 
