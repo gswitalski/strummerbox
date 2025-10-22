@@ -2,10 +2,13 @@ import type {
     RepertoireDto,
     RepertoireCreateCommand,
     RepertoireSongDto,
+    RepertoireSummaryDto,
+    RepertoireListResponseDto,
 } from '../../../packages/contracts/types.ts';
 import { createConflictError, createInternalError, createValidationError } from '../_shared/errors.ts';
 import type { RequestSupabaseClient } from '../_shared/supabase-client.ts';
 import { logger } from '../_shared/logger.ts';
+import type { GetRepertoiresQueryParams } from './repertoires.handlers.ts';
 
 // ============================================================================
 // Column Definitions
@@ -16,6 +19,11 @@ import { logger } from '../_shared/logger.ts';
  */
 const REPERTOIRE_COLUMNS =
     'id, public_id, name, description, published_at, created_at, updated_at';
+
+/**
+ * Kolumny do pobrania dla podsumowania repertuaru (używane w listach).
+ */
+const REPERTOIRE_SUMMARY_COLUMNS = REPERTOIRE_COLUMNS;
 
 /**
  * Kolumny do pobrania dla piosenek w repertuarze wraz z danymi piosenki (bez content).
@@ -67,6 +75,31 @@ const mapToRepertoireDto = (row: {
     publishedAt: row.published_at,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+});
+
+/**
+ * Mapuje surowy wiersz repertuaru z bazy do RepertoireSummaryDto.
+ */
+const mapToRepertoireSummaryDto = (
+    row: {
+        id: string;
+        public_id: string;
+        name: string;
+        description: string | null;
+        published_at: string | null;
+        created_at: string;
+        updated_at: string;
+    },
+    songCount?: number,
+): RepertoireSummaryDto => ({
+    id: row.id,
+    publicId: row.public_id,
+    name: row.name,
+    description: row.description,
+    publishedAt: row.published_at,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+    ...(songCount !== undefined && { songCount }),
 });
 
 type FetchRepertoireWithSongsParams = {
@@ -299,5 +332,163 @@ export const createRepertoire = async ({
     });
 
     return fullRepertoire;
+};
+
+// ============================================================================
+// List Repertoires Service
+// ============================================================================
+
+export type ListRepertoiresParams = {
+    supabase: RequestSupabaseClient;
+    organizerId: string;
+    params: GetRepertoiresQueryParams;
+};
+
+/**
+ * Mapowanie kluczy sortowania z API (camelCase) do kolumn bazy (snake_case).
+ */
+const SORT_KEY_MAP: Record<string, string> = {
+    name: 'name',
+    createdAt: 'created_at',
+    updatedAt: 'updated_at',
+    publishedAt: 'published_at',
+};
+
+/**
+ * Pobiera paginowaną listę repertuarów organizatora z opcjonalnymi filtrami.
+ *
+ * Proces:
+ * 1. Dynamiczne budowanie zapytania z filtrowaniem po organizer_id
+ * 2. Obsługa wyszukiwania trigramowego (search)
+ * 3. Obsługa filtrowania po statusie publikacji (published)
+ * 4. Obsługa sortowania (sort)
+ * 5. Paginacja (page, pageSize)
+ * 6. Opcjonalne zliczanie piosenek (includeCounts)
+ * 7. Pobieranie total count dla metadanych paginacji
+ *
+ * @throws {ApplicationError} 500 - błąd bazy danych
+ */
+export const listRepertoires = async ({
+    supabase,
+    organizerId,
+    params,
+}: ListRepertoiresParams): Promise<RepertoireListResponseDto> => {
+    const { page, pageSize, search, published, sort, includeCounts } = params;
+
+    logger.info('Rozpoczęcie pobierania listy repertuarów', {
+        organizerId,
+        params,
+    });
+
+    // ========================================================================
+    // Budowanie zapytania dla repertuarów
+    // ========================================================================
+
+    let query = supabase
+        .from('repertoires')
+        .select(REPERTOIRE_SUMMARY_COLUMNS, { count: 'exact' })
+        .eq('organizer_id', organizerId);
+
+    // Filtrowanie po wyszukiwanej frazie (wyszukiwanie trigramowe w nazwie)
+    if (search && search.length > 0) {
+        // Używamy operatora ilike dla prostego wyszukiwania tekstowego
+        // Dla pełnego wyszukiwania trigramowego należałoby użyć rozszerzenia pg_trgm
+        query = query.ilike('name', `%${search}%`);
+    }
+
+    // Filtrowanie po statusie publikacji
+    if (published !== undefined) {
+        if (published) {
+            query = query.not('published_at', 'is', null);
+        } else {
+            query = query.is('published_at', null);
+        }
+    }
+
+    // Sortowanie
+    if (sort) {
+        const isDescending = sort.startsWith('-');
+        const sortKey = isDescending ? sort.slice(1) : sort;
+        const columnName = SORT_KEY_MAP[sortKey] || 'created_at';
+
+        query = query.order(columnName, { ascending: !isDescending });
+    } else {
+        // Domyślne sortowanie: createdAt malejąco
+        query = query.order('created_at', { ascending: false });
+    }
+
+    // Paginacja
+    const offset = (page - 1) * pageSize;
+    query = query.range(offset, offset + pageSize - 1);
+
+    // ========================================================================
+    // Wykonanie zapytania
+    // ========================================================================
+
+    const { data: repertoiresData, error: repertoiresError, count } = await query;
+
+    if (repertoiresError) {
+        logger.error('Błąd podczas pobierania repertuarów', {
+            organizerId,
+            error: repertoiresError,
+        });
+        throw createInternalError('Nie udało się pobrać repertuarów', repertoiresError);
+    }
+
+    // ========================================================================
+    // Zliczanie piosenek (jeśli includeCounts === true)
+    // ========================================================================
+
+    const songCountsMap: Map<string, number> = new Map();
+
+    if (includeCounts && repertoiresData && repertoiresData.length > 0) {
+        const repertoireIds = repertoiresData.map(r => r.id);
+
+        const { data: countsData, error: countsError } = await supabase
+            .from('repertoire_songs')
+            .select('repertoire_id')
+            .in('repertoire_id', repertoireIds);
+
+        if (countsError) {
+            logger.error('Błąd podczas zliczania piosenek w repertuarach', {
+                organizerId,
+                error: countsError,
+            });
+            // Nie rzucamy błędu - songCount po prostu nie zostanie dodany
+            logger.warn('Pomijanie songCount z powodu błędu zliczania');
+        } else if (countsData) {
+            // Zliczanie wystąpień każdego repertoire_id
+            countsData.forEach(row => {
+                const currentCount = songCountsMap.get(row.repertoire_id) || 0;
+                songCountsMap.set(row.repertoire_id, currentCount + 1);
+            });
+        }
+    }
+
+    // ========================================================================
+    // Mapowanie wyników
+    // ========================================================================
+
+    const items: RepertoireSummaryDto[] = (repertoiresData || []).map(row =>
+        mapToRepertoireSummaryDto(
+            row,
+            includeCounts ? (songCountsMap.get(row.id) || 0) : undefined
+        )
+    );
+
+    logger.info('Pobrano listę repertuarów', {
+        organizerId,
+        count: items.length,
+        total: count || 0,
+        page,
+        pageSize,
+    });
+
+    return {
+        items,
+        page,
+        pageSize,
+        total: count || 0,
+    };
 };
 

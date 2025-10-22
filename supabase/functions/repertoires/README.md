@@ -1,329 +1,195 @@
 # Repertoires Edge Function
 
-## Endpoint: POST /repertoires
+Funkcja Supabase Edge obsługująca operacje na repertuarach.
+
+## Endpointy
+
+### GET /repertoires
+
+Pobiera paginowaną listę repertuarów użytkownika z opcjonalnymi filtrami.
+
+**Uwierzytelnianie:** Wymagane (JWT token)
+
+**Query Parameters:**
+
+| Parametr | Typ | Domyślnie | Opis |
+|----------|-----|-----------|------|
+| `page` | number | 1 | Numer strony (min: 1) |
+| `pageSize` | number | 10 | Liczba wyników na stronę (min: 1, max: 100) |
+| `search` | string | - | Fraza do wyszukiwania w nazwach repertuarów (case-insensitive) |
+| `published` | boolean | - | Filtr statusu publikacji. `true` = tylko opublikowane, `false` = tylko nieopublikowane, pominięty = wszystkie |
+| `sort` | string | `-createdAt` | Klucz sortowania: `name`, `createdAt`, `updatedAt`, `publishedAt`. Prefiks `-` dla malejącego (np. `-createdAt`) |
+| `includeCounts` | boolean | false | Czy dołączyć liczbę piosenek dla każdego repertuaru |
+
+**Przykłady:**
+
+```bash
+# Podstawowe pobranie listy (pierwsza strona, 10 wyników)
+GET /repertoires
+
+# Z paginacją
+GET /repertoires?page=2&pageSize=20
+
+# Wyszukiwanie
+GET /repertoires?search=kolędy
+
+# Filtrowanie tylko opublikowanych
+GET /repertoires?published=true
+
+# Sortowanie po nazwie rosnąco
+GET /repertoires?sort=name
+
+# Sortowanie po dacie utworzenia malejąco
+GET /repertoires?sort=-createdAt
+
+# Z licznikami piosenek
+GET /repertoires?includeCounts=true
+
+# Kombinacja parametrów
+GET /repertoires?search=kolędy&published=true&sort=name&pageSize=25&includeCounts=true
+```
+
+**Odpowiedź 200 OK:**
+
+```json
+{
+    "items": [
+        {
+            "id": "uuid",
+            "publicId": "uuid",
+            "name": "Mój repertuar",
+            "description": "Opis repertuaru",
+            "publishedAt": "2024-01-15T10:30:00Z",
+            "createdAt": "2024-01-10T08:00:00Z",
+            "updatedAt": "2024-01-15T10:30:00Z",
+            "songCount": 15
+        }
+    ],
+    "page": 1,
+    "pageSize": 10,
+    "total": 42
+}
+```
+
+**Błędy:**
+
+- `400 Bad Request` - Nieprawidłowe parametry query (np. `pageSize > 100`, nieprawidłowy `sort`)
+- `401 Unauthorized` - Brak lub nieprawidłowy token JWT
+- `500 Internal Server Error` - Błąd serwera lub bazy danych
+
+---
+
+### POST /repertoires
 
 Tworzy nowy repertuar z opcjonalnym zestawem początkowych piosenek.
 
-### Uwierzytelnianie
-Wymaga nagłówka `Authorization: Bearer <JWT_TOKEN>`
+**Uwierzytelnianie:** Wymagane (JWT token)
 
-### Request Body
-
-```json
-{
-  "name": "string (1-160 znaków, wymagane)",
-  "description": "string (opcjonalnie)",
-  "songIds": ["uuid", "..."] (opcjonalnie, max 100 elementów)
-}
-```
-
-### Response
-
-**Status:** `201 Created`
+**Request Body:**
 
 ```json
 {
-  "id": "uuid",
-  "publicId": "uuid",
-  "name": "string",
-  "description": "string | null",
-  "publishedAt": "string (ISO 8601) | null",
-  "createdAt": "string (ISO 8601)",
-  "updatedAt": "string (ISO 8601)",
-  "songCount": "number",
-  "songs": [
-    {
-      "repertoireSongId": "uuid",
-      "songId": "uuid",
-      "title": "string",
-      "position": "number",
-      "content": null
-    }
-  ]
+    "name": "Nazwa repertuaru (wymagane, 1-160 znaków)",
+    "description": "Opcjonalny opis",
+    "songIds": ["uuid1", "uuid2"]
 }
 ```
 
-### Kody błędów
+**Odpowiedź 201 Created:**
 
-| Status | Kod błędu | Opis |
-|--------|-----------|------|
-| 400 | `validation_error` | Nieprawidłowe dane wejściowe lub nieprawidłowe songIds |
-| 401 | `unauthorized` | Brak lub nieprawidłowy token JWT |
-| 409 | `conflict` | Repertuar o podanej nazwie już istnieje |
-| 500 | `internal_error` | Błąd serwera |
-
----
-
-## Przykłady użycia
-
-### 1. Utworzenie repertuaru bez piosenek
-
-**Request:**
-```bash
-curl -X POST http://localhost:54321/functions/v1/repertoires \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-  -d '{
-    "name": "Wieczór przy ognisku",
-    "description": "Klasyczne piosenki biesiadne"
-  }'
-```
-
-**Response:**
 ```json
 {
-  "id": "550e8400-e29b-41d4-a716-446655440000",
-  "publicId": "660e8400-e29b-41d4-a716-446655440001",
-  "name": "Wieczór przy ognisku",
-  "description": "Klasyczne piosenki biesiadne",
-  "publishedAt": null,
-  "createdAt": "2025-10-22T10:30:00.000Z",
-  "updatedAt": "2025-10-22T10:30:00.000Z",
-  "songCount": 0,
-  "songs": []
-}
-```
-
----
-
-### 2. Utworzenie repertuaru z piosenkami
-
-**Request:**
-```bash
-curl -X POST http://localhost:54321/functions/v1/repertoires \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-  -d '{
-    "name": "Urodziny Janka",
-    "description": "Repertuar na imprezę urodzinową",
-    "songIds": [
-      "770e8400-e29b-41d4-a716-446655440010",
-      "770e8400-e29b-41d4-a716-446655440011",
-      "770e8400-e29b-41d4-a716-446655440012"
+    "id": "uuid",
+    "publicId": "uuid",
+    "name": "Nazwa repertuaru",
+    "description": "Opis",
+    "publishedAt": null,
+    "createdAt": "2024-01-10T08:00:00Z",
+    "updatedAt": "2024-01-10T08:00:00Z",
+    "songCount": 2,
+    "songs": [
+        {
+            "repertoireSongId": "uuid",
+            "songId": "uuid1",
+            "title": "Tytuł piosenki",
+            "position": 1,
+            "content": null
+        }
     ]
-  }'
-```
-
-**Response:**
-```json
-{
-  "id": "550e8400-e29b-41d4-a716-446655440002",
-  "publicId": "660e8400-e29b-41d4-a716-446655440003",
-  "name": "Urodziny Janka",
-  "description": "Repertuar na imprezę urodzinową",
-  "publishedAt": null,
-  "createdAt": "2025-10-22T10:35:00.000Z",
-  "updatedAt": "2025-10-22T10:35:00.000Z",
-  "songCount": 3,
-  "songs": [
-    {
-      "repertoireSongId": "880e8400-e29b-41d4-a716-446655440020",
-      "songId": "770e8400-e29b-41d4-a716-446655440010",
-      "title": "Panie Janie",
-      "position": 1,
-      "content": null
-    },
-    {
-      "repertoireSongId": "880e8400-e29b-41d4-a716-446655440021",
-      "songId": "770e8400-e29b-41d4-a716-446655440011",
-      "title": "Sto lat",
-      "position": 2,
-      "content": null
-    },
-    {
-      "repertoireSongId": "880e8400-e29b-41d4-a716-446655440022",
-      "songId": "770e8400-e29b-41d4-a716-446655440012",
-      "title": "Szła dzieweczka",
-      "position": 3,
-      "content": null
-    }
-  ]
 }
 ```
 
----
+**Błędy:**
 
-### 3. Błąd walidacji - nazwa za długa
-
-**Request:**
-```bash
-curl -X POST http://localhost:54321/functions/v1/repertoires \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-  -d '{
-    "name": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
-    "description": "Test"
-  }'
-```
-
-**Response (400):**
-```json
-{
-  "error": {
-    "code": "validation_error",
-    "message": "Nieprawidłowe dane wejściowe",
-    "details": {
-      "name": {
-        "_errors": ["Nazwa może mieć maksymalnie 160 znaków"]
-      }
-    }
-  }
-}
-```
-
----
-
-### 4. Błąd - nieprawidłowe songIds
-
-**Request:**
-```bash
-curl -X POST http://localhost:54321/functions/v1/repertoires \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-  -d '{
-    "name": "Test repertuar",
-    "songIds": [
-      "770e8400-e29b-41d4-a716-446655440010",
-      "999e8400-e29b-41d4-a716-446655999999"
-    ]
-  }'
-```
-
-**Response (400):**
-```json
-{
-  "error": {
-    "code": "validation_error",
-    "message": "Jedna lub więcej piosenek nie istnieje lub nie należy do użytkownika",
-    "details": {
-      "invalidSongIds": ["999e8400-e29b-41d4-a716-446655999999"]
-    }
-  }
-}
-```
-
----
-
-### 5. Błąd - konflikt nazwy
-
-**Request:**
-```bash
-curl -X POST http://localhost:54321/functions/v1/repertoires \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-  -d '{
-    "name": "Wieczór przy ognisku"
-  }'
-```
-
-**Response (409):**
-```json
-{
-  "error": {
-    "code": "conflict",
-    "message": "Repertuar o podanej nazwie już istnieje",
-    "details": {
-      "name": "Wieczór przy ognisku"
-    }
-  }
-}
-```
-
----
-
-## Scenariusze testowe
-
-### Test 1: Podstawowe utworzenie repertuaru
-- **Input:** Nazwa i opis
-- **Oczekiwane:** 201, repertuar utworzony bez piosenek
-
-### Test 2: Utworzenie z piosenkami
-- **Input:** Nazwa + 3 songIds
-- **Oczekiwane:** 201, repertuar z 3 piosenkami w prawidłowej kolejności
-
-### Test 3: Duplikaty w songIds
-- **Input:** songIds = [id1, id2, id1]
-- **Oczekiwane:** 201, tylko 2 piosenki (duplikat usunięty)
-
-### Test 4: Pusta tablica songIds
-- **Input:** songIds = []
-- **Oczekiwane:** 201, repertuar bez piosenek
-
-### Test 5: Walidacja nazwy
-- **Input:** Nazwa pusta lub > 160 znaków
-- **Oczekiwane:** 400 validation_error
-
-### Test 6: Nieprawidłowe UUID
-- **Input:** songIds = ["not-a-uuid"]
-- **Oczekiwane:** 400 validation_error
-
-### Test 7: Nieistniejące piosenki
-- **Input:** songIds z UUID, które nie istnieją
-- **Oczekiwane:** 400 validation_error z listą invalid IDs
-
-### Test 8: Piosenki innego użytkownika
-- **Input:** songIds należące do innego organizatora
-- **Oczekiwane:** 400 validation_error
-
-### Test 9: Konflikt nazwy
-- **Input:** Nazwa już istniejącego repertuaru
-- **Oczekiwane:** 409 conflict
-
-### Test 10: Zbyt wiele piosenek
-- **Input:** songIds z 101 elementami
-- **Oczekiwane:** 400 validation_error
-
-### Test 11: Brak autoryzacji
-- **Input:** Brak nagłówka Authorization
-- **Oczekiwane:** 401 unauthorized
-
-### Test 12: Nieprawidłowy JSON
-- **Input:** Źle sformatowany JSON
-- **Oczekiwane:** 400 validation_error
-
----
-
-## Uruchamianie lokalnie
-
-```bash
-# Uruchomienie funkcji
-supabase functions serve repertoires
-
-# Endpoint dostępny pod:
-# http://localhost:54321/functions/v1/repertoires
-```
+- `400 Bad Request` - Nieprawidłowe dane (np. brak nazwy, nieprawidłowe UUID w songIds)
+- `401 Unauthorized` - Brak lub nieprawidłowy token JWT
+- `409 Conflict` - Repertuar o podanej nazwie już istnieje dla tego użytkownika
+- `500 Internal Server Error` - Błąd serwera lub bazy danych
 
 ---
 
 ## Implementacja
 
-### Struktura plików
+### Architektura
+
 ```
 repertoires/
-├── index.ts                   # Router główny
-├── repertoires.handlers.ts    # Handlery HTTP i walidacja
-├── repertoires.service.ts     # Logika biznesowa
-└── README.md                  # Ta dokumentacja
+├── index.ts                    # Main router - obsługa żądań i błędów
+├── repertoires.handlers.ts     # Handlery dla poszczególnych endpointów
+├── repertoires.service.ts      # Logika biznesowa i operacje na danych
+└── README.md                   # Ta dokumentacja
 ```
 
-### Przepływ danych
-1. Request → `index.ts` (auth + routing)
-2. Router → `repertoires.handlers.ts` (walidacja Zod)
-3. Handler → `repertoires.service.ts` (logika biznesowa)
-4. Serwis → Supabase (operacje DB)
-5. Response ← (mapowanie DTO i zwrot)
+### Edge Cases
+
+#### GET /repertoires
+
+1. **Pusta lista**: Gdy użytkownik nie ma repertuarów, zwracane jest `{ items: [], total: 0 }`
+2. **Brak wyników dla wyszukiwania**: Zwraca pustą listę z `total: 0`
+3. **Strona poza zakresem**: Gdy `page` przekracza dostępne strony, zwraca pustą listę
+4. **Nieprawidłowy sort key**: Zwraca błąd walidacji 400 z komunikatem o dozwolonych wartościach
+5. **includeCounts z błędem**: Jeśli zliczanie piosenek nie powiedzie się, `songCount` nie jest dodawany
+6. **Wyszukiwanie case-insensitive**: Operator `ilike` zapewnia wyszukiwanie bez względu na wielkość liter
+7. **Parametr published**: Obsługuje wartości `true`, `false` oraz brak parametru (wszystkie repertuary)
+
+#### POST /repertoires
+
+1. **Duplikaty songIds**: Automatycznie usuwane z zachowaniem kolejności
+2. **Nieprawidłowe songIds**: Zwraca błąd 400 z listą nieprawidłowych ID
+3. **Pusta tablica songIds**: Akceptowane, tworzy repertuar bez piosenek
+4. **Konflikt nazwy**: Zwraca 409 gdy repertuar o tej nazwie już istnieje
 
 ### Bezpieczeństwo
-- ✅ Uwierzytelnienie JWT wymagane
-- ✅ Weryfikacja własności piosenek
-- ✅ Walidacja wszystkich danych wejściowych
-- ✅ Ochrona przed SQL injection (Supabase client)
-- ✅ Limity: max 100 piosenek na request
-- ✅ Automatyczne usuwanie duplikatów
 
-### Optymalizacje
-- ✅ Content piosenek nie jest zwracany (wydajność)
-- ✅ Pojedyncze zapytanie dla walidacji piosenek
-- ✅ Batch insert dla repertoire_songs
-- ✅ Deduplikacja songIds
+- **Uwierzytelnianie**: Wszystkie endpointy wymagają ważnego JWT tokena
+- **Autoryzacja**: Wszystkie zapytania filtrowane po `organizer_id` z tokena
+- **Walidacja**: Rygorystyczna walidacja wszystkich parametrów wejściowych za pomocą Zod
+- **Rate limiting**: Parametr `pageSize` ograniczony do max 100
 
+### Performance
+
+- **Indeksy**: Zalecane indeksy na `organizer_id`, `name`, `created_at`, `updated_at`, `published_at`
+- **Paginacja**: Zawsze wymuszana przez `pageSize` (max 100)
+- **Selective columns**: Tylko niezbędne kolumny są pobierane z bazy
+- **Zliczanie piosenek**: Opcjonalne (włączane przez `includeCounts`), wykonywane pojedynczym zapytaniem
+- **Total count**: Pobierany w tym samym zapytaniu co dane (`count: 'exact'`)
+
+### Testing
+
+Przykłady testowania lokalnie (z `supabase functions serve repertoires`):
+
+```bash
+# Pobierz listę (wymagany token)
+curl -X GET "http://localhost:54321/functions/v1/repertoires?page=1&pageSize=10" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+
+# Z wyszukiwaniem
+curl -X GET "http://localhost:54321/functions/v1/repertoires?search=kolędy&includeCounts=true" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+
+# Utwórz nowy
+curl -X POST "http://localhost:54321/functions/v1/repertoires" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Mój nowy repertuar", "description": "Testowy opis"}'
+```
