@@ -23,43 +23,32 @@ Najpierw przejrzyj następujące informacje:
 
 4. User Stories:
 <user_stories>
--   ID: US-006
--   Title: Edycja istniejącej piosenki
--   Description: Jako Organizator, chcę móc edytować tytuł i treść wcześniej dodanej piosenki.
+-   ID: US-009
+-   Title: Przeglądanie listy repertuarów
+-   Description: Jako Organizator, chcę widzieć listę wszystkich moich repertuarów.
 -   Acceptance Criteria:
-    -   Po kliknięciu opcji "edytuj" przy piosence, przechodzę do formularza edycji.
-    -   Formularz jest wypełniony aktualnymi danymi piosenki.
-    -   Mogę zmienić tytuł i treść, a następnie zapisać zmiany.
-    -   Zaktualizowana piosenka jest widoczna na liście.
+    -   W panelu zarządzania widzę listę wszystkich stworzonych przeze mnie repertuarów.
+    -   Dla każdego repertuaru widoczne są opcje edycji, usunięcia i udostępnienia.
+    -   Jeśli nie mam żadnych repertuarów, widzę komunikat "pustego stanu".
 
 </user_stories>
 
 5. Endpoint Description:
 <endpoint_description>
 
-#### GET /songs/{id}
+#### GET /repertoires
 - **Method:** GET
-- **Path:** `/songs/{id}`
-- **Description:** Fetch full song with chords for editing/Biesiada organizer view.
-- **Query Parameters:** `includeUsage` (`true` adds repertoires using the song)
-- **Response JSON:** song resource plus optional `repertoires` array.
+- **Path:** `/repertoires`
+- **Description:** List organizer repertoires.
+- **Query Parameters:**
+  - `page`, `pageSize`
+  - `search` (trigram against `name`)
+  - `published` (`true|false|null`)
+  - `sort` (`name|createdAt|updatedAt|publishedAt`, prefix `-` for desc)
+  - `includeCounts` (`true` adds `songCount`)
+- **Response JSON:** paginated list similar to `GET /songs` with optional counts.
 - **Success:** `200 OK`
-- **Errors:** `401 Unauthorized`, `403 Forbidden` (not owner), `404 Not Found`.
-
-#### PATCH /songs/{id}
-- **Method:** PATCH
-- **Path:** `/songs/{id}`
-- **Description:** Partially update song title/content.
-- **Request JSON:**
-```json
-{
-  "title": "Heaven's Door",
-  "content": "[D]Mama..."
-}
-```
-- **Response JSON:** updated song resource.
-- **Success:** `200 OK`
-- **Errors:** `400 Bad Request`, `401 Unauthorized`, `403 Forbidden`, `404 Not Found`, `409 Conflict` (duplicate title).
+- **Errors:** `401 Unauthorized`.
 
 </endpoint_description>
 
@@ -83,6 +72,13 @@ Najpierw przejrzyj następujące informacje:
 
 
 </tech_stack>
+
+9. Frontend rules
+<rules>
+
+
+
+</rules>
 
 Przed utworzeniem ostatecznego planu wdrożenia przeprowadź analizę i planowanie wewnątrz tagów <implementation_breakdown> w swoim bloku myślenia. Ta sekcja może być dość długa, ponieważ ważne jest, aby być dokładnym.
 
