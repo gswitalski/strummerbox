@@ -1,0 +1,79 @@
+<section class="repertoire-list-page">
+    <header class="repertoire-list-page__header">
+        <h1 class="repertoire-list-page__title">Repertuary</h1>
+        <div class="repertoire-list-page__actions">
+            <button mat-raised-button color="primary" (click)="navigateToCreateRepertoire()">
+                <mat-icon aria-hidden="true">add</mat-icon>
+                Dodaj repertuar
+            </button>
+        </div>
+    </header>
+
+    <div class="repertoire-list-page__filters">
+        <mat-form-field appearance="outline" class="repertoire-list-page__search-field">
+            <mat-label>Wyszukaj</mat-label>
+            <input
+                matInput
+                type="search"
+                [value]="searchTerm()"
+                (input)="onSearchChange($any($event.target).value)"
+                placeholder="Wpisz fragment nazwy"
+                aria-label="Pole wyszukiwania repertuarów"
+            />
+        </mat-form-field>
+    </div>
+
+    @if (viewState().error) {
+        <section class="repertoire-list-page__error" role="alert">
+            <p>{{ viewState().error }}</p>
+            <button mat-stroked-button type="button" (click)="retryLoad()">
+                Spróbuj ponownie
+            </button>
+        </section>
+    }
+
+    @if (isInitialLoading()) {
+        <div class="repertoire-list-page__loading" aria-live="polite">
+            <mat-progress-spinner mode="indeterminate" diameter="48"></mat-progress-spinner>
+        </div>
+    }
+
+    @if (shouldShowEmptyState()) {
+        <stbo-empty-state
+            class="repertoire-list-page__empty"
+            message="Nie masz jeszcze żadnych repertuarów. Dodaj pierwszy, aby zacząć organizować swoje piosenki."
+            buttonText="Dodaj repertuar"
+            (ctaClick)="navigateToCreateRepertoire()"
+        ></stbo-empty-state>
+    }
+
+    @if (hasResults()) {
+        <section class="repertoire-list-page__list-wrapper" [class.repertoire-list-page__list-wrapper--loading]="isLoading()">
+            <stbo-repertoire-list
+                [repertoires]="viewState().repertoires"
+                [isLoading]="isLoading()"
+                [currentSort]="viewState().sort"
+                (editRepertoire)="onEditRepertoire($event)"
+                (deleteRepertoire)="onDeleteRepertoire($event)"
+                (shareRepertoire)="onShareRepertoire($event)"
+                (sortChange)="onSortChange($event)"
+            ></stbo-repertoire-list>
+
+            @if (isLoading()) {
+                <div class="repertoire-list-page__list-overlay" aria-hidden="true">
+                    <mat-progress-spinner mode="indeterminate" diameter="32"></mat-progress-spinner>
+                </div>
+            }
+        </section>
+
+        <mat-paginator
+            [length]="totalCount()"
+            [pageSize]="viewState().pageSize"
+            [pageSizeOptions]="pageSizeOptions"
+            [pageIndex]="viewState().currentPage"
+            showFirstLastButtons
+            (page)="onPageChange($event)"
+        ></mat-paginator>
+    }
+</section>
+

@@ -1,0 +1,68 @@
+.repertoire-list__table-wrapper {
+    position: relative;
+    overflow-x: auto;
+}
+
+.repertoire-list__table-wrapper.is-loading::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-color: rgba(255, 255, 255, 0.6);
+    pointer-events: none;
+}
+
+table {
+    width: 100%;
+}
+
+.repertoire-list__status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: rgba(0, 0, 0, 0.6);
+
+    &--published {
+        color: #2e7d32;
+    }
+}
+
+.repertoire-list__actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.repertoire-list__cards {
+    display: grid;
+    gap: 1rem;
+}
+
+@media (min-width: 600px) {
+    .repertoire-list__cards {
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    }
+}
+
+.repertoire-list__card {
+    display: flex;
+    flex-direction: column;
+}
+
+.repertoire-list__song-count {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0 0 0.5rem 0;
+    color: rgba(0, 0, 0, 0.87);
+}
+
+.repertoire-list__overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(255, 255, 255, 0.6);
+    pointer-events: none;
+}
+

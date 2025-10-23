@@ -54,6 +54,13 @@ export const routes: Routes = [
                     ),
             },
             {
+                path: 'repertoires',
+                loadComponent: () =>
+                    import('./pages/repertoire-list/repertoire-list-page/repertoire-list-page.component').then(
+                        (m) => m.RepertoireListPageComponent
+                    ),
+            },
+            {
                 path: '',
                 pathMatch: 'full',
                 redirectTo: 'dashboard',
