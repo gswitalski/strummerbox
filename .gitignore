@@ -42,6 +42,7 @@ testem.log
 Thumbs.db
 
 .knowledge
+.drafts
 
 # Environment files
 .env

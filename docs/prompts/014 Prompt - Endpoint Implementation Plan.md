@@ -5,37 +5,40 @@ Zanim zaczniemy, zapoznaj się z poniższymi informacjami:
 1. Route API specification:
 <route_api_specification>
 
-#### GET /repertoires
+#### GET /repertoires/{id}
 - **Method:** GET
-- **Path:** `/repertoires`
-- **Description:** List organizer repertoires.
-- **Query Parameters:**
-  - `page`, `pageSize`
-  - `search` (trigram against `name`)
-  - `published` (`true|false|null`)
-  - `sort` (`name|createdAt|updatedAt|publishedAt`, prefix `-` for desc)
-  - `includeCounts` (`true` adds `songCount`)
-- **Response JSON:** paginated list similar to `GET /songs` with optional counts.
+- **Path:** `/repertoires/{id}`
+- **Description:** Fetch repertoire with ordered songs (with chords) for editing/organizer Biesiada.
+- **Query Parameters:** `includeSongContent` (`true` returns full song `content`, default `false` for management view).
+- **Response JSON:**
+```json
+{
+  "id": "5f7a8f35-1cde-4f62-991e-0e020df3ac42",
+  "publicId": "8729a118-3b9b-4ce4-b268-36c9d6a6a46c",
+  "name": "Ognisko 2025",
+  "description": "Wieczorne granie",
+  "publishedAt": null,
+  "createdAt": "2025-10-15T08:30:11Z",
+  "updatedAt": "2025-10-15T08:45:27Z",
+  "songs": [
+    {
+      "repertoireSongId": "24a1a901-5ff8-4f79-a8bd-9d9b1b2c9919",
+      "songId": "58b8a0d0-5bf4-4d8a-82de-a2ad8c37b8a5",
+      "title": "Knockin' on Heaven's Door",
+      "position": 1,
+      "content": null
+    }
+  ]
+}
+```
 - **Success:** `200 OK`
-- **Errors:** `401 Unauthorized`.
+- **Errors:** `401 Unauthorized`, `403 Forbidden`, `404 Not Found`.
 
 </route_api_specification>
 
 2. Related database resources:
 <related_db_resources>
-- `users`
-this table is managed by Supabase Auth
 
-- `repertoires`
-  - `id UUID PRIMARY KEY DEFAULT gen_random_uuid()`
-  - `organizer_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE`
-  - `public_id UUID NOT NULL UNIQUE DEFAULT gen_random_uuid()`
-  - `name TEXT NOT NULL CHECK (char_length(trim(name)) BETWEEN 1 AND 160)`
-  - `description TEXT`
-  - `published_at TIMESTAMPTZ NULL`
-  - `created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc', now())`
-  - `updated_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc', now())`
-  - `UNIQUE (organizer_id, name)`
 
 
 </related_db_resources>
@@ -137,4 +140,4 @@ Końcowym wynikiem powinien być dobrze zorganizowany plan wdrożenia w formacie
 
 Końcowe wyniki powinny składać się wyłącznie z planu wdrożenia w formacie markdown i nie powinny powielać ani powtarzać żadnej pracy wykonanej w sekcji analizy.
 
-Pamiętaj, aby zapisać swój plan wdrożenia jako docs/results/impl-plans/{endpoint-name}-api-implementation-plan.md. Upewnij się, że plan jest szczegółowy, przejrzysty i zapewnia kompleksowe wskazówki dla zespołu programistów.
+Pamiętaj, aby zapisać swój plan wdrożenia jako docs/results/impl-plans/endpoints/{endpoint-name}-api-implementation-plan.md. Upewnij się, że plan jest szczegółowy, przejrzysty i zapewnia kompleksowe wskazówki dla zespołu programistów.
