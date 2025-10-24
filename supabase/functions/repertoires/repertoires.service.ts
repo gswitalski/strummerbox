@@ -611,9 +611,13 @@ export const getRepertoireById = async ({
     // ========================================================================
 
     const baseDto = mapToRepertoireDto(repertoireData);
-    const songs = includeContent
-        ? (songsData || []).map(mapToRepertoireSongDtoWithContent)
-        : (songsData || []).map(mapToRepertoireSongDtoWithoutContent);
+
+    let songs: RepertoireSongDto[];
+    if (includeContent) {
+        songs = (songsData || []).map(mapToRepertoireSongDtoWithContent as (row: unknown) => RepertoireSongDto);
+    } else {
+        songs = (songsData || []).map(mapToRepertoireSongDtoWithoutContent);
+    }
 
     logger.info('Repertuar pobrany pomyślnie', {
         organizerId,

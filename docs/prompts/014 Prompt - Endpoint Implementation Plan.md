@@ -5,34 +5,20 @@ Zanim zaczniemy, zapoznaj się z poniższymi informacjami:
 1. Route API specification:
 <route_api_specification>
 
-#### GET /repertoires/{id}
-- **Method:** GET
+#### PATCH /repertoires/{id}
+- **Method:** PATCH
 - **Path:** `/repertoires/{id}`
-- **Description:** Fetch repertoire with ordered songs (with chords) for editing/organizer Biesiada.
-- **Query Parameters:** `includeSongContent` (`true` returns full song `content`, default `false` for management view).
-- **Response JSON:**
+- **Description:** Update repertoire metadata (name, description).
+- **Request JSON:**
 ```json
 {
-  "id": "5f7a8f35-1cde-4f62-991e-0e020df3ac42",
-  "publicId": "8729a118-3b9b-4ce4-b268-36c9d6a6a46c",
-  "name": "Ognisko 2025",
-  "description": "Wieczorne granie",
-  "publishedAt": null,
-  "createdAt": "2025-10-15T08:30:11Z",
-  "updatedAt": "2025-10-15T08:45:27Z",
-  "songs": [
-    {
-      "repertoireSongId": "24a1a901-5ff8-4f79-a8bd-9d9b1b2c9919",
-      "songId": "58b8a0d0-5bf4-4d8a-82de-a2ad8c37b8a5",
-      "title": "Knockin' on Heaven's Door",
-      "position": 1,
-      "content": null
-    }
-  ]
+  "name": "Ognisko 2025 (aktualizacja)",
+  "description": "Nowa lista utworów"
 }
 ```
+- **Response JSON:** updated repertoire resource.
 - **Success:** `200 OK`
-- **Errors:** `401 Unauthorized`, `403 Forbidden`, `404 Not Found`.
+- **Errors:** `400 Bad Request`, `401 Unauthorized`, `403 Forbidden`, `404 Not Found`, `409 Conflict` (duplicate name).
 
 </route_api_specification>
 
