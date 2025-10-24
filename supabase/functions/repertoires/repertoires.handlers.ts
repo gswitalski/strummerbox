@@ -5,7 +5,7 @@ import { createValidationError } from '../_shared/errors.ts';
 import { logger } from '../_shared/logger.ts';
 import type { AuthenticatedUser } from '../_shared/auth.ts';
 import type { RequestSupabaseClient } from '../_shared/supabase-client.ts';
-import { createRepertoire, listRepertoires } from './repertoires.service.ts';
+import { createRepertoire, getRepertoireById, listRepertoires } from './repertoires.service.ts';
 
 // ============================================================================
 // Validation Schemas
@@ -107,6 +107,29 @@ const GET_QUERY_SCHEMA = z.object({
         .catch(false),
 });
 
+/**
+ * Schema Zod dla parametru path `id` w GET /repertoires/{id}.
+ * Waliduje:
+ * - id: UUID (wymagany)
+ */
+const GET_BY_ID_PATH_SCHEMA = z.object({
+    id: z.string().uuid('Nieprawidłowy identyfikator repertuaru'),
+});
+
+/**
+ * Schema Zod dla parametrów query GET /repertoires/{id}.
+ * Waliduje:
+ * - includeSongContent: opcjonalna flaga włączania treści piosenek (boolean)
+ */
+const GET_BY_ID_QUERY_SCHEMA = z.object({
+    includeSongContent: z
+        .string()
+        .optional()
+        .transform(val => val === 'true')
+        .pipe(z.boolean())
+        .catch(false),
+});
+
 // ============================================================================
 // Request Body Parsers
 // ============================================================================
@@ -168,6 +191,48 @@ const parseGetQueryParams = (url: URL): GetRepertoiresQueryParams => {
     }
 
     return result.data as GetRepertoiresQueryParams;
+};
+
+/**
+ * Typ dla zwalidowanych parametrów GET /repertoires/{id}.
+ */
+export type GetRepertoireByIdParams = {
+    id: string;
+    includeSongContent: boolean;
+};
+
+/**
+ * Parsuje i waliduje parametry path oraz query dla GET /repertoires/{id}.
+ * @throws {ApplicationError} z kodem validation_error jeśli parametry są nieprawidłowe
+ */
+const parseGetByIdParams = (pathId: string, url: URL): GetRepertoireByIdParams => {
+    // Walidacja parametru path
+    const pathResult = GET_BY_ID_PATH_SCHEMA.safeParse({ id: pathId });
+
+    if (!pathResult.success) {
+        logger.warn('Błędy walidacji parametru path dla GET /repertoires/{id}', {
+            issues: pathResult.error.issues,
+        });
+
+        throw createValidationError('Nieprawidłowy identyfikator repertuaru', pathResult.error.format());
+    }
+
+    // Walidacja parametrów query
+    const queryParams = Object.fromEntries(url.searchParams.entries());
+    const queryResult = GET_BY_ID_QUERY_SCHEMA.safeParse(queryParams);
+
+    if (!queryResult.success) {
+        logger.warn('Błędy walidacji parametrów query dla GET /repertoires/{id}', {
+            issues: queryResult.error.issues,
+        });
+
+        throw createValidationError('Nieprawidłowe parametry zapytania', queryResult.error.format());
+    }
+
+    return {
+        id: pathResult.data.id,
+        includeSongContent: queryResult.data.includeSongContent,
+    };
 };
 
 // ============================================================================
@@ -254,6 +319,51 @@ export const handlePostRepertoire = async (
     return jsonResponse<RepertoireDto>(repertoire, { status: 201 });
 };
 
+/**
+ * Handler dla GET /repertoires/{id} - pobranie szczegółów repertuaru.
+ *
+ * Przepływ:
+ * 1. Uwierzytelnienie użytkownika (requireAuth w router)
+ * 2. Walidacja parametru path `id` i parametru query `includeSongContent`
+ * 3. Wywołanie serwisu getRepertoireById
+ * 4. Zwrócenie odpowiedzi 200 OK z RepertoireDto
+ *
+ * @throws {ApplicationError} 400 - błąd walidacji parametrów
+ * @throws {ApplicationError} 404 - repertuar nie istnieje lub nie należy do użytkownika
+ * @throws {ApplicationError} 500 - błąd serwera
+ */
+export const handleGetRepertoireById = async (
+    request: Request,
+    supabase: RequestSupabaseClient,
+    user: AuthenticatedUser,
+    repertoireId: string,
+): Promise<Response> => {
+    const url = new URL(request.url);
+
+    logger.info('Rozpoczęcie pobierania repertuaru po ID', {
+        organizerId: user.id,
+        repertoireId,
+    });
+
+    const params = parseGetByIdParams(repertoireId, url);
+
+    const repertoire = await getRepertoireById({
+        supabase,
+        repertoireId: params.id,
+        organizerId: user.id,
+        includeContent: params.includeSongContent,
+    });
+
+    logger.info('Repertuar pobrany pomyślnie', {
+        organizerId: user.id,
+        repertoireId: repertoire.id,
+        name: repertoire.name,
+        songCount: repertoire.songs?.length ?? 0,
+    });
+
+    return jsonResponse<RepertoireDto>(repertoire, { status: 200 });
+};
+
 // ============================================================================
 // Router
 // ============================================================================
@@ -263,6 +373,7 @@ export const handlePostRepertoire = async (
  * Obsługuje:
  * - GET /repertoires - pobranie paginowanej listy repertuarów
  * - POST /repertoires - utworzenie nowego repertuaru
+ * - GET /repertoires/{id} - pobranie szczegółów repertuaru
  */
 export const repertoiresRouter = async (
     request: Request,
@@ -270,6 +381,13 @@ export const repertoiresRouter = async (
     user: AuthenticatedUser,
     path: string,
 ): Promise<Response> => {
+    // GET /repertoires/{id} - pobranie szczegółów repertuaru (musi być przed GET /repertoires)
+    const getByIdMatch = path.match(/^\/repertoires\/([^/]+)$/);
+    if (getByIdMatch && request.method === 'GET') {
+        const repertoireId = getByIdMatch[1];
+        return await handleGetRepertoireById(request, supabase, user, repertoireId);
+    }
+
     // GET /repertoires - pobranie listy repertuarów
     if (path === '/repertoires' && request.method === 'GET') {
         return await handleGetRepertoires(request, supabase, user);

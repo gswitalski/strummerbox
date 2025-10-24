@@ -5,7 +5,7 @@ import type {
     RepertoireSummaryDto,
     RepertoireListResponseDto,
 } from '../../../packages/contracts/types.ts';
-import { createConflictError, createInternalError, createValidationError } from '../_shared/errors.ts';
+import { createConflictError, createInternalError, createNotFoundError, createValidationError } from '../_shared/errors.ts';
 import type { RequestSupabaseClient } from '../_shared/supabase-client.ts';
 import { logger } from '../_shared/logger.ts';
 import type { GetRepertoiresQueryParams } from './repertoires.handlers.ts';
@@ -32,6 +32,13 @@ const REPERTOIRE_SUMMARY_COLUMNS = REPERTOIRE_COLUMNS;
 const REPERTOIRE_SONG_COLUMNS_WITHOUT_CONTENT =
     'id, position, song_id, songs!inner(id, title)';
 
+/**
+ * Kolumny do pobrania dla piosenek w repertuarze wraz z danymi piosenki (z content).
+ * Używane dla operacji typu GET /repertoires/{id} z includeSongContent=true.
+ */
+const REPERTOIRE_SONG_COLUMNS_WITH_CONTENT =
+    'id, position, song_id, songs!inner(id, title, content)';
+
 // ============================================================================
 // Helper Functions
 // ============================================================================
@@ -54,6 +61,27 @@ const mapToRepertoireSongDtoWithoutContent = (row: {
     title: row.songs.title,
     position: row.position,
     content: null,
+});
+
+/**
+ * Mapuje surowy wiersz repertoire_songs z bazy do RepertoireSongDto (z content).
+ * Używane dla GET /repertoires/{id} z includeSongContent=true.
+ */
+const mapToRepertoireSongDtoWithContent = (row: {
+    id: string;
+    position: number;
+    song_id: string;
+    songs: {
+        id: string;
+        title: string;
+        content: string;
+    };
+}): RepertoireSongDto => ({
+    repertoireSongId: row.id,
+    songId: row.songs.id,
+    title: row.songs.title,
+    position: row.position,
+    content: row.songs.content,
 });
 
 /**
@@ -489,6 +517,113 @@ export const listRepertoires = async ({
         page,
         pageSize,
         total: count || 0,
+    };
+};
+
+// ============================================================================
+// Get Repertoire By ID Service
+// ============================================================================
+
+export type GetRepertoireByIdParams = {
+    supabase: RequestSupabaseClient;
+    repertoireId: string;
+    organizerId: string;
+    includeContent: boolean;
+};
+
+/**
+ * Pobiera szczegółowe informacje o repertuarze na podstawie ID.
+ *
+ * Proces:
+ * 1. Pobiera dane repertuaru z autoryzacją przez organizer_id
+ * 2. Pobiera piosenki w repertuarze, sortowane po pozycji
+ * 3. Warunkowe dołączanie pola content w zależności od flagi includeContent
+ * 4. Zwraca pełny obiekt RepertoireDto
+ *
+ * @throws {ApplicationError} 404 - repertuar nie istnieje lub nie należy do użytkownika
+ * @throws {ApplicationError} 500 - błąd bazy danych
+ */
+export const getRepertoireById = async ({
+    supabase,
+    repertoireId,
+    organizerId,
+    includeContent,
+}: GetRepertoireByIdParams): Promise<RepertoireDto> => {
+    logger.info('Rozpoczęcie pobierania repertuaru po ID', {
+        organizerId,
+        repertoireId,
+        includeContent,
+    });
+
+    // ========================================================================
+    // Krok 1: Pobranie danych podstawowych repertuaru
+    // ========================================================================
+
+    const { data: repertoireData, error: repertoireError } = await supabase
+        .from('repertoires')
+        .select(REPERTOIRE_COLUMNS)
+        .eq('id', repertoireId)
+        .eq('organizer_id', organizerId)
+        .maybeSingle();
+
+    if (repertoireError) {
+        logger.error('Błąd podczas pobierania repertuaru po ID', {
+            organizerId,
+            repertoireId,
+            error: repertoireError,
+        });
+        throw createInternalError('Nie udało się pobrać repertuaru', repertoireError);
+    }
+
+    if (!repertoireData) {
+        logger.warn('Repertuar nie istnieje lub nie należy do użytkownika', {
+            organizerId,
+            repertoireId,
+        });
+        throw createNotFoundError('Repertuar nie został znaleziony');
+    }
+
+    // ========================================================================
+    // Krok 2: Pobranie piosenek w repertuarze (z lub bez content)
+    // ========================================================================
+
+    const songsColumns = includeContent
+        ? REPERTOIRE_SONG_COLUMNS_WITH_CONTENT
+        : REPERTOIRE_SONG_COLUMNS_WITHOUT_CONTENT;
+
+    const { data: songsData, error: songsError } = await supabase
+        .from('repertoire_songs')
+        .select(songsColumns)
+        .eq('repertoire_id', repertoireId)
+        .order('position', { ascending: true });
+
+    if (songsError) {
+        logger.error('Błąd podczas pobierania piosenek repertuaru', {
+            organizerId,
+            repertoireId,
+            error: songsError,
+        });
+        throw createInternalError('Nie udało się pobrać piosenek repertuaru', songsError);
+    }
+
+    // ========================================================================
+    // Krok 3: Mapowanie do DTO
+    // ========================================================================
+
+    const baseDto = mapToRepertoireDto(repertoireData);
+    const songs = includeContent
+        ? (songsData || []).map(mapToRepertoireSongDtoWithContent)
+        : (songsData || []).map(mapToRepertoireSongDtoWithoutContent);
+
+    logger.info('Repertuar pobrany pomyślnie', {
+        organizerId,
+        repertoireId,
+        songCount: songs.length,
+    });
+
+    return {
+        ...baseDto,
+        songs,
     };
 };
 
