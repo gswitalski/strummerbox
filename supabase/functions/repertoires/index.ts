@@ -13,7 +13,11 @@ serve(async (request) => {
     const supabase = createSupabaseClient(request);
 
     const execute = withErrorHandling(async () => {
-        const repertoiresPathRegex = /\/repertoires(?:\/[^/]+)?$/;
+        // Obsługuje ścieżki:
+        // - /repertoires
+        // - /repertoires/{id}
+        // - /repertoires/{id}/songs
+        const repertoiresPathRegex = /\/repertoires(?:\/[^/]+(?:\/songs)?)?$/;
 
         if (repertoiresPathRegex.test(path)) {
             const user = await requireAuth(supabase);

@@ -5,6 +5,7 @@ import type {
     RepertoireSummaryDto,
     RepertoireListResponseDto,
     RepertoireUpdateCommand,
+    RepertoireAddSongsResponseDto,
 } from '../../../packages/contracts/types.ts';
 import { createConflictError, createInternalError, createNotFoundError, createValidationError } from '../_shared/errors.ts';
 import type { RequestSupabaseClient } from '../_shared/supabase-client.ts';
@@ -771,5 +772,238 @@ export const updateRepertoire = async ({
     });
 
     return fullRepertoire;
+};
+
+// ============================================================================
+// Add Songs to Repertoire Service
+// ============================================================================
+
+export type AddSongsToRepertoireParams = {
+    supabase: RequestSupabaseClient;
+    repertoireId: string;
+    organizerId: string;
+    songIds: string[];
+};
+
+/**
+ * Dodaje piosenki do istniejącego repertuaru.
+ *
+ * Proces:
+ * 1. Sprawdza czy repertuar istnieje i należy do organizatora
+ * 2. Usuwa duplikaty z listy songIds (zachowując kolejność)
+ * 3. Waliduje czy wszystkie piosenki istnieją i należą do organizatora
+ * 4. Sprawdza czy któraś z piosenek nie jest już w repertuarze (konflikt)
+ * 5. Pobiera maksymalną pozycję w repertuarze
+ * 6. Wstawia nowe wpisy do repertoire_songs z auto-inkrementowaną pozycją
+ * 7. Zwraca listę dodanych wpisów z ich pozycjami
+ *
+ * @throws {ApplicationError} 404 - repertuar nie istnieje lub nie należy do użytkownika
+ * @throws {ApplicationError} 404 - co najmniej jedna piosenka nie istnieje lub nie należy do użytkownika
+ * @throws {ApplicationError} 409 - co najmniej jedna piosenka już jest w repertuarze
+ * @throws {ApplicationError} 500 - błąd bazy danych
+ */
+export const addSongsToRepertoire = async ({
+    supabase,
+    repertoireId,
+    organizerId,
+    songIds,
+}: AddSongsToRepertoireParams): Promise<RepertoireAddSongsResponseDto> => {
+    logger.info('Rozpoczęcie dodawania piosenek do repertuaru w serwisie', {
+        organizerId,
+        repertoireId,
+        songCount: songIds.length,
+    });
+
+    // ========================================================================
+    // Krok 1: Sprawdzenie czy repertuar istnieje i należy do organizatora
+    // ========================================================================
+
+    const { data: repertoireData, error: repertoireError } = await supabase
+        .from('repertoires')
+        .select('id')
+        .eq('id', repertoireId)
+        .eq('organizer_id', organizerId)
+        .maybeSingle();
+
+    if (repertoireError) {
+        logger.error('Błąd podczas sprawdzania istnienia repertuaru', {
+            organizerId,
+            repertoireId,
+            error: repertoireError,
+        });
+        throw createInternalError('Nie udało się sprawdzić repertuaru', repertoireError);
+    }
+
+    if (!repertoireData) {
+        logger.warn('Repertuar nie istnieje lub nie należy do użytkownika', {
+            organizerId,
+            repertoireId,
+        });
+        throw createNotFoundError('Repertuar nie został znaleziony');
+    }
+
+    // ========================================================================
+    // Krok 2: Usunięcie duplikatów z zachowaniem kolejności
+    // ========================================================================
+
+    const uniqueSongIds = Array.from(new Set(songIds));
+
+    if (uniqueSongIds.length !== songIds.length) {
+        logger.info('Usunięto duplikaty z listy songIds', {
+            organizerId,
+            repertoireId,
+            originalCount: songIds.length,
+            uniqueCount: uniqueSongIds.length,
+        });
+    }
+
+    // ========================================================================
+    // Krok 3: Walidacja czy wszystkie piosenki istnieją i należą do organizatora
+    // ========================================================================
+
+    const { data: songsValidation, error: validationError } = await supabase
+        .from('songs')
+        .select('id')
+        .in('id', uniqueSongIds)
+        .eq('organizer_id', organizerId);
+
+    if (validationError) {
+        logger.error('Błąd podczas walidacji własności piosenek', {
+            organizerId,
+            repertoireId,
+            error: validationError,
+        });
+        throw createInternalError('Nie udało się zweryfikować piosenek', validationError);
+    }
+
+    // Sprawdzenie czy wszystkie songIds istnieją w wynikach
+    const foundSongIds = new Set(songsValidation.map(s => s.id));
+    const invalidSongIds = uniqueSongIds.filter(id => !foundSongIds.has(id));
+
+    if (invalidSongIds.length > 0) {
+        logger.warn('Próba dodania nieprawidłowych piosenek do repertuaru', {
+            organizerId,
+            repertoireId,
+            invalidSongIds,
+        });
+        throw createNotFoundError(
+            'Jedna lub więcej piosenek nie istnieje lub nie należy do użytkownika',
+            { invalidSongIds }
+        );
+    }
+
+    // ========================================================================
+    // Krok 4: Sprawdzenie czy piosenki nie są już w repertuarze
+    // ========================================================================
+
+    const { data: existingSongs, error: existingError } = await supabase
+        .from('repertoire_songs')
+        .select('song_id')
+        .eq('repertoire_id', repertoireId)
+        .in('song_id', uniqueSongIds);
+
+    if (existingError) {
+        logger.error('Błąd podczas sprawdzania istniejących piosenek w repertuarze', {
+            organizerId,
+            repertoireId,
+            error: existingError,
+        });
+        throw createInternalError('Nie udało się sprawdzić istniejących piosenek', existingError);
+    }
+
+    if (existingSongs && existingSongs.length > 0) {
+        const duplicateSongIds = existingSongs.map(s => s.song_id);
+        logger.warn('Próba dodania piosenek, które już są w repertuarze', {
+            organizerId,
+            repertoireId,
+            duplicateSongIds,
+        });
+        throw createConflictError(
+            'Jedna lub więcej piosenek jest już w tym repertuarze',
+            { duplicateSongIds }
+        );
+    }
+
+    // ========================================================================
+    // Krok 5: Pobranie maksymalnej pozycji w repertuarze
+    // ========================================================================
+
+    const { data: maxPositionData, error: maxPositionError } = await supabase
+        .from('repertoire_songs')
+        .select('position')
+        .eq('repertoire_id', repertoireId)
+        .order('position', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+    if (maxPositionError) {
+        logger.error('Błąd podczas pobierania maksymalnej pozycji', {
+            organizerId,
+            repertoireId,
+            error: maxPositionError,
+        });
+        throw createInternalError('Nie udało się pobrać maksymalnej pozycji', maxPositionError);
+    }
+
+    const maxPosition = maxPositionData?.position ?? 0;
+
+    logger.info('Maksymalna pozycja w repertuarze', {
+        organizerId,
+        repertoireId,
+        maxPosition,
+    });
+
+    // ========================================================================
+    // Krok 6: Wstawienie nowych wpisów z auto-inkrementowaną pozycją
+    // ========================================================================
+
+    const repertoireSongsPayload = uniqueSongIds.map((songId, index) => ({
+        repertoire_id: repertoireId,
+        song_id: songId,
+        position: maxPosition + index + 1,
+    }));
+
+    const { data: insertedData, error: insertError } = await supabase
+        .from('repertoire_songs')
+        .insert(repertoireSongsPayload)
+        .select('id, song_id, position');
+
+    if (insertError) {
+        logger.error('Błąd podczas dodawania piosenek do repertuaru', {
+            organizerId,
+            repertoireId,
+            error: insertError,
+        });
+        throw createInternalError('Nie udało się dodać piosenek do repertuaru', insertError);
+    }
+
+    if (!insertedData || insertedData.length === 0) {
+        logger.error('Supabase zwrócił pusty payload po wstawieniu piosenek', {
+            organizerId,
+            repertoireId,
+        });
+        throw createInternalError('Nie udało się pobrać danych dodanych piosenek');
+    }
+
+    logger.info('Piosenki dodane do repertuaru pomyślnie', {
+        organizerId,
+        repertoireId,
+        addedCount: insertedData.length,
+    });
+
+    // ========================================================================
+    // Krok 7: Formatowanie odpowiedzi
+    // ========================================================================
+
+    const response: RepertoireAddSongsResponseDto = {
+        repertoireId,
+        added: insertedData.map(row => ({
+            repertoireSongId: row.id,
+            songId: row.song_id,
+            position: row.position,
+        })),
+    };
+
+    return response;
 };
 

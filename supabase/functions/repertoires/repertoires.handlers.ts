@@ -1,11 +1,11 @@
 import { z } from 'zod';
-import type { RepertoireCreateCommand, RepertoireDto, RepertoireListResponseDto, RepertoireUpdateCommand } from '../../../packages/contracts/types.ts';
+import type { RepertoireAddSongsCommand, RepertoireAddSongsResponseDto, RepertoireCreateCommand, RepertoireDto, RepertoireListResponseDto, RepertoireUpdateCommand } from '../../../packages/contracts/types.ts';
 import { jsonResponse } from '../_shared/http.ts';
 import { createValidationError } from '../_shared/errors.ts';
 import { logger } from '../_shared/logger.ts';
 import type { AuthenticatedUser } from '../_shared/auth.ts';
 import type { RequestSupabaseClient } from '../_shared/supabase-client.ts';
-import { createRepertoire, getRepertoireById, listRepertoires, updateRepertoire } from './repertoires.service.ts';
+import { addSongsToRepertoire, createRepertoire, getRepertoireById, listRepertoires, updateRepertoire } from './repertoires.service.ts';
 
 // ============================================================================
 // Validation Schemas
@@ -25,6 +25,11 @@ const MAX_PAGE_SIZE = 100;
  * Dozwolone klucze sortowania dla GET /repertoires.
  */
 const ALLOWED_SORT_KEYS = ['name', 'createdAt', 'updatedAt', 'publishedAt'] as const;
+
+/**
+ * Maksymalna liczba piosenek, które można dodać do repertuaru w jednym żądaniu.
+ */
+const MAX_SONGS_TO_ADD = 100;
 
 /**
  * Schema Zod dla komendy utworzenia repertuaru.
@@ -158,6 +163,20 @@ const PATCH_COMMAND_SCHEMA = z
         }
     );
 
+/**
+ * Schema Zod dla komendy dodawania piosenek do repertuaru.
+ * Waliduje:
+ * - songIds: wymagana niepusta tablica UUID (max 100 elementów)
+ */
+const ADD_SONGS_COMMAND_SCHEMA = z
+    .object({
+        songIds: z
+            .array(z.string().uuid('Nieprawidłowy identyfikator piosenki'))
+            .min(1, 'Musisz dodać przynajmniej jedną piosenkę')
+            .max(MAX_SONGS_TO_ADD, `Można dodać maksymalnie ${MAX_SONGS_TO_ADD} piosenek jednocześnie`),
+    })
+    .strict();
+
 // ============================================================================
 // Request Body Parsers
 // ============================================================================
@@ -207,6 +226,33 @@ const parsePatchRequestBody = async (request: Request): Promise<RepertoireUpdate
 
     if (!result.success) {
         logger.warn('Błędy walidacji żądania aktualizacji repertuaru', {
+            issues: result.error.issues,
+        });
+
+        throw createValidationError('Nieprawidłowe dane wejściowe', result.error.format());
+    }
+
+    return result.data;
+};
+
+/**
+ * Parsuje i waliduje ciało żądania POST dla dodawania piosenek do repertuaru.
+ * @throws {ApplicationError} z kodem validation_error jeśli dane są nieprawidłowe
+ */
+const parseAddSongsRequestBody = async (request: Request): Promise<RepertoireAddSongsCommand> => {
+    let payload: unknown;
+
+    try {
+        payload = await request.json();
+    } catch (error) {
+        logger.warn('Nieprawidłowy JSON w żądaniu dodania piosenek do repertuaru', { error });
+        throw createValidationError('Nieprawidłowy format JSON w żądaniu');
+    }
+
+    const result = ADD_SONGS_COMMAND_SCHEMA.safeParse(payload);
+
+    if (!result.success) {
+        logger.warn('Błędy walidacji żądania dodania piosenek do repertuaru', {
             issues: result.error.issues,
         });
 
@@ -478,6 +524,65 @@ export const handleUpdateRepertoire = async (
     return jsonResponse<RepertoireDto>(updatedRepertoire, { status: 200 });
 };
 
+/**
+ * Handler dla POST /repertoires/{id}/songs - dodawanie piosenek do repertuaru.
+ *
+ * Przepływ:
+ * 1. Uwierzytelnienie użytkownika (requireAuth w router)
+ * 2. Walidacja parametru path `id` (musi być UUID)
+ * 3. Walidacja ciała żądania za pomocą ADD_SONGS_COMMAND_SCHEMA
+ * 4. Wywołanie serwisu addSongsToRepertoire
+ * 5. Zwrócenie odpowiedzi 201 Created z RepertoireAddSongsResponseDto
+ *
+ * @throws {ApplicationError} 400 - błąd walidacji (nieprawidłowy UUID lub dane)
+ * @throws {ApplicationError} 404 - repertuar lub piosenka nie istnieje lub nie należy do użytkownika
+ * @throws {ApplicationError} 409 - piosenka już jest w repertuarze
+ * @throws {ApplicationError} 500 - błąd serwera
+ */
+export const handleAddSongsToRepertoire = async (
+    request: Request,
+    supabase: RequestSupabaseClient,
+    user: AuthenticatedUser,
+    repertoireId: string,
+): Promise<Response> => {
+    logger.info('Rozpoczęcie dodawania piosenek do repertuaru', {
+        organizerId: user.id,
+        repertoireId,
+    });
+
+    // Walidacja parametru path (UUID)
+    const pathResult = GET_BY_ID_PATH_SCHEMA.safeParse({ id: repertoireId });
+
+    if (!pathResult.success) {
+        logger.warn('Błędy walidacji parametru path dla POST /repertoires/{id}/songs', {
+            issues: pathResult.error.issues,
+        });
+
+        throw createValidationError('Nieprawidłowy identyfikator repertuaru', pathResult.error.format());
+    }
+
+    const validatedId = pathResult.data.id;
+
+    // Walidacja ciała żądania
+    const command = await parseAddSongsRequestBody(request);
+
+    // Wywołanie serwisu
+    const response = await addSongsToRepertoire({
+        supabase,
+        repertoireId: validatedId,
+        organizerId: user.id,
+        songIds: command.songIds,
+    });
+
+    logger.info('Piosenki dodane do repertuaru pomyślnie', {
+        organizerId: user.id,
+        repertoireId: response.repertoireId,
+        addedCount: response.added.length,
+    });
+
+    return jsonResponse<RepertoireAddSongsResponseDto>(response, { status: 201 });
+};
+
 // ============================================================================
 // Router
 // ============================================================================
@@ -489,6 +594,7 @@ export const handleUpdateRepertoire = async (
  * - POST /repertoires - utworzenie nowego repertuaru
  * - GET /repertoires/{id} - pobranie szczegółów repertuaru
  * - PATCH /repertoires/{id} - częściowa aktualizacja repertuaru
+ * - POST /repertoires/{id}/songs - dodawanie piosenek do repertuaru
  */
 export const repertoiresRouter = async (
     request: Request,
@@ -496,6 +602,17 @@ export const repertoiresRouter = async (
     user: AuthenticatedUser,
     path: string,
 ): Promise<Response> => {
+    // POST /repertoires/{id}/songs - dodawanie piosenek do repertuaru (sprawdzamy najpierw dłuższe ścieżki)
+    const addSongsMatch = path.match(/^\/repertoires\/([^/]+)\/songs$/);
+
+    if (addSongsMatch) {
+        const repertoireId = addSongsMatch[1];
+
+        if (request.method === 'POST') {
+            return await handleAddSongsToRepertoire(request, supabase, user, repertoireId);
+        }
+    }
+
     // GET /repertoires/{id} - pobranie szczegółów repertuaru (musi być przed GET /repertoires)
     const repertoireIdMatch = path.match(/^\/repertoires\/([^/]+)$/);
 
