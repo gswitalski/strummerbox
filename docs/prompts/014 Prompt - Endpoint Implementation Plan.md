@@ -5,20 +5,32 @@ Zanim zaczniemy, zapoznaj się z poniższymi informacjami:
 1. Route API specification:
 <route_api_specification>
 
-#### PATCH /repertoires/{id}
-- **Method:** PATCH
-- **Path:** `/repertoires/{id}`
-- **Description:** Update repertoire metadata (name, description).
+#### POST /repertoires/{id}/songs
+- **Method:** POST
+- **Path:** `/repertoires/{id}/songs`
+- **Description:** Append songs to repertoire; new entries are appended to the end.
 - **Request JSON:**
 ```json
 {
-  "name": "Ognisko 2025 (aktualizacja)",
-  "description": "Nowa lista utworów"
+  "songIds": ["a1320a1b-4e2b-44b0-a1f6-8e37b406df1d", "b300b6eb-9acf-4f42-8d53-9377637a77b6"]
 }
 ```
-- **Response JSON:** updated repertoire resource.
-- **Success:** `200 OK`
-- **Errors:** `400 Bad Request`, `401 Unauthorized`, `403 Forbidden`, `404 Not Found`, `409 Conflict` (duplicate name).
+- **Response JSON:**
+```json
+{
+  "added": [
+    {
+      "repertoireSongId": "f13c2cb8-4923-4c12-b9d9-fbf5eec4ed60",
+      "songId": "a1320a1b-4e2b-44b0-a1f6-8e37b406df1d",
+      "position": 3
+    }
+  ],
+  "repertoireId": "5f7a8f35-1cde-4f62-991e-0e020df3ac42"
+}
+```
+- **Success:** `201 Created`
+- **Errors:** `400 Bad Request` (invalid song IDs), `401 Unauthorized`, `403 Forbidden`, `404 Not Found` (repertoire or song not owned by organizer).
+
 
 </route_api_specification>
 
