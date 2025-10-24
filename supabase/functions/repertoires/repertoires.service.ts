@@ -4,6 +4,7 @@ import type {
     RepertoireSongDto,
     RepertoireSummaryDto,
     RepertoireListResponseDto,
+    RepertoireUpdateCommand,
 } from '../../../packages/contracts/types.ts';
 import { createConflictError, createInternalError, createNotFoundError, createValidationError } from '../_shared/errors.ts';
 import type { RequestSupabaseClient } from '../_shared/supabase-client.ts';
@@ -629,5 +630,146 @@ export const getRepertoireById = async ({
         ...baseDto,
         songs,
     };
+};
+
+// ============================================================================
+// Update Repertoire Service
+// ============================================================================
+
+export type UpdateRepertoireParams = {
+    supabase: RequestSupabaseClient;
+    repertoireId: string;
+    organizerId: string;
+    command: RepertoireUpdateCommand;
+};
+
+/**
+ * Aktualizuje metadane istniejącego repertuaru (name i/lub description).
+ *
+ * Proces:
+ * 1. Jeśli w command znajduje się nowa `name`, sprawdza unikalność nazwy
+ * 2. Wykonuje UPDATE na tabeli repertoires
+ * 3. Weryfikuje czy UPDATE zaktualizował wiersz (autoryzacja na poziomie serwisu)
+ * 4. Pobiera i zwraca pełny zaktualizowany obiekt RepertoireDto
+ *
+ * @throws {ApplicationError} 404 - repertuar nie istnieje lub nie należy do użytkownika
+ * @throws {ApplicationError} 409 - konflikt nazwy (inny repertuar używa tej nazwy)
+ * @throws {ApplicationError} 500 - błąd bazy danych
+ */
+export const updateRepertoire = async ({
+    supabase,
+    repertoireId,
+    organizerId,
+    command,
+}: UpdateRepertoireParams): Promise<RepertoireDto> => {
+    const { name, description } = command;
+
+    logger.info('Rozpoczęcie aktualizacji repertuaru w serwisie', {
+        organizerId,
+        repertoireId,
+        hasName: name !== undefined,
+        hasDescription: description !== undefined,
+    });
+
+    // ========================================================================
+    // Krok 1: Sprawdzenie unikalności nazwy (jeśli name jest podane)
+    // ========================================================================
+
+    if (name !== undefined) {
+        const trimmedName = name.trim();
+
+        // Sprawdzamy czy inny repertuar tego samego organizatora już używa tej nazwy
+        const { data: existingRepertoire, error: checkError } = await supabase
+            .from('repertoires')
+            .select('id')
+            .eq('organizer_id', organizerId)
+            .eq('name', trimmedName)
+            .neq('id', repertoireId)
+            .maybeSingle();
+
+        if (checkError) {
+            logger.error('Błąd podczas sprawdzania unikalności nazwy repertuaru', {
+                organizerId,
+                repertoireId,
+                name: trimmedName,
+                error: checkError,
+            });
+            throw createInternalError('Nie udało się sprawdzić unikalności nazwy', checkError);
+        }
+
+        if (existingRepertoire) {
+            logger.warn('Konflikt nazwy repertuaru dla organizatora', {
+                organizerId,
+                repertoireId,
+                name: trimmedName,
+                existingId: existingRepertoire.id,
+            });
+            throw createConflictError('Repertuar o podanej nazwie już istnieje', {
+                name: trimmedName,
+            });
+        }
+    }
+
+    // ========================================================================
+    // Krok 2: Wykonanie UPDATE w bazie danych
+    // ========================================================================
+
+    // Budowanie payload aktualizacji (tylko pola, które są podane)
+    const updatePayload: Record<string, string | null> = {};
+
+    if (name !== undefined) {
+        updatePayload.name = name.trim();
+    }
+
+    if (description !== undefined) {
+        updatePayload.description = description.trim() || null;
+    }
+
+    const { data: updatedData, error: updateError } = await supabase
+        .from('repertoires')
+        .update(updatePayload)
+        .eq('id', repertoireId)
+        .eq('organizer_id', organizerId)
+        .select(REPERTOIRE_COLUMNS)
+        .maybeSingle();
+
+    if (updateError) {
+        logger.error('Błąd podczas aktualizacji repertuaru', {
+            organizerId,
+            repertoireId,
+            error: updateError,
+        });
+        throw createInternalError('Nie udało się zaktualizować repertuaru', updateError);
+    }
+
+    // ========================================================================
+    // Krok 3: Weryfikacja czy UPDATE zaktualizował wiersz
+    // ========================================================================
+
+    if (!updatedData) {
+        logger.warn('Repertuar nie istnieje lub nie należy do użytkownika', {
+            organizerId,
+            repertoireId,
+        });
+        throw createNotFoundError('Repertuar nie został znaleziony');
+    }
+
+    logger.info('Repertuar zaktualizowany w bazie danych', {
+        organizerId,
+        repertoireId,
+        name: updatedData.name,
+    });
+
+    // ========================================================================
+    // Krok 4: Pobranie pełnego obiektu RepertoireDto z piosenkami
+    // ========================================================================
+
+    const fullRepertoire = await fetchRepertoireWithSongs({
+        supabase,
+        repertoireId: updatedData.id,
+        organizerId,
+    });
+
+    return fullRepertoire;
 };
 

@@ -1,11 +1,11 @@
 import { z } from 'zod';
-import type { RepertoireCreateCommand, RepertoireDto, RepertoireListResponseDto } from '../../../packages/contracts/types.ts';
+import type { RepertoireCreateCommand, RepertoireDto, RepertoireListResponseDto, RepertoireUpdateCommand } from '../../../packages/contracts/types.ts';
 import { jsonResponse } from '../_shared/http.ts';
 import { createValidationError } from '../_shared/errors.ts';
 import { logger } from '../_shared/logger.ts';
 import type { AuthenticatedUser } from '../_shared/auth.ts';
 import type { RequestSupabaseClient } from '../_shared/supabase-client.ts';
-import { createRepertoire, getRepertoireById, listRepertoires } from './repertoires.service.ts';
+import { createRepertoire, getRepertoireById, listRepertoires, updateRepertoire } from './repertoires.service.ts';
 
 // ============================================================================
 // Validation Schemas
@@ -130,6 +130,34 @@ const GET_BY_ID_QUERY_SCHEMA = z.object({
         .catch(false),
 });
 
+/**
+ * Schema Zod dla komendy aktualizacji repertuaru (PATCH).
+ * Waliduje:
+ * - name: opcjonalny string 1-160 znaków
+ * - description: opcjonalny string
+ * Co najmniej jedno pole musi być podane.
+ */
+const PATCH_COMMAND_SCHEMA = z
+    .object({
+        name: z
+            .string()
+            .trim()
+            .min(1, 'Nazwa repertuaru nie może być pusta')
+            .max(160, 'Nazwa może mieć maksymalnie 160 znaków')
+            .optional(),
+        description: z
+            .string()
+            .trim()
+            .optional(),
+    })
+    .strict()
+    .refine(
+        data => data.name !== undefined || data.description !== undefined,
+        {
+            message: 'Co najmniej jedno pole (name lub description) musi być podane',
+        }
+    );
+
 // ============================================================================
 // Request Body Parsers
 // ============================================================================
@@ -152,6 +180,33 @@ const parsePostRequestBody = async (request: Request): Promise<RepertoireCreateC
 
     if (!result.success) {
         logger.warn('Błędy walidacji żądania utworzenia repertuaru', {
+            issues: result.error.issues,
+        });
+
+        throw createValidationError('Nieprawidłowe dane wejściowe', result.error.format());
+    }
+
+    return result.data;
+};
+
+/**
+ * Parsuje i waliduje ciało żądania PATCH dla aktualizacji repertuaru.
+ * @throws {ApplicationError} z kodem validation_error jeśli dane są nieprawidłowe
+ */
+const parsePatchRequestBody = async (request: Request): Promise<RepertoireUpdateCommand> => {
+    let payload: unknown;
+
+    try {
+        payload = await request.json();
+    } catch (error) {
+        logger.warn('Nieprawidłowy JSON w żądaniu aktualizacji repertuaru', { error });
+        throw createValidationError('Nieprawidłowy format JSON w żądaniu');
+    }
+
+    const result = PATCH_COMMAND_SCHEMA.safeParse(payload);
+
+    if (!result.success) {
+        logger.warn('Błędy walidacji żądania aktualizacji repertuaru', {
             issues: result.error.issues,
         });
 
@@ -364,6 +419,65 @@ export const handleGetRepertoireById = async (
     return jsonResponse<RepertoireDto>(repertoire, { status: 200 });
 };
 
+/**
+ * Handler dla PATCH /repertoires/{id} - częściowa aktualizacja metadanych repertuaru.
+ *
+ * Przepływ:
+ * 1. Uwierzytelnienie użytkownika (requireAuth w router)
+ * 2. Walidacja parametru path `id` (musi być UUID)
+ * 3. Walidacja ciała żądania za pomocą PATCH_COMMAND_SCHEMA
+ * 4. Wywołanie serwisu updateRepertoire
+ * 5. Zwrócenie odpowiedzi 200 OK z zaktualizowanym RepertoireDto
+ *
+ * @throws {ApplicationError} 400 - błąd walidacji (nieprawidłowy UUID lub dane)
+ * @throws {ApplicationError} 404 - repertuar nie istnieje lub nie należy do użytkownika
+ * @throws {ApplicationError} 409 - konflikt nazwy (inna piosenka już używa tej nazwy)
+ * @throws {ApplicationError} 500 - błąd serwera
+ */
+export const handleUpdateRepertoire = async (
+    request: Request,
+    supabase: RequestSupabaseClient,
+    user: AuthenticatedUser,
+    repertoireId: string,
+): Promise<Response> => {
+    logger.info('Rozpoczęcie aktualizacji repertuaru', {
+        organizerId: user.id,
+        repertoireId,
+    });
+
+    // Walidacja parametru path (UUID)
+    const pathResult = GET_BY_ID_PATH_SCHEMA.safeParse({ id: repertoireId });
+
+    if (!pathResult.success) {
+        logger.warn('Błędy walidacji parametru path dla PATCH /repertoires/{id}', {
+            issues: pathResult.error.issues,
+        });
+
+        throw createValidationError('Nieprawidłowy identyfikator repertuaru', pathResult.error.format());
+    }
+
+    const validatedId = pathResult.data.id;
+
+    // Walidacja ciała żądania
+    const command = await parsePatchRequestBody(request);
+
+    // Wywołanie serwisu
+    const updatedRepertoire = await updateRepertoire({
+        supabase,
+        repertoireId: validatedId,
+        organizerId: user.id,
+        command,
+    });
+
+    logger.info('Repertuar zaktualizowany pomyślnie', {
+        organizerId: user.id,
+        repertoireId: updatedRepertoire.id,
+        name: updatedRepertoire.name,
+    });
+
+    return jsonResponse<RepertoireDto>(updatedRepertoire, { status: 200 });
+};
+
 // ============================================================================
 // Router
 // ============================================================================
@@ -374,6 +488,7 @@ export const handleGetRepertoireById = async (
  * - GET /repertoires - pobranie paginowanej listy repertuarów
  * - POST /repertoires - utworzenie nowego repertuaru
  * - GET /repertoires/{id} - pobranie szczegółów repertuaru
+ * - PATCH /repertoires/{id} - częściowa aktualizacja repertuaru
  */
 export const repertoiresRouter = async (
     request: Request,
@@ -382,10 +497,18 @@ export const repertoiresRouter = async (
     path: string,
 ): Promise<Response> => {
     // GET /repertoires/{id} - pobranie szczegółów repertuaru (musi być przed GET /repertoires)
-    const getByIdMatch = path.match(/^\/repertoires\/([^/]+)$/);
-    if (getByIdMatch && request.method === 'GET') {
-        const repertoireId = getByIdMatch[1];
-        return await handleGetRepertoireById(request, supabase, user, repertoireId);
+    const repertoireIdMatch = path.match(/^\/repertoires\/([^/]+)$/);
+
+    if (repertoireIdMatch) {
+        const repertoireId = repertoireIdMatch[1];
+
+        if (request.method === 'GET') {
+            return await handleGetRepertoireById(request, supabase, user, repertoireId);
+        }
+
+        if (request.method === 'PATCH') {
+            return await handleUpdateRepertoire(request, supabase, user, repertoireId);
+        }
     }
 
     // GET /repertoires - pobranie listy repertuarów
