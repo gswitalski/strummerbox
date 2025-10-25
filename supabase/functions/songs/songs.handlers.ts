@@ -37,8 +37,8 @@ type GetSongsQuery = {
 };
 
 const DEFAULT_PAGE = 1;
-const DEFAULT_PAGE_SIZE = 20;
-const MAX_PAGE_SIZE = 100;
+const DEFAULT_PAGE_SIZE = 1000;
+const MAX_PAGE_SIZE = 1000;
 const DEFAULT_SORT = '-createdAt';
 const MAX_SEARCH_LENGTH = 200;
 

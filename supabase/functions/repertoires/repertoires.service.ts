@@ -1358,12 +1358,13 @@ export const reorderSongsInRepertoire = async ({
     });
 
     // ========================================================================
-    // Krok 4: Aktualizacja pozycji w transakcji (batch update)
+    // Krok 4: Aktualizacja pozycji w dwóch fazach (aby uniknąć konfliktów UNIQUE)
     // ========================================================================
 
-    // W Supabase Edge Functions nie ma bezpośredniego wsparcia dla transakcji,
-    // ale możemy wykonać serię UPDATE'ów. Jeśli którykolwiek zawiedzie, rzucimy błąd.
-    // Dla prawdziwej transakcji można by użyć funkcji RPC w PostgreSQL.
+    // Problem: constraint UNIQUE (repertoire_id, position) uniemożliwia bezpośrednie
+    // przypisanie nowych pozycji w pętli, ponieważ mogą wystąpić konflikty.
+    // Rozwiązanie: Najpierw przesuwamy wszystkie pozycje do zakresu tymczasowego,
+    // a następnie ustawiamy właściwe wartości.
 
     logger.info('Rozpoczęcie aktualizacji pozycji piosenek', {
         organizerId,
@@ -1371,6 +1372,35 @@ export const reorderSongsInRepertoire = async ({
         updatesCount: order.length,
     });
 
+    // Faza 1: Przesunięcie wszystkich pozycji do zakresu tymczasowego (pozycja + 10000)
+    // aby "uwolnić" pozycje od 1 do N
+    for (const song of existingSongs) {
+        const { error: tempUpdateError } = await supabase
+            .from('repertoire_songs')
+            .update({ position: song.position + 10000 })
+            .eq('id', song.id)
+            .eq('repertoire_id', repertoireId);
+
+        if (tempUpdateError) {
+            logger.error('Błąd podczas tymczasowej aktualizacji pozycji piosenki', {
+                organizerId,
+                repertoireId,
+                repertoireSongId: song.id,
+                error: tempUpdateError,
+            });
+            throw createInternalError(
+                'Nie udało się zaktualizować kolejności piosenek',
+                tempUpdateError
+            );
+        }
+    }
+
+    logger.info('Faza 1: Pozycje tymczasowo przesunięte', {
+        organizerId,
+        repertoireId,
+    });
+
+    // Faza 2: Ustawienie właściwych pozycji zgodnie z tablicą order
     for (let i = 0; i < order.length; i++) {
         const repertoireSongId = order[i];
         const newPosition = i + 1; // Pozycje zaczynają się od 1
@@ -1382,7 +1412,7 @@ export const reorderSongsInRepertoire = async ({
             .eq('repertoire_id', repertoireId);
 
         if (updateError) {
-            logger.error('Błąd podczas aktualizacji pozycji piosenki', {
+            logger.error('Błąd podczas ustawiania docelowej pozycji piosenki', {
                 organizerId,
                 repertoireId,
                 repertoireSongId,
@@ -1396,7 +1426,7 @@ export const reorderSongsInRepertoire = async ({
         }
     }
 
-    logger.info('Pozycje piosenek zaktualizowane pomyślnie', {
+    logger.info('Faza 2: Pozycje piosenek zaktualizowane pomyślnie', {
         organizerId,
         repertoireId,
         updatedCount: order.length,
