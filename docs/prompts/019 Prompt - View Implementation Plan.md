@@ -18,37 +18,144 @@ Najpierw przejrzyj następujące informacje:
 
 3. Nazwa widoku do implementacji
 <view_name>
-7. Tworzenie / Edycja Piosenki (Song Create/Edit View) - tylko edycja
+Tworzenie / Edycja Repertuaru (Repertoire Create/Edit View)
 </view_name>
 
 4. User Stories:
 <user_stories>
--   ID: US-009
--   Title: Przeglądanie listy repertuarów
--   Description: Jako Organizator, chcę widzieć listę wszystkich moich repertuarów.
+-   ID: US-008
+-   Title: Tworzenie nowego repertuaru
+-   Description: Jako Organizator, chcę móc stworzyć nowy repertuar, nadając mu nazwę i wybierając do niego piosenki z mojej biblioteki.
 -   Acceptance Criteria:
-    -   W panelu zarządzania widzę listę wszystkich stworzonych przeze mnie repertuarów.
-    -   Dla każdego repertuaru widoczne są opcje edycji, usunięcia i udostępnienia.
-    -   Jeśli nie mam żadnych repertuarów, widzę komunikat "pustego stanu".
+    -   Formularz tworzenia repertuaru pozwala na wpisanie unikalnej nazwy.
+    -   Widzę listę wszystkich moich piosenek i mogę je zaznaczyć, aby dodać do repertuaru.
+    -   Po zapisaniu, nowy repertuar pojawia się na liście repertuarów.
 
+-   ID: US-010
+-   Title: Edycja repertuaru
+-   Description: Jako Organizator, chcę móc edytować istniejący repertuar, zmieniając jego nazwę, dodając lub usuwając piosenki oraz zmieniając ich kolejność.
+-   Acceptance Criteria:
+    -   Mogę zmienić nazwę repertuaru.
+    -   Mogę dodawać nowe piosenki z mojej biblioteki.
+    -   Mogę usuwać piosenki z repertuaru (bez usuwania ich z głównej biblioteki).
+    -   Mogę przesuwać piosenki w górę i w dół na liście za pomocą dedykowanych przycisków.
 </user_stories>
 
 5. Endpoint Description:
 <endpoint_description>
-
-#### GET /repertoires
+#### GET /repertoires/{id}/songs
 - **Method:** GET
-- **Path:** `/repertoires`
-- **Description:** List organizer repertoires.
+- **Path:** `/repertoires/{id}/songs`
+- **Description:** Return ordered songs with optional chord content.
 - **Query Parameters:**
-  - `page`, `pageSize`
-  - `search` (trigram against `name`)
-  - `published` (`true|false|null`)
-  - `sort` (`name|createdAt|updatedAt|publishedAt`, prefix `-` for desc)
-  - `includeCounts` (`true` adds `songCount`)
-- **Response JSON:** paginated list similar to `GET /songs` with optional counts.
+  - `includeContent` (`true|false`, default `false`)
+- **Response JSON:**
+```json
+{
+  "repertoireId": "5f7a8f35-1cde-4f62-991e-0e020df3ac42",
+  "songs": [
+    {
+      "repertoireSongId": "24a1a901-5ff8-4f79-a8bd-9d9b1b2c9919",
+      "songId": "58b8a0d0-5bf4-4d8a-82de-a2ad8c37b8a5",
+      "title": "Knockin' on Heaven's Door",
+      "position": 1,
+      "content": "[G]Mama..."
+    }
+  ]
+}
+```
 - **Success:** `200 OK`
-- **Errors:** `401 Unauthorized`.
+- **Errors:** `401 Unauthorized`, `403 Forbidden`, `404 Not Found`.
+
+#### PATCH /repertoires/{id}
+- **Method:** PATCH
+- **Path:** `/repertoires/{id}`
+- **Description:** Update repertoire metadata (name, description).
+- **Request JSON:**
+```json
+{
+  "name": "Ognisko 2025 (aktualizacja)",
+  "description": "Nowa lista utworów"
+}
+```
+- **Response JSON:** updated repertoire resource.
+- **Success:** `200 OK`
+- **Errors:** `400 Bad Request`, `401 Unauthorized`, `403 Forbidden`, `404 Not Found`, `409 Conflict` (duplicate name).
+
+#### POST /repertoires/{id}/songs
+- **Method:** POST
+- **Path:** `/repertoires/{id}/songs`
+- **Description:** Append songs to repertoire; new entries are appended to the end.
+- **Request JSON:**
+```json
+{
+  "songIds": ["a1320a1b-4e2b-44b0-a1f6-8e37b406df1d", "b300b6eb-9acf-4f42-8d53-9377637a77b6"]
+}
+```
+- **Response JSON:**
+```json
+{
+  "added": [
+    {
+      "repertoireSongId": "f13c2cb8-4923-4c12-b9d9-fbf5eec4ed60",
+      "songId": "a1320a1b-4e2b-44b0-a1f6-8e37b406df1d",
+      "position": 3
+    }
+  ],
+  "repertoireId": "5f7a8f35-1cde-4f62-991e-0e020df3ac42"
+}
+```
+- **Success:** `201 Created`
+- **Errors:** `400 Bad Request` (invalid song IDs), `401 Unauthorized`, `403 Forbidden`, `404 Not Found` (repertoire or song not owned by organizer).
+
+
+#### DELETE /repertoires/{id}/songs/{repertoireSongId}
+- **Method:** DELETE
+- **Path:** `/repertoires/{id}/songs/{repertoireSongId}`
+- **Description:** Remove a song from the repertoire; positions are compacted automatically.
+- **Response JSON:**
+```json
+{
+  "repertoireId": "5f7a8f35-1cde-4f62-991e-0e020df3ac42",
+  "removed": "f13c2cb8-4923-4c12-b9d9-fbf5eec4ed60",
+  "positionsRebuilt": true
+}
+```
+- **Success:** `200 OK`
+- **Errors:** `401 Unauthorized`, `403 Forbidden`, `404 Not Found`.
+
+#### POST /repertoires/{id}/songs/reorder
+- **Method:** POST
+- **Path:** `/repertoires/{id}/songs/reorder`
+- **Description:** Replace the order of songs using an ordered array of `repertoireSongId` values.
+- **Request JSON:**
+```json
+{
+  "order": [
+    "24a1a901-5ff8-4f79-a8bd-9d9b1b2c9919",
+    "f13c2cb8-4923-4c12-b9d9-fbf5eec4ed60"
+  ]
+}
+```
+- **Response JSON:**
+```json
+{
+  "repertoireId": "5f7a8f35-1cde-4f62-991e-0e020df3ac42",
+  "songs": [
+    {
+      "repertoireSongId": "24a1a901-5ff8-4f79-a8bd-9d9b1b2c9919",
+      "position": 1
+    },
+    {
+      "repertoireSongId": "f13c2cb8-4923-4c12-b9d9-fbf5eec4ed60",
+      "position": 2
+    }
+  ]
+}
+```
+- **Success:** `200 OK`
+- **Errors:** `400 Bad Request` (order missing entries or duplicates), `401 Unauthorized`, `403 Forbidden`, `404 Not Found`.
+
 
 </endpoint_description>
 
