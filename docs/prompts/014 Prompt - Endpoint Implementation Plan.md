@@ -5,32 +5,20 @@ Zanim zaczniemy, zapoznaj się z poniższymi informacjami:
 1. Route API specification:
 <route_api_specification>
 
-#### POST /repertoires/{id}/songs
-- **Method:** POST
-- **Path:** `/repertoires/{id}/songs`
-- **Description:** Append songs to repertoire; new entries are appended to the end.
-- **Request JSON:**
-```json
-{
-  "songIds": ["a1320a1b-4e2b-44b0-a1f6-8e37b406df1d", "b300b6eb-9acf-4f42-8d53-9377637a77b6"]
-}
-```
+#### DELETE /repertoires/{id}/songs/{repertoireSongId}
+- **Method:** DELETE
+- **Path:** `/repertoires/{id}/songs/{repertoireSongId}`
+- **Description:** Remove a song from the repertoire; positions are compacted automatically.
 - **Response JSON:**
 ```json
 {
-  "added": [
-    {
-      "repertoireSongId": "f13c2cb8-4923-4c12-b9d9-fbf5eec4ed60",
-      "songId": "a1320a1b-4e2b-44b0-a1f6-8e37b406df1d",
-      "position": 3
-    }
-  ],
-  "repertoireId": "5f7a8f35-1cde-4f62-991e-0e020df3ac42"
+  "repertoireId": "5f7a8f35-1cde-4f62-991e-0e020df3ac42",
+  "removed": "f13c2cb8-4923-4c12-b9d9-fbf5eec4ed60",
+  "positionsRebuilt": true
 }
 ```
-- **Success:** `201 Created`
-- **Errors:** `400 Bad Request` (invalid song IDs), `401 Unauthorized`, `403 Forbidden`, `404 Not Found` (repertoire or song not owned by organizer).
-
+- **Success:** `200 OK`
+- **Errors:** `401 Unauthorized`, `403 Forbidden`, `404 Not Found`.
 
 </route_api_specification>
 
