@@ -1,0 +1,117 @@
+<div class="repertoire-header">
+    <!-- Nazwa repertuaru -->
+    <div class="header-field name-field">
+        @if (editMode() !== 'name') {
+            <!-- Tryb wyświetlania -->
+            <div class="display-mode" (click)="startEditName()">
+                <h2>{{ repertoire()?.name }}</h2>
+                <mat-icon class="edit-icon">edit</mat-icon>
+            </div>
+        } @else {
+            <!-- Tryb edycji -->
+            <div class="edit-mode">
+                <mat-form-field appearance="outline" class="edit-field">
+                    <mat-label>Nazwa repertuaru</mat-label>
+                    <input
+                        matInput
+                        type="text"
+                        [value]="editValue()"
+                        (input)="updateEditValue($any($event.target).value)"
+                        (keydown.enter)="onEnterKey('name')"
+                        (keydown.escape)="onEscapeKey()"
+                        [disabled]="isUpdating()"
+                        maxlength="160"
+                        required
+                        #nameInput
+                    />
+                    @if (!isNameValid()) {
+                        <mat-error>
+                            @if (editValue().trim().length === 0) {
+                                Nazwa jest wymagana
+                            } @else if (editValue().trim().length > 160) {
+                                Nazwa nie może być dłuższa niż 160 znaków
+                            }
+                        </mat-error>
+                    }
+                </mat-form-field>
+
+                <div class="edit-actions">
+                    @if (isUpdating()) {
+                        <mat-spinner diameter="24"></mat-spinner>
+                    } @else {
+                        <button
+                            mat-icon-button
+                            color="primary"
+                            (click)="confirmNameEdit()"
+                            [disabled]="!isNameValid()"
+                            matTooltip="Zatwierdź"
+                        >
+                            <mat-icon>check</mat-icon>
+                        </button>
+                        <button
+                            mat-icon-button
+                            (click)="cancelEdit()"
+                            matTooltip="Anuluj"
+                        >
+                            <mat-icon>close</mat-icon>
+                        </button>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Opis repertuaru -->
+    <div class="header-field description-field">
+        @if (editMode() !== 'description') {
+            <!-- Tryb wyświetlania -->
+            <div class="display-mode" (click)="startEditDescription()">
+                @if (repertoire()?.description && repertoire()!.description!.trim().length > 0) {
+                    <p>{{ repertoire()?.description }}</p>
+                } @else {
+                    <p class="empty-description">Kliknij, aby dodać opis...</p>
+                }
+                <mat-icon class="edit-icon">edit</mat-icon>
+            </div>
+        } @else {
+            <!-- Tryb edycji -->
+            <div class="edit-mode">
+                <mat-form-field appearance="outline" class="edit-field">
+                    <mat-label>Opis repertuaru</mat-label>
+                    <textarea
+                        matInput
+                        [value]="editValue()"
+                        (input)="updateEditValue($any($event.target).value)"
+                        (keydown.escape)="onEscapeKey()"
+                        [disabled]="isUpdating()"
+                        rows="3"
+                        #descriptionInput
+                    ></textarea>
+                </mat-form-field>
+
+                <div class="edit-actions">
+                    @if (isUpdating()) {
+                        <mat-spinner diameter="24"></mat-spinner>
+                    } @else {
+                        <button
+                            mat-icon-button
+                            color="primary"
+                            (click)="confirmDescriptionEdit()"
+                            matTooltip="Zatwierdź"
+                        >
+                            <mat-icon>check</mat-icon>
+                        </button>
+                        <button
+                            mat-icon-button
+                            (click)="cancelEdit()"
+                            matTooltip="Anuluj"
+                        >
+                            <mat-icon>close</mat-icon>
+                        </button>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>
+

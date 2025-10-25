@@ -1,0 +1,53 @@
+<!-- Loading State -->
+@if (isLoading()) {
+    <div class="loading-container">
+        <mat-spinner></mat-spinner>
+        <p>Ładowanie repertuaru...</p>
+    </div>
+}
+
+<!-- Error State -->
+@if (error() && !isLoading()) {
+    <div class="error-container">
+        <mat-icon>error_outline</mat-icon>
+        <h2>Wystąpił błąd</h2>
+        <p>{{ error() }}</p>
+        <button mat-raised-button color="primary" (click)="onBackToList()">
+            Wróć do listy repertuarów
+        </button>
+    </div>
+}
+
+<!-- Main Content -->
+@if (repertoire() && !isLoading() && !error()) {
+    <div class="repertoire-edit-container">
+        <stbo-repertoire-edit-header
+            [repertoire]="repertoire"
+            [isUpdating]="isUpdatingHeader"
+            (nameChange)="onNameChange($event)"
+            (descriptionChange)="onDescriptionChange($event)"
+        />
+
+        <div class="lists-container">
+            <div class="repertoire-songs">
+                <h3>Piosenki w repertuarze ({{ repertoireSongs().length }})</h3>
+                <stbo-repertoire-song-list
+                    [songs]="repertoireSongs"
+                    [removingSongId]="removingSongId"
+                    (orderChanged)="onOrderChanged($event)"
+                    (songRemoved)="onSongRemoved($event)"
+                />
+            </div>
+
+            <div class="available-songs">
+                <h3>Dostępne piosenki ({{ availableSongs().length }})</h3>
+                <stbo-available-song-list
+                    [songs]="availableSongs"
+                    [addingSongId]="addingSongId"
+                    (songAdded)="onSongAdded($event)"
+                />
+            </div>
+        </div>
+    </div>
+}
+

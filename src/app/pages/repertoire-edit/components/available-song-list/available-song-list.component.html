@@ -1,0 +1,91 @@
+<div class="song-list-container">
+    <!-- Pole wyszukiwania -->
+    <div class="search-container">
+        <mat-form-field appearance="outline" class="search-field">
+            <mat-label>Szukaj piosenki</mat-label>
+            <input
+                matInput
+                type="text"
+                [value]="filter()"
+                (input)="updateFilter($any($event.target).value)"
+                placeholder="Wpisz tytuł..."
+            />
+            <mat-icon matPrefix>search</mat-icon>
+            @if (filter().length > 0) {
+                <button
+                    mat-icon-button
+                    matSuffix
+                    (click)="clearFilter()"
+                    matTooltip="Wyczyść"
+                >
+                    <mat-icon>close</mat-icon>
+                </button>
+            }
+        </mat-form-field>
+    </div>
+
+    <!-- Lista piosenek -->
+    @if (songs().length === 0) {
+        <div class="empty-state">
+            <mat-icon>music_off</mat-icon>
+            <p>Brak piosenek</p>
+            <span>Wszystkie Twoje piosenki są już w repertuarze</span>
+        </div>
+    } @else if (filteredSongs.length === 0 && filter().length > 0) {
+        <div class="empty-state">
+            <mat-icon>search_off</mat-icon>
+            <p>Nie znaleziono piosenek</p>
+            <span>Spróbuj zmienić kryteria wyszukiwania</span>
+        </div>
+    } @else {
+        <div class="song-list">
+            @for (song of filteredSongs; track song.id) {
+                <div class="song-item">
+                    <!-- Tytuł -->
+                    <div class="song-title">
+                        {{ song.title }}
+                    </div>
+
+                    <!-- Status publikacji -->
+                    @if (song.publishedAt) {
+                        <mat-icon class="published-icon" matTooltip="Opublikowana">
+                            visibility
+                        </mat-icon>
+                    } @else {
+                        <mat-icon class="unpublished-icon" matTooltip="Nieopublikowana">
+                            visibility_off
+                        </mat-icon>
+                    }
+
+                    <!-- Przycisk dodaj -->
+                    <div class="song-actions">
+                        @if (isAdding(song.id)) {
+                            <mat-spinner diameter="24"></mat-spinner>
+                        } @else {
+                            <button
+                                mat-icon-button
+                                color="primary"
+                                (click)="onAddClick(song.id)"
+                                matTooltip="Dodaj do repertuaru"
+                            >
+                                <mat-icon>add_circle</mat-icon>
+                            </button>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    <!-- Licznik piosenek -->
+    @if (songs().length > 0) {
+        <div class="song-count">
+            @if (filter().length > 0) {
+                Znaleziono: {{ filteredSongs.length }} / {{ songs().length }}
+            } @else {
+                Dostępnych piosenek: {{ songs().length }}
+            }
+        </div>
+    }
+</div>
+

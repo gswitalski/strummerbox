@@ -61,6 +61,13 @@ export const routes: Routes = [
                     ),
             },
             {
+                path: 'repertoires/:id/edit',
+                loadComponent: () =>
+                    import('./pages/repertoire-edit/repertoire-edit-page/repertoire-edit-page.component').then(
+                        (m) => m.RepertoireEditPageComponent
+                    ),
+            },
+            {
                 path: '',
                 pathMatch: 'full',
                 redirectTo: 'dashboard',

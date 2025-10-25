@@ -1,0 +1,53 @@
+<div class="song-list-container">
+    @if (songs().length === 0) {
+        <div class="empty-state">
+            <mat-icon>music_note</mat-icon>
+            <p>Brak piosenek w repertuarze</p>
+            <span>Dodaj piosenki z listy po prawej stronie</span>
+        </div>
+    } @else {
+        <div cdkDropList (cdkDropListDropped)="onDrop($event)" class="song-list">
+            @for (song of songs(); track song.repertoireSongId) {
+                <div cdkDrag class="song-item">
+                    <!-- Uchwyt do przeciągania -->
+                    <div cdkDragHandle class="drag-handle" matTooltip="Przeciągnij aby zmienić kolejność">
+                        <mat-icon>drag_indicator</mat-icon>
+                    </div>
+
+                    <!-- Pozycja -->
+                    <div class="song-position">
+                        {{ song.position + 1 }}.
+                    </div>
+
+                    <!-- Tytuł -->
+                    <div class="song-title">
+                        {{ song.title }}
+                    </div>
+
+                    <!-- Przycisk usuń -->
+                    <div class="song-actions">
+                        @if (isRemoving(song.repertoireSongId)) {
+                            <mat-spinner diameter="24"></mat-spinner>
+                        } @else {
+                            <button
+                                mat-icon-button
+                                color="warn"
+                                (click)="onRemoveClick(song.repertoireSongId)"
+                                matTooltip="Usuń z repertuaru"
+                            >
+                                <mat-icon>delete</mat-icon>
+                            </button>
+                        }
+                    </div>
+
+                    <!-- Placeholder podczas przeciągania -->
+                    <div *cdkDragPlaceholder class="drag-placeholder">
+                        <mat-icon>drag_indicator</mat-icon>
+                        <span>{{ song.title }}</span>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+

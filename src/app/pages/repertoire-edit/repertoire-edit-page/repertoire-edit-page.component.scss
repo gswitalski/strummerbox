@@ -1,0 +1,98 @@
+:host {
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100vh - 112px);
+    overflow: hidden;
+}
+
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    gap: 16px;
+
+    p {
+        margin: 0;
+        color: var(--mat-sys-on-surface-variant);
+    }
+}
+
+.error-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    gap: 16px;
+    text-align: center;
+
+    mat-icon {
+        font-size: 64px;
+        width: 64px;
+        height: 64px;
+        color: var(--mat-sys-error);
+    }
+
+    h2 {
+        margin: 0;
+        color: var(--mat-sys-on-surface);
+    }
+
+    p {
+        margin: 0;
+        color: var(--mat-sys-on-surface-variant);
+    }
+}
+
+.repertoire-edit-container {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    padding: 24px;
+    overflow: hidden;
+    flex: 1;
+    min-height: 0;
+}
+
+.lists-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    align-items: start;
+
+    @media (max-width: 960px) {
+        grid-template-columns: 1fr;
+    }
+
+    .repertoire-songs,
+    .available-songs {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        min-height: 200px;
+        max-height: 100%;
+        overflow: hidden;
+
+        h3 {
+            margin: 0;
+            color: var(--mat-sys-on-surface);
+            font-size: 18px;
+            font-weight: 500;
+            flex-shrink: 0;
+        }
+
+        stbo-repertoire-song-list,
+        stbo-available-song-list {
+            flex: 1;
+            min-height: 0;
+            display: block;
+            overflow: hidden;
+        }
+    }
+}
+
