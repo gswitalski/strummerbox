@@ -119,24 +119,42 @@ Zarządzanie stanem aplikacji będzie realizowane za pomocą serwisów Angulara 
 *   **Główny cel:** Umożliwienie Organizatorowi przeglądania i zarządzania swoimi repertuarami.
 *   **Kluczowe informacje:** Lista repertuarów z nazwą, liczbą piosenek. Przycisk "Stwórz nowy repertuar". Opcje dla każdego repertuaru: "Edytuj", "Usuń", "Udostępnij".
 *   **Kluczowe komponenty:** Podobne do Listy Piosenek.
-*   **UX, dostępność, bezpieczeństwo:** Podobne do Listy Piosenek.
+*   **UX, dostępność, bezpieczeństwo:**
+    *   **UX:** Kliknięcie przycisku "Stwórz nowy repertuar" otwiera okno modalne (zgodnie z nowym widokiem "Tworzenie Repertuaru").
+    *   **Bezpieczeństwo:** Podobne do Listy Piosenek.
 
 ---
 
-#### **9. Tworzenie / Edycja Repertuaru (Repertoire Create/Edit View)**
+#### **9. Tworzenie Repertuaru (Repertoire Create View)**
 
-*   **Ścieżka:** `/management/repertoires/new`, `/management/repertoires/:id/edit`
-*   **Główny cel:** Tworzenie nowego lub edycja istniejącego repertuaru (zmiana nazwy, dodawanie/usuwanie piosenek, zmiana ich kolejności).
-*   **Kluczowe informacje:** Formularz z nazwą i opisem repertuaru. Dwie listy: po lewej piosenki w repertuarze, po prawej wszystkie piosenki z biblioteki do dodania. Przyciski do zmiany kolejności piosenek ("w górę" / "w dół").
-*   **Kluczowe komponenty:** `mat-form-field`, `mat-list`, `DragDropModule` (do zmiany kolejności), `mat-icon-button`.
+*   **Ścieżka:** Wywoływany jako okno modalne z widoku listy repertuarów.
+*   **Główny cel:** Umożliwienie szybkiego stworzenia nowego, pustego repertuaru.
+*   **Kluczowe informacje:** Prosty formularz w oknie modalnym (`mat-dialog`) z polem na nazwę i opcjonalny opis repertuaru.
+*   **Kluczowe komponenty:** `MatDialog`, `mat-form-field`, `mat-input`, `mat-button`.
 *   **UX, dostępność, bezpieczeństwo:**
-    *   **UX:** Intuicyjny interfejs do budowania setlisty. Funkcjonalność "przeciągnij i upuść" do zmiany kolejności piosenek.
-    *   **Dostępność:** Etykiety i instrukcje dla interaktywnych elementów listy.
+    *   **UX:** Po zatwierdzeniu formularza (podaniu nazwy), w bazie danych tworzony jest nowy repertuar z pustą listą piosenek. Aplikacja natychmiastowo przekierowuje użytkownika do widoku edycji tego nowo utworzonego repertuaru (`/management/repertoires/:id/edit`). Przycisk "Zapisz" jest nieaktywny, dopóki nazwa nie zostanie wprowadzona.
+    *   **Dostępność:** Poprawne etykiety dla pól formularza, obsługa klawiatury w oknie modalnym.
     *   **Bezpieczeństwo:** Dostęp chroniony.
 
 ---
 
-#### **10. Tryb Biesiada - Lista Repertuarów (Biesiada Repertoire List View)**
+#### **10. Edycja Repertuaru (Repertoire Edit View)**
+
+*   **Ścieżka:** `/management/repertoires/:id/edit`
+*   **Główny cel:** Zarządzanie zawartością istniejącego repertuaru: zmiana nazwy/opisu, dodawanie/usuwanie piosenek, zmiana ich kolejności.
+*   **Kluczowe informacje:**
+    *   **Nazwa i opis repertuaru:** Wyświetlane domyślnie jako tekst (read-only). Kliknięcie na nie przełącza je w tryb edycji ("in-place edit") z ikonami do zatwierdzenia (`✓`) lub anulowania (`✗`) zmiany.
+    *   **Zarządzanie piosenkami:** Dwie listy – po lewej piosenki już dodane do repertuaru, po prawej wszystkie dostępne piosenki z biblioteki użytkownika. Przyciski do dodawania/usuwania piosenek.
+    *   **Kolejność piosenek:** Możliwość zmiany kolejności piosenek na liście po lewej stronie za pomocą przeciągania i upuszczania (`drag-and-drop`).
+*   **Kluczowe komponenty:** `mat-form-field` (w trybie edycji), `mat-list`, `DragDropModule`, `mat-icon-button`.
+*   **UX, dostępność, bezpieczeństwo:**
+    *   **UX:** Każda akcja (zmiana nazwy/opisu, dodanie/usunięcie piosenki, zmiana kolejności) jest natychmiastowo zapisywana w bazie danych za pomocą dedykowanego wywołania API (np. `PATCH`). Nie ma globalnego przycisku "Zapisz". Interfejs powinien informować o stanie zapisu (np. przez chwilowe wyświetlenie wskaźnika ładowania przy edytowanym elemencie).
+    *   **Dostępność:** Etykiety i instrukcje dla interaktywnych elementów listy, obsługa klawiatury dla funkcji "in-place edit".
+    *   **Bezpieczeństwo:** Dostęp chroniony.
+
+---
+
+#### **11. Tryb Biesiada - Lista Repertuarów (Biesiada Repertoire List View)**
 
 *   **Ścieżka:** `/biesiada/repertoires`
 *   **Główny cel:** Uproszczony widok listy repertuarów dla Organizatora w trakcie wydarzenia.
@@ -149,7 +167,7 @@ Zarządzanie stanem aplikacji będzie realizowane za pomocą serwisów Angulara 
 
 ---
 
-#### **11. Tryb Biesiada - Widok Piosenki (Biesiada Song View)**
+#### **12. Tryb Biesiada - Widok Piosenki (Biesiada Song View)**
 
 *   **Ścieżka:** `/biesiada/repertoires/:id/songs/:songId`
 *   **Główny cel:** Wyświetlenie Organizatorowi piosenki z akordami podczas prowadzenia biesiady.
@@ -166,8 +184,8 @@ Zarządzanie stanem aplikacji będzie realizowane za pomocą serwisów Angulara 
 
 1.  **Logowanie:** Użytkownik otwiera stronę, zostaje przekierowany na `/login`. Wpisuje dane i trafia na `/dashboard`.
 2.  **Dodawanie Piosenek:** Z bocznej nawigacji przechodzi do `/management/songs`. Klika "Dodaj piosenkę", co prowadzi go na `/management/songs/new`. Wpisuje tytuł i treść, zapisuje, wraca do listy. Powtarza proces dla kilku piosenek.
-3.  **Tworzenie Repertuaru:** Przechodzi do `/management/repertoires`. Klika "Stwórz repertuar", trafia na `/management/repertoires/new`. Nazywa repertuar i z listy po prawej stronie wybiera piosenki, które mają się w nim znaleźć.
-4.  **Edycja Repertuaru:** Po zapisaniu zostaje na stronie `/management/repertoires/:id/edit`. Używa przycisków lub przeciąga piosenki, aby ustawić ich właściwą kolejność.
+3.  **Tworzenie Repertuaru:** Przechodzi do `/management/repertoires`. Klika "Stwórz repertuar". Otwiera mu się okno modalne, w którym wpisuje nazwę repertuaru i zatwierdza.
+4.  **Edycja Repertuaru:** Po zatwierdzeniu modala zostaje automatycznie przekierowany na stronę edycji `/management/repertoires/:id/edit`. Z listy piosenek po prawej stronie dodaje utwory do swojego nowego repertuaru. Następnie, używając funkcji "przeciągnij i upuść", ustawia ich właściwą kolejność.
 5.  **Udostępnianie:** Klika przycisk "Udostępnij". W oknie modalnym pojawia się publiczny link oraz kod QR do repertuaru.
 
 #### Scenariusz 2: Biesiadnik dołącza do śpiewania.
@@ -209,6 +227,4 @@ Poniższe komponenty będą reużywalne i wykorzystywane w wielu miejscach aplik
     *   **Opis:** Okno modalne wyświetlające publiczny link (z przyciskiem "kopiuj") oraz wygenerowany kod QR dla danej piosenki lub repertuaru.
     *   **Użycie:** `Song List View`, `Repertoire List View`.
 
-*   **`ChordProPreviewComponent`:**
-    *   **Opis:** Komponent, który przyjmuje tekst w formacie ChordPro i renderuje go jako sformatowany HTML, poprawnie wyświetlając akordy nad tekstem.
-    *   **Użycie:** `Song Create/Edit View`, `Biesiada Song View`.
+*   **`
