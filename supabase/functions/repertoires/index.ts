@@ -17,7 +17,8 @@ serve(async (request) => {
         // - /repertoires
         // - /repertoires/{id}
         // - /repertoires/{id}/songs
-        const repertoiresPathRegex = /\/repertoires(?:\/[^/]+(?:\/songs)?)?$/;
+        // - /repertoires/{id}/songs/{repertoireSongId}
+        const repertoiresPathRegex = /\/repertoires(?:\/[^/]+(?:\/songs(?:\/[^/]+)?)?)?$/;
 
         if (repertoiresPathRegex.test(path)) {
             const user = await requireAuth(supabase);

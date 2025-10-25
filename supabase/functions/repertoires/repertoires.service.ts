@@ -6,6 +6,7 @@ import type {
     RepertoireListResponseDto,
     RepertoireUpdateCommand,
     RepertoireAddSongsResponseDto,
+    RepertoireRemoveSongResponseDto,
 } from '../../../packages/contracts/types.ts';
 import { createConflictError, createInternalError, createNotFoundError, createValidationError } from '../_shared/errors.ts';
 import type { RequestSupabaseClient } from '../_shared/supabase-client.ts';
@@ -1002,6 +1003,208 @@ export const addSongsToRepertoire = async ({
             songId: row.song_id,
             position: row.position,
         })),
+    };
+
+    return response;
+};
+
+// ============================================================================
+// Remove Song from Repertoire Service
+// ============================================================================
+
+export type RemoveSongFromRepertoireParams = {
+    supabase: RequestSupabaseClient;
+    repertoireId: string;
+    repertoireSongId: string;
+    organizerId: string;
+};
+
+/**
+ * Usuwa piosenkę z repertuaru i automatycznie aktualizuje pozycje pozostałych piosenek.
+ *
+ * Proces:
+ * 1. Pobiera rekord repertoire_songs za pomocą repertoireSongId
+ * 2. Weryfikuje zgodność repertoire_id z URL oraz własność repertuaru (organizer_id)
+ * 3. Usuwa rekord z tabeli repertoire_songs
+ * 4. Aktualizuje pozycje pozostałych piosenek (position = position - 1) dla piosenek o position > usuniętej
+ * 5. Zwraca potwierdzenie usunięcia
+ *
+ * @throws {ApplicationError} 403 - repertuar nie należy do użytkownika
+ * @throws {ApplicationError} 404 - repertoireSongId nie istnieje lub repertoireId się nie zgadza
+ * @throws {ApplicationError} 500 - błąd bazy danych
+ */
+export const removeSongFromRepertoire = async ({
+    supabase,
+    repertoireId,
+    repertoireSongId,
+    organizerId,
+}: RemoveSongFromRepertoireParams): Promise<RepertoireRemoveSongResponseDto> => {
+    logger.info('Rozpoczęcie usuwania piosenki z repertuaru w serwisie', {
+        organizerId,
+        repertoireId,
+        repertoireSongId,
+    });
+
+    // ========================================================================
+    // Krok 1: Pobranie rekordu repertoire_songs z weryfikacją własności
+    // ========================================================================
+
+    // Pobieramy rekord wraz z repertoire_id i position
+    const { data: repertoireSongData, error: fetchError } = await supabase
+        .from('repertoire_songs')
+        .select('id, repertoire_id, position, repertoires!inner(organizer_id)')
+        .eq('id', repertoireSongId)
+        .maybeSingle();
+
+    if (fetchError) {
+        logger.error('Błąd podczas pobierania rekordu repertoire_songs', {
+            organizerId,
+            repertoireId,
+            repertoireSongId,
+            error: fetchError,
+        });
+        throw createInternalError('Nie udało się pobrać piosenki z repertuaru', fetchError);
+    }
+
+    if (!repertoireSongData) {
+        logger.warn('Rekord repertoire_songs nie istnieje', {
+            organizerId,
+            repertoireId,
+            repertoireSongId,
+        });
+        throw createNotFoundError('Piosenka nie została znaleziona w repertuarze');
+    }
+
+    // ========================================================================
+    // Krok 2: Weryfikacja zgodności repertoire_id oraz własności
+    // ========================================================================
+
+    // Sprawdzamy czy repertoire_id z bazy zgadza się z tym z URL
+    if (repertoireSongData.repertoire_id !== repertoireId) {
+        logger.warn('Niezgodność repertoire_id', {
+            organizerId,
+            urlRepertoireId: repertoireId,
+            dbRepertoireId: repertoireSongData.repertoire_id,
+            repertoireSongId,
+        });
+        throw createNotFoundError('Piosenka nie została znaleziona w podanym repertuarze');
+    }
+
+    // Sprawdzamy czy repertuar należy do użytkownika
+    const repertoireOwnerId = (repertoireSongData.repertoires as { organizer_id: string }).organizer_id;
+    if (repertoireOwnerId !== organizerId) {
+        logger.warn('Próba usunięcia piosenki z repertuaru innego użytkownika', {
+            organizerId,
+            repertoireId,
+            repertoireSongId,
+            repertoireOwnerId,
+        });
+        throw createNotFoundError('Repertuar nie został znaleziony');
+    }
+
+    const removedPosition = repertoireSongData.position;
+
+    logger.info('Rekord repertoire_songs zweryfikowany pomyślnie', {
+        organizerId,
+        repertoireId,
+        repertoireSongId,
+        position: removedPosition,
+    });
+
+    // ========================================================================
+    // Krok 3: Usunięcie rekordu z tabeli repertoire_songs
+    // ========================================================================
+
+    const { error: deleteError } = await supabase
+        .from('repertoire_songs')
+        .delete()
+        .eq('id', repertoireSongId);
+
+    if (deleteError) {
+        logger.error('Błąd podczas usuwania rekordu repertoire_songs', {
+            organizerId,
+            repertoireId,
+            repertoireSongId,
+            error: deleteError,
+        });
+        throw createInternalError('Nie udało się usunąć piosenki z repertuaru', deleteError);
+    }
+
+    logger.info('Rekord repertoire_songs usunięty pomyślnie', {
+        organizerId,
+        repertoireId,
+        repertoireSongId,
+    });
+
+    // ========================================================================
+    // Krok 4: Aktualizacja pozycji pozostałych piosenek
+    // ========================================================================
+
+    // Pobieramy wszystkie piosenki o position większym niż usuniętej
+    const { data: songsToUpdate, error: fetchSongsError } = await supabase
+        .from('repertoire_songs')
+        .select('id, position')
+        .eq('repertoire_id', repertoireId)
+        .gt('position', removedPosition)
+        .order('position', { ascending: true });
+
+    if (fetchSongsError) {
+        logger.error('Błąd podczas pobierania piosenek do aktualizacji pozycji', {
+            organizerId,
+            repertoireId,
+            error: fetchSongsError,
+        });
+        throw createInternalError('Nie udało się zaktualizować pozycji piosenek', fetchSongsError);
+    }
+
+    // Aktualizujemy pozycje dla każdej piosenki
+    if (songsToUpdate && songsToUpdate.length > 0) {
+        logger.info('Rozpoczęcie aktualizacji pozycji piosenek', {
+            organizerId,
+            repertoireId,
+            songsCount: songsToUpdate.length,
+        });
+
+        // Wykorzystujemy batch update - dla każdej piosenki zmniejszamy position o 1
+        for (const song of songsToUpdate) {
+            const { error: updateError } = await supabase
+                .from('repertoire_songs')
+                .update({ position: song.position - 1 })
+                .eq('id', song.id);
+
+            if (updateError) {
+                logger.error('Błąd podczas aktualizacji pozycji piosenki', {
+                    organizerId,
+                    repertoireId,
+                    repertoireSongId: song.id,
+                    oldPosition: song.position,
+                    newPosition: song.position - 1,
+                    error: updateError,
+                });
+                throw createInternalError('Nie udało się zaktualizować pozycji piosenek', updateError);
+            }
+        }
+
+        logger.info('Pozycje piosenek zaktualizowane pomyślnie', {
+            organizerId,
+            repertoireId,
+            updatedCount: songsToUpdate.length,
+        });
+    } else {
+        logger.info('Brak piosenek do aktualizacji pozycji', {
+            organizerId,
+            repertoireId,
+        });
+    }
+
+    // ========================================================================
+    // Krok 5: Zwrócenie odpowiedzi
+    // ========================================================================
+
+    const response: RepertoireRemoveSongResponseDto = {
+        repertoireId,
+        removed: repertoireSongId,
+        positionsRebuilt: true,
     };
 
     return response;

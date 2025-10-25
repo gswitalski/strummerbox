@@ -1,11 +1,11 @@
 import { z } from 'zod';
-import type { RepertoireAddSongsCommand, RepertoireAddSongsResponseDto, RepertoireCreateCommand, RepertoireDto, RepertoireListResponseDto, RepertoireUpdateCommand } from '../../../packages/contracts/types.ts';
+import type { RepertoireAddSongsCommand, RepertoireAddSongsResponseDto, RepertoireCreateCommand, RepertoireDto, RepertoireListResponseDto, RepertoireRemoveSongResponseDto, RepertoireUpdateCommand } from '../../../packages/contracts/types.ts';
 import { jsonResponse } from '../_shared/http.ts';
 import { createValidationError } from '../_shared/errors.ts';
 import { logger } from '../_shared/logger.ts';
 import type { AuthenticatedUser } from '../_shared/auth.ts';
 import type { RequestSupabaseClient } from '../_shared/supabase-client.ts';
-import { addSongsToRepertoire, createRepertoire, getRepertoireById, listRepertoires, updateRepertoire } from './repertoires.service.ts';
+import { addSongsToRepertoire, createRepertoire, getRepertoireById, listRepertoires, removeSongFromRepertoire, updateRepertoire } from './repertoires.service.ts';
 
 // ============================================================================
 // Validation Schemas
@@ -583,6 +583,76 @@ export const handleAddSongsToRepertoire = async (
     return jsonResponse<RepertoireAddSongsResponseDto>(response, { status: 201 });
 };
 
+/**
+ * Handler dla DELETE /repertoires/{id}/songs/{repertoireSongId} - usunięcie piosenki z repertuaru.
+ *
+ * Przepływ:
+ * 1. Uwierzytelnienie użytkownika (requireAuth w router)
+ * 2. Walidacja parametrów path `repertoireId` i `repertoireSongId` (muszą być UUID)
+ * 3. Wywołanie serwisu removeSongFromRepertoire
+ * 4. Zwrócenie odpowiedzi 200 OK z RepertoireRemoveSongResponseDto
+ *
+ * @throws {ApplicationError} 400 - błąd walidacji (nieprawidłowy UUID)
+ * @throws {ApplicationError} 403 - brak uprawnień do repertuaru
+ * @throws {ApplicationError} 404 - repertuar lub piosenka nie istnieje
+ * @throws {ApplicationError} 500 - błąd serwera
+ */
+export const handleRemoveSongFromRepertoire = async (
+    request: Request,
+    supabase: RequestSupabaseClient,
+    user: AuthenticatedUser,
+    repertoireId: string,
+    repertoireSongId: string,
+): Promise<Response> => {
+    logger.info('Rozpoczęcie usuwania piosenki z repertuaru', {
+        organizerId: user.id,
+        repertoireId,
+        repertoireSongId,
+    });
+
+    // Walidacja parametrów path (UUID)
+    const repertoireIdSchema = z.string().uuid('Nieprawidłowy identyfikator repertuaru');
+    const repertoireSongIdSchema = z.string().uuid('Nieprawidłowy identyfikator piosenki w repertuarze');
+
+    const repertoireIdResult = repertoireIdSchema.safeParse(repertoireId);
+    if (!repertoireIdResult.success) {
+        logger.warn('Błędy walidacji parametru repertoireId dla DELETE /repertoires/{id}/songs/{repertoireSongId}', {
+            issues: repertoireIdResult.error.issues,
+        });
+
+        throw createValidationError('Nieprawidłowy identyfikator repertuaru', repertoireIdResult.error.format());
+    }
+
+    const repertoireSongIdResult = repertoireSongIdSchema.safeParse(repertoireSongId);
+    if (!repertoireSongIdResult.success) {
+        logger.warn('Błędy walidacji parametru repertoireSongId dla DELETE /repertoires/{id}/songs/{repertoireSongId}', {
+            issues: repertoireSongIdResult.error.issues,
+        });
+
+        throw createValidationError('Nieprawidłowy identyfikator piosenki w repertuarze', repertoireSongIdResult.error.format());
+    }
+
+    const validatedRepertoireId = repertoireIdResult.data;
+    const validatedRepertoireSongId = repertoireSongIdResult.data;
+
+    // Wywołanie serwisu
+    const response = await removeSongFromRepertoire({
+        supabase,
+        repertoireId: validatedRepertoireId,
+        repertoireSongId: validatedRepertoireSongId,
+        organizerId: user.id,
+    });
+
+    logger.info('Piosenka usunięta z repertuaru pomyślnie', {
+        organizerId: user.id,
+        repertoireId: response.repertoireId,
+        removedRepertoireSongId: response.removed,
+        positionsRebuilt: response.positionsRebuilt,
+    });
+
+    return jsonResponse<RepertoireRemoveSongResponseDto>(response, { status: 200 });
+};
+
 // ============================================================================
 // Router
 // ============================================================================
@@ -595,6 +665,7 @@ export const handleAddSongsToRepertoire = async (
  * - GET /repertoires/{id} - pobranie szczegółów repertuaru
  * - PATCH /repertoires/{id} - częściowa aktualizacja repertuaru
  * - POST /repertoires/{id}/songs - dodawanie piosenek do repertuaru
+ * - DELETE /repertoires/{id}/songs/{repertoireSongId} - usunięcie piosenki z repertuaru
  */
 export const repertoiresRouter = async (
     request: Request,
@@ -602,7 +673,19 @@ export const repertoiresRouter = async (
     user: AuthenticatedUser,
     path: string,
 ): Promise<Response> => {
-    // POST /repertoires/{id}/songs - dodawanie piosenek do repertuaru (sprawdzamy najpierw dłuższe ścieżki)
+    // DELETE /repertoires/{id}/songs/{repertoireSongId} - usunięcie piosenki z repertuaru (sprawdzamy najpierw najdłuższe ścieżki)
+    const removeSongMatch = path.match(/^\/repertoires\/([^/]+)\/songs\/([^/]+)$/);
+
+    if (removeSongMatch) {
+        const repertoireId = removeSongMatch[1];
+        const repertoireSongId = removeSongMatch[2];
+
+        if (request.method === 'DELETE') {
+            return await handleRemoveSongFromRepertoire(request, supabase, user, repertoireId, repertoireSongId);
+        }
+    }
+
+    // POST /repertoires/{id}/songs - dodawanie piosenek do repertuaru
     const addSongsMatch = path.match(/^\/repertoires\/([^/]+)\/songs$/);
 
     if (addSongsMatch) {
