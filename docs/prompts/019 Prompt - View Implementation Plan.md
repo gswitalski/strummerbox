@@ -18,19 +18,11 @@ Najpierw przejrzyj następujące informacje:
 
 3. Nazwa widoku do implementacji
 <view_name>
-Tworzenie / Edycja Repertuaru (Repertoire Create/Edit View)
+10. Edycja Repertuaru (Repertoire Edit View)
 </view_name>
 
 4. User Stories:
 <user_stories>
--   ID: US-008
--   Title: Tworzenie nowego repertuaru
--   Description: Jako Organizator, chcę móc stworzyć nowy repertuar, nadając mu nazwę i wybierając do niego piosenki z mojej biblioteki.
--   Acceptance Criteria:
-    -   Formularz tworzenia repertuaru pozwala na wpisanie unikalnej nazwy.
-    -   Widzę listę wszystkich moich piosenek i mogę je zaznaczyć, aby dodać do repertuaru.
-    -   Po zapisaniu, nowy repertuar pojawia się na liście repertuarów.
-
 -   ID: US-010
 -   Title: Edycja repertuaru
 -   Description: Jako Organizator, chcę móc edytować istniejący repertuar, zmieniając jego nazwę, dodając lub usuwając piosenki oraz zmieniając ich kolejność.
