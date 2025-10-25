@@ -10,6 +10,7 @@ import {
     signal,
 } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -32,6 +33,7 @@ import { EmptyStateComponent } from '../../../shared/components/empty-state/empt
 import type { RepertoireSummaryDto } from '../../../../../packages/contracts/types';
 import type { Sort } from '@angular/material/sort';
 import { CommonModule } from '@angular/common';
+import { RepertoireCreateDialogComponent } from '../components/repertoire-create-dialog/repertoire-create-dialog.component';
 
 const DEFAULT_PAGE_SIZE = 20;
 const PAGE_SIZE_OPTIONS = [10, 20, 50];
@@ -42,6 +44,7 @@ const SEARCH_DEBOUNCE_MS = 300;
     standalone: true,
     imports: [
         MatButtonModule,
+        MatDialogModule,
         MatFormFieldModule,
         MatIconModule,
         MatInputModule,
@@ -61,6 +64,7 @@ export class RepertoireListPageComponent {
     private readonly repertoireListService = inject(RepertoireListService);
     private readonly snackBar = inject(MatSnackBar);
     private readonly router = inject(Router);
+    private readonly dialog = inject(MatDialog);
     private readonly destroyRef = inject(DestroyRef);
 
     private readonly paginationState: WritableSignal<{ pageIndex: number; pageSize: number }> = signal({
@@ -205,8 +209,20 @@ export class RepertoireListPageComponent {
         this.refreshState.update((value) => value + 1);
     }
 
-    public async navigateToCreateRepertoire(): Promise<void> {
-        await this.router.navigate(['/management/repertoires', 'new']);
+    public navigateToCreateRepertoire(): void {
+        const dialogRef = this.dialog.open(RepertoireCreateDialogComponent, {
+            width: '500px',
+            disableClose: false,
+        });
+
+        // Nasłuchuj na zamknięcie dialogu
+        dialogRef.afterClosed().subscribe((result) => {
+            // Jeśli użytkownik pomyślnie utworzył repertuar i wrócił (bez nawigacji),
+            // odśwież listę
+            if (result?.success) {
+                this.refreshState.update((value) => value + 1);
+            }
+        });
     }
 
     private scheduleSearchUpdate(rawValue: string): void {

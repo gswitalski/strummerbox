@@ -1,0 +1,49 @@
+mat-dialog-content {
+    min-width: 400px;
+    padding: 24px;
+
+    form {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+
+        .full-width {
+            width: 100%;
+        }
+
+        .error-message {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px;
+            background-color: var(--mat-sys-error-container);
+            color: var(--mat-sys-on-error-container);
+            border-radius: 4px;
+            margin-top: 8px;
+
+            mat-icon {
+                font-size: 20px;
+                width: 20px;
+                height: 20px;
+            }
+
+            span {
+                flex: 1;
+            }
+        }
+    }
+}
+
+mat-dialog-actions {
+    padding: 16px 24px;
+
+    button {
+        min-width: 80px;
+
+        mat-spinner {
+            display: inline-block;
+            margin: 0 auto;
+        }
+    }
+}
+

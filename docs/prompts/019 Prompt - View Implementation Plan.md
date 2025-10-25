@@ -18,19 +18,17 @@ Najpierw przejrzyj następujące informacje:
 
 3. Nazwa widoku do implementacji
 <view_name>
-10. Edycja Repertuaru (Repertoire Edit View)
+Tworzenie Repertuaru (Repertoire Create View)
 </view_name>
 
 4. User Stories:
 <user_stories>
--   ID: US-010
--   Title: Edycja repertuaru
--   Description: Jako Organizator, chcę móc edytować istniejący repertuar, zmieniając jego nazwę, dodając lub usuwając piosenki oraz zmieniając ich kolejność.
+-   ID: US-008
+-   Title: Tworzenie nowego repertuaru
+-   Description: Jako Organizator, chcę móc stworzyć nowy repertuar, nadając mu nazwę opis.
 -   Acceptance Criteria:
-    -   Mogę zmienić nazwę repertuaru.
-    -   Mogę dodawać nowe piosenki z mojej biblioteki.
-    -   Mogę usuwać piosenki z repertuaru (bez usuwania ich z głównej biblioteki).
-    -   Mogę przesuwać piosenki w górę i w dół na liście za pomocą dedykowanych przycisków.
+    -   Formularz tworzenia repertuaru w oknie modalnym pozwala na wpisanie unikalnej nazwy  oraz opisu.
+    -   Po zapisaniu okienko dialogowe jest zamykane i aplikacja przechodzi do trybu edycji repertuaru.
 </user_stories>
 
 5. Endpoint Description:
@@ -162,4 +160,4 @@ Oto przykład tego, jak powinien wyglądać plik wyjściowy (treść jest do zas
 3. [...]
 ```
 
-Rozpocznij analizę i planowanie już teraz. Twój ostateczny wynik powinien składać się wyłącznie z planu wdrożenia w języku polskim w formacie markdown, który zapiszesz w pliku docs/results/impl-plans/{view-name}-view-implementation-plan.md i nie powinien powielać ani powtarzać żadnej pracy wykonanej w podziale implementacji.
+Rozpocznij analizę i planowanie już teraz. Twój ostateczny wynik powinien składać się wyłącznie z planu wdrożenia w języku polskim w formacie markdown, który zapiszesz w pliku docs/results/impl-plans/views/{view-name}-view-implementation-plan.md i nie powinien powielać ani powtarzać żadnej pracy wykonanej w podziale implementacji.

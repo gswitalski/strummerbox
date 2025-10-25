@@ -4,6 +4,7 @@ import { firstValueFrom } from 'rxjs';
 
 import type {
     RepertoireDto,
+    RepertoireCreateCommand,
     RepertoireUpdateCommand,
     RepertoireAddSongsCommand,
     RepertoireAddSongsResponseDto,
@@ -24,6 +25,35 @@ export class RepertoiresApiService {
     private readonly supabase = inject(SupabaseService);
 
     private readonly baseUrl = `${environment.supabase.url}/functions/v1/repertoires` as const;
+
+    /**
+     * Tworzy nowy repertuar
+     */
+    public async createRepertoire(command: RepertoireCreateCommand): Promise<RepertoireDto> {
+        const session = await this.getSession();
+
+        const response = await firstValueFrom(
+            this.http.post<RepertoireDto | { data: RepertoireDto }>(
+                this.baseUrl,
+                command,
+                {
+                    headers: {
+                        Authorization: `Bearer ${session.access_token}`,
+                    },
+                }
+            )
+        );
+
+        // API może zwracać dane bezpośrednio lub w { data: ... }
+        if (response && typeof response === 'object') {
+            if ('data' in response && response.data) {
+                return response.data as RepertoireDto;
+            }
+            return response as RepertoireDto;
+        }
+
+        throw new Error('Invalid API response structure');
+    }
 
     /**
      * Pobiera szczegóły repertuaru
