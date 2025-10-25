@@ -1,11 +1,11 @@
 import { z } from 'zod';
-import type { RepertoireAddSongsCommand, RepertoireAddSongsResponseDto, RepertoireCreateCommand, RepertoireDto, RepertoireListResponseDto, RepertoireRemoveSongResponseDto, RepertoireUpdateCommand } from '../../../packages/contracts/types.ts';
+import type { RepertoireAddSongsCommand, RepertoireAddSongsResponseDto, RepertoireCreateCommand, RepertoireDto, RepertoireListResponseDto, RepertoireRemoveSongResponseDto, RepertoireReorderCommand, RepertoireReorderResponseDto, RepertoireUpdateCommand } from '../../../packages/contracts/types.ts';
 import { jsonResponse } from '../_shared/http.ts';
 import { createValidationError } from '../_shared/errors.ts';
 import { logger } from '../_shared/logger.ts';
 import type { AuthenticatedUser } from '../_shared/auth.ts';
 import type { RequestSupabaseClient } from '../_shared/supabase-client.ts';
-import { addSongsToRepertoire, createRepertoire, getRepertoireById, listRepertoires, removeSongFromRepertoire, updateRepertoire } from './repertoires.service.ts';
+import { addSongsToRepertoire, createRepertoire, getRepertoireById, listRepertoires, removeSongFromRepertoire, reorderSongsInRepertoire, updateRepertoire } from './repertoires.service.ts';
 
 // ============================================================================
 // Validation Schemas
@@ -177,6 +177,29 @@ const ADD_SONGS_COMMAND_SCHEMA = z
     })
     .strict();
 
+/**
+ * Schema Zod dla komendy zmiany kolejności piosenek w repertuarze.
+ * Waliduje:
+ * - order: wymagana niepusta tablica UUID repertoireSongId (min: 1)
+ */
+const REORDER_SONGS_COMMAND_SCHEMA = z
+    .object({
+        order: z
+            .array(z.string().uuid('Nieprawidłowy identyfikator piosenki w repertuarze'))
+            .min(1, 'Tablica kolejności nie może być pusta'),
+    })
+    .strict()
+    .refine(
+        data => {
+            // Sprawdzenie unikalności elementów w tablicy order
+            const uniqueIds = new Set(data.order);
+            return uniqueIds.size === data.order.length;
+        },
+        {
+            message: 'Tablica kolejności zawiera zduplikowane identyfikatory',
+        }
+    );
+
 // ============================================================================
 // Request Body Parsers
 // ============================================================================
@@ -253,6 +276,33 @@ const parseAddSongsRequestBody = async (request: Request): Promise<RepertoireAdd
 
     if (!result.success) {
         logger.warn('Błędy walidacji żądania dodania piosenek do repertuaru', {
+            issues: result.error.issues,
+        });
+
+        throw createValidationError('Nieprawidłowe dane wejściowe', result.error.format());
+    }
+
+    return result.data;
+};
+
+/**
+ * Parsuje i waliduje ciało żądania POST dla zmiany kolejności piosenek w repertuarze.
+ * @throws {ApplicationError} z kodem validation_error jeśli dane są nieprawidłowe
+ */
+const parseReorderSongsRequestBody = async (request: Request): Promise<RepertoireReorderCommand> => {
+    let payload: unknown;
+
+    try {
+        payload = await request.json();
+    } catch (error) {
+        logger.warn('Nieprawidłowy JSON w żądaniu zmiany kolejności piosenek', { error });
+        throw createValidationError('Nieprawidłowy format JSON w żądaniu');
+    }
+
+    const result = REORDER_SONGS_COMMAND_SCHEMA.safeParse(payload);
+
+    if (!result.success) {
+        logger.warn('Błędy walidacji żądania zmiany kolejności piosenek', {
             issues: result.error.issues,
         });
 
@@ -653,6 +703,65 @@ export const handleRemoveSongFromRepertoire = async (
     return jsonResponse<RepertoireRemoveSongResponseDto>(response, { status: 200 });
 };
 
+/**
+ * Handler dla POST /repertoires/{id}/songs/reorder - zmiana kolejności piosenek w repertuarze.
+ *
+ * Przepływ:
+ * 1. Uwierzytelnienie użytkownika (requireAuth w router)
+ * 2. Walidacja parametru path `id` (musi być UUID)
+ * 3. Walidacja ciała żądania za pomocą REORDER_SONGS_COMMAND_SCHEMA
+ * 4. Wywołanie serwisu reorderSongsInRepertoire
+ * 5. Zwrócenie odpowiedzi 200 OK z RepertoireReorderResponseDto
+ *
+ * @throws {ApplicationError} 400 - błąd walidacji (nieprawidłowy UUID, dane lub niezgodność zestawów ID)
+ * @throws {ApplicationError} 403 - brak uprawnień do repertuaru
+ * @throws {ApplicationError} 404 - repertuar nie istnieje
+ * @throws {ApplicationError} 500 - błąd serwera
+ */
+export const handleReorderRepertoireSongs = async (
+    request: Request,
+    supabase: RequestSupabaseClient,
+    user: AuthenticatedUser,
+    repertoireId: string,
+): Promise<Response> => {
+    logger.info('Rozpoczęcie zmiany kolejności piosenek w repertuarze', {
+        organizerId: user.id,
+        repertoireId,
+    });
+
+    // Walidacja parametru path (UUID)
+    const pathResult = GET_BY_ID_PATH_SCHEMA.safeParse({ id: repertoireId });
+
+    if (!pathResult.success) {
+        logger.warn('Błędy walidacji parametru path dla POST /repertoires/{id}/songs/reorder', {
+            issues: pathResult.error.issues,
+        });
+
+        throw createValidationError('Nieprawidłowy identyfikator repertuaru', pathResult.error.format());
+    }
+
+    const validatedId = pathResult.data.id;
+
+    // Walidacja ciała żądania
+    const command = await parseReorderSongsRequestBody(request);
+
+    // Wywołanie serwisu
+    const response = await reorderSongsInRepertoire({
+        supabase,
+        repertoireId: validatedId,
+        organizerId: user.id,
+        order: command.order,
+    });
+
+    logger.info('Kolejność piosenek w repertuarze zmieniona pomyślnie', {
+        organizerId: user.id,
+        repertoireId: response.repertoireId,
+        songsCount: response.songs.length,
+    });
+
+    return jsonResponse<RepertoireReorderResponseDto>(response, { status: 200 });
+};
+
 // ============================================================================
 // Router
 // ============================================================================
@@ -665,6 +774,7 @@ export const handleRemoveSongFromRepertoire = async (
  * - GET /repertoires/{id} - pobranie szczegółów repertuaru
  * - PATCH /repertoires/{id} - częściowa aktualizacja repertuaru
  * - POST /repertoires/{id}/songs - dodawanie piosenek do repertuaru
+ * - POST /repertoires/{id}/songs/reorder - zmiana kolejności piosenek w repertuarze
  * - DELETE /repertoires/{id}/songs/{repertoireSongId} - usunięcie piosenki z repertuaru
  */
 export const repertoiresRouter = async (
@@ -682,6 +792,17 @@ export const repertoiresRouter = async (
 
         if (request.method === 'DELETE') {
             return await handleRemoveSongFromRepertoire(request, supabase, user, repertoireId, repertoireSongId);
+        }
+    }
+
+    // POST /repertoires/{id}/songs/reorder - zmiana kolejności piosenek (musi być przed /songs)
+    const reorderMatch = path.match(/^\/repertoires\/([^/]+)\/songs\/reorder$/);
+
+    if (reorderMatch) {
+        const repertoireId = reorderMatch[1];
+
+        if (request.method === 'POST') {
+            return await handleReorderRepertoireSongs(request, supabase, user, repertoireId);
         }
     }
 

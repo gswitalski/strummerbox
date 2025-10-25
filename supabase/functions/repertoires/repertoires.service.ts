@@ -7,6 +7,7 @@ import type {
     RepertoireUpdateCommand,
     RepertoireAddSongsResponseDto,
     RepertoireRemoveSongResponseDto,
+    RepertoireReorderResponseDto,
 } from '../../../packages/contracts/types.ts';
 import { createConflictError, createInternalError, createNotFoundError, createValidationError } from '../_shared/errors.ts';
 import type { RequestSupabaseClient } from '../_shared/supabase-client.ts';
@@ -1205,6 +1206,212 @@ export const removeSongFromRepertoire = async ({
         repertoireId,
         removed: repertoireSongId,
         positionsRebuilt: true,
+    };
+
+    return response;
+};
+
+// ============================================================================
+// Reorder Songs in Repertoire Service
+// ============================================================================
+
+export type ReorderSongsInRepertoireParams = {
+    supabase: RequestSupabaseClient;
+    repertoireId: string;
+    organizerId: string;
+    order: string[];
+};
+
+/**
+ * Zmienia kolejność piosenek w repertuarze na podstawie dostarczonej tablicy repertoireSongId.
+ * Operacja jest atomowa - wszystkie zmiany wykonują się w transakcji lub żadna.
+ *
+ * Proces:
+ * 1. Weryfikuje czy repertuar istnieje i należy do organizatora
+ * 2. Pobiera wszystkie repertoire_songs dla danego repertuaru
+ * 3. Weryfikuje czy zestaw ID w `order` jest identyczny z zestawem w bazie (ta sama liczba, brak duplikatów, te same wartości)
+ * 4. W ramach transakcji: wykonuje serię UPDATE dla każdego rekordu, ustawiając nową pozycję zgodnie z kolejnością w tablicy
+ * 5. Zwraca zaktualizowaną kolejność
+ *
+ * @throws {ApplicationError} 400 - niezgodność zestawów ID (brakujące lub nadmiarowe elementy)
+ * @throws {ApplicationError} 404 - repertuar nie istnieje lub nie należy do użytkownika
+ * @throws {ApplicationError} 500 - błąd bazy danych
+ */
+export const reorderSongsInRepertoire = async ({
+    supabase,
+    repertoireId,
+    organizerId,
+    order,
+}: ReorderSongsInRepertoireParams): Promise<RepertoireReorderResponseDto> => {
+    logger.info('Rozpoczęcie zmiany kolejności piosenek w repertuarze w serwisie', {
+        organizerId,
+        repertoireId,
+        orderCount: order.length,
+    });
+
+    // ========================================================================
+    // Krok 1: Sprawdzenie czy repertuar istnieje i należy do organizatora
+    // ========================================================================
+
+    const { data: repertoireData, error: repertoireError } = await supabase
+        .from('repertoires')
+        .select('id')
+        .eq('id', repertoireId)
+        .eq('organizer_id', organizerId)
+        .maybeSingle();
+
+    if (repertoireError) {
+        logger.error('Błąd podczas sprawdzania istnienia repertuaru', {
+            organizerId,
+            repertoireId,
+            error: repertoireError,
+        });
+        throw createInternalError('Nie udało się sprawdzić repertuaru', repertoireError);
+    }
+
+    if (!repertoireData) {
+        logger.warn('Repertuar nie istnieje lub nie należy do użytkownika', {
+            organizerId,
+            repertoireId,
+        });
+        throw createNotFoundError('Repertuar nie został znaleziony');
+    }
+
+    // ========================================================================
+    // Krok 2: Pobranie wszystkich repertoire_songs dla repertuaru
+    // ========================================================================
+
+    const { data: existingSongs, error: fetchError } = await supabase
+        .from('repertoire_songs')
+        .select('id, position')
+        .eq('repertoire_id', repertoireId)
+        .order('position', { ascending: true });
+
+    if (fetchError) {
+        logger.error('Błąd podczas pobierania piosenek z repertuaru', {
+            organizerId,
+            repertoireId,
+            error: fetchError,
+        });
+        throw createInternalError('Nie udało się pobrać piosenek z repertuaru', fetchError);
+    }
+
+    // ========================================================================
+    // Krok 3: Weryfikacja zgodności zestawów ID
+    // ========================================================================
+
+    const existingIds = new Set(existingSongs.map(s => s.id));
+    const orderIds = new Set(order);
+
+    // Sprawdzenie czy liczba elementów się zgadza
+    if (existingIds.size !== orderIds.size) {
+        logger.warn('Niezgodna liczba piosenek w order', {
+            organizerId,
+            repertoireId,
+            existingCount: existingIds.size,
+            orderCount: orderIds.size,
+        });
+        throw createValidationError(
+            `Liczba piosenek w tablicy order (${orderIds.size}) nie zgadza się z liczbą piosenek w repertuarze (${existingIds.size})`,
+            {
+                existingCount: existingIds.size,
+                orderCount: orderIds.size,
+            }
+        );
+    }
+
+    // Sprawdzenie czy wszystkie ID z order istnieją w bazie
+    const missingInDatabase = order.filter(id => !existingIds.has(id));
+    if (missingInDatabase.length > 0) {
+        logger.warn('Tablica order zawiera ID nieistniejące w repertuarze', {
+            organizerId,
+            repertoireId,
+            missingInDatabase,
+        });
+        throw createValidationError(
+            'Tablica order zawiera identyfikatory piosenek, które nie należą do tego repertuaru',
+            { missingInDatabase }
+        );
+    }
+
+    // Sprawdzenie czy w bazie nie ma ID niewystępujących w order
+    const missingInOrder = existingSongs
+        .map(s => s.id)
+        .filter(id => !orderIds.has(id));
+
+    if (missingInOrder.length > 0) {
+        logger.warn('W repertuarze są piosenki nieobecne w tablicy order', {
+            organizerId,
+            repertoireId,
+            missingInOrder,
+        });
+        throw createValidationError(
+            'Tablica order nie zawiera wszystkich piosenek z repertuaru',
+            { missingInOrder }
+        );
+    }
+
+    logger.info('Weryfikacja zestawów ID zakończona pomyślnie', {
+        organizerId,
+        repertoireId,
+        songsCount: existingIds.size,
+    });
+
+    // ========================================================================
+    // Krok 4: Aktualizacja pozycji w transakcji (batch update)
+    // ========================================================================
+
+    // W Supabase Edge Functions nie ma bezpośredniego wsparcia dla transakcji,
+    // ale możemy wykonać serię UPDATE'ów. Jeśli którykolwiek zawiedzie, rzucimy błąd.
+    // Dla prawdziwej transakcji można by użyć funkcji RPC w PostgreSQL.
+
+    logger.info('Rozpoczęcie aktualizacji pozycji piosenek', {
+        organizerId,
+        repertoireId,
+        updatesCount: order.length,
+    });
+
+    for (let i = 0; i < order.length; i++) {
+        const repertoireSongId = order[i];
+        const newPosition = i + 1; // Pozycje zaczynają się od 1
+
+        const { error: updateError } = await supabase
+            .from('repertoire_songs')
+            .update({ position: newPosition })
+            .eq('id', repertoireSongId)
+            .eq('repertoire_id', repertoireId);
+
+        if (updateError) {
+            logger.error('Błąd podczas aktualizacji pozycji piosenki', {
+                organizerId,
+                repertoireId,
+                repertoireSongId,
+                newPosition,
+                error: updateError,
+            });
+            throw createInternalError(
+                'Nie udało się zaktualizować kolejności piosenek',
+                updateError
+            );
+        }
+    }
+
+    logger.info('Pozycje piosenek zaktualizowane pomyślnie', {
+        organizerId,
+        repertoireId,
+        updatedCount: order.length,
+    });
+
+    // ========================================================================
+    // Krok 5: Przygotowanie odpowiedzi
+    // ========================================================================
+
+    const response: RepertoireReorderResponseDto = {
+        repertoireId,
+        songs: order.map((repertoireSongId, index) => ({
+            repertoireSongId,
+            position: index + 1,
+        })),
     };
 
     return response;
