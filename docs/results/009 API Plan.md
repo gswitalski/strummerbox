@@ -405,7 +405,7 @@
 #### GET /public/songs/{publicId}
 - **Method:** GET
 - **Path:** `/public/songs/{publicId}`
-- **Description:** Return published song text without chords for anonymous viewers.
+- **Description:** Return published song text with chords for anonymous viewers.
 - **Response JSON:**
 ```json
 {

@@ -5,37 +5,20 @@ Zanim zaczniemy, zapoznaj się z poniższymi informacjami:
 1. Route API specification:
 <route_api_specification>
 
-#### POST /repertoires/{id}/songs/reorder
-- **Method:** POST
-- **Path:** `/repertoires/{id}/songs/reorder`
-- **Description:** Replace the order of songs using an ordered array of `repertoireSongId` values.
-- **Request JSON:**
-```json
-{
-  "order": [
-    "24a1a901-5ff8-4f79-a8bd-9d9b1b2c9919",
-    "f13c2cb8-4923-4c12-b9d9-fbf5eec4ed60"
-  ]
-}
-```
+#### GET /public/songs/{publicId}
+- **Method:** GET
+- **Path:** `/public/songs/{publicId}`
+- **Description:** Return published song text with chords for anonymous viewers.
 - **Response JSON:**
 ```json
 {
-  "repertoireId": "5f7a8f35-1cde-4f62-991e-0e020df3ac42",
-  "songs": [
-    {
-      "repertoireSongId": "24a1a901-5ff8-4f79-a8bd-9d9b1b2c9919",
-      "position": 1
-    },
-    {
-      "repertoireSongId": "f13c2cb8-4923-4c12-b9d9-fbf5eec4ed60",
-      "position": 2
-    }
-  ]
+  "title": "Knockin' on Heaven's Door",
+  "content": "Mama, take this badge off of me...",
+  "repertoireNavigation": null
 }
 ```
 - **Success:** `200 OK`
-- **Errors:** `400 Bad Request` (order missing entries or duplicates), `401 Unauthorized`, `403 Forbidden`, `404 Not Found`.
+- **Errors:** `404 Not Found` (song not published or does not exist), `410 Gone` (song deleted after link issued).
 
 </route_api_specification>
 
