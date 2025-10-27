@@ -4,21 +4,21 @@ Zanim zaczniemy, zapoznaj się z poniższymi informacjami:
 
 1. Route API specification:
 <route_api_specification>
-
-#### GET /public/songs/{publicId}
+#### GET /share/songs/{id}
 - **Method:** GET
-- **Path:** `/public/songs/{publicId}`
-- **Description:** Return published song text with chords for anonymous viewers.
+- **Path:** `/share/songs/{id}`
+- **Description:** Return sharing metadata for organizer use (link + QR payload).
 - **Response JSON:**
 ```json
 {
-  "title": "Knockin' on Heaven's Door",
-  "content": "Mama, take this badge off of me...",
-  "repertoireNavigation": null
+  "id": "58b8a0d0-5bf4-4d8a-82de-a2ad8c37b8a5",
+  "publicId": "6e42f88a-2d46-4c27-8371-98dd621b6af2",
+  "publicUrl": "https://app.strummerbox.com/public/songs/6e42f88a-2d46-4c27-8371-98dd621b6af2",
+  "qrPayload": "https://app.strummerbox.com/public/songs/6e42f88a-2d46-4c27-8371-98dd621b6af2"
 }
 ```
 - **Success:** `200 OK`
-- **Errors:** `404 Not Found` (song not published or does not exist), `410 Gone` (song deleted after link issued).
+- **Errors:** `401 Unauthorized`, `403 Forbidden`, `404 Not Found`.
 
 </route_api_specification>
 
