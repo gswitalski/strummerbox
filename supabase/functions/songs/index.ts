@@ -13,6 +13,14 @@ serve(async (request) => {
     const supabase = createSupabaseClient(request);
 
     const execute = withErrorHandling(async () => {
+        // Public endpoints (no authentication required)
+        const publicSongMatch = path.match(/\/songs\/public\/([^/]+)$/);
+        if (publicSongMatch && request.method === 'GET') {
+            const { handleGetPublicSong } = await import('./songs.handlers.ts');
+            return await handleGetPublicSong(request, supabase, publicSongMatch[1]);
+        }
+
+        // Protected endpoints (authentication required)
         const songsPathRegex = /\/songs(?:\/[^/]+)?$/;
 
         if (songsPathRegex.test(path)) {

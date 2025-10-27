@@ -1,11 +1,11 @@
 import { z } from 'zod';
-import type { SongCreateCommand, SongDetailDto, SongListResponseDto } from '../../../packages/contracts/types.ts';
+import type { SongCreateCommand, SongDetailDto, SongListResponseDto, PublicSongDto } from '../../../packages/contracts/types.ts';
 import { jsonResponse } from '../_shared/http.ts';
 import { createValidationError } from '../_shared/errors.ts';
 import { logger } from '../_shared/logger.ts';
 import type { AuthenticatedUser } from '../_shared/auth.ts';
 import type { RequestSupabaseClient } from '../_shared/supabase-client.ts';
-import { createSong, getSongDetails, getSongs, updateSong, type SongPatchCommand } from './songs.service.ts';
+import { createSong, getSongDetails, getSongs, updateSong, getPublicSongByPublicId, type SongPatchCommand } from './songs.service.ts';
 import type { GetSongsFilters } from './songs.service.ts';
 
 const SONG_ID_SCHEMA = z.string().uuid('Nieprawidłowy identyfikator piosenki');
@@ -451,5 +451,56 @@ export const songsRouter = async (
             'Content-Type': 'application/json',
         },
     });
+};
+
+/**
+ * Handler dla publicznego endpointa GET /public/songs/{publicId}
+ * Nie wymaga uwierzytelnienia - dostępny dla wszystkich użytkowników
+ */
+export const handleGetPublicSong = async (
+    request: Request,
+    supabase: RequestSupabaseClient,
+    rawPublicId: string,
+): Promise<Response> => {
+    // Walidacja publicId - musi być UUID
+    const publicIdSchema = z.string().uuid('Nieprawidłowy publiczny identyfikator piosenki');
+    const result = publicIdSchema.safeParse(rawPublicId);
+
+    if (!result.success) {
+        logger.warn('Nieprawidłowy publicId w żądaniu publicznej piosenki', {
+            publicId: rawPublicId,
+            issues: result.error.issues,
+        });
+
+        throw createValidationError(
+            'Nieprawidłowy publiczny identyfikator piosenki',
+            result.error.format()
+        );
+    }
+
+    const publicId = result.data;
+
+    logger.info('Rozpoczęto pobieranie publicznej piosenki', {
+        publicId,
+    });
+
+    // Pobranie danych piosenki z serwisu
+    const songData = await getPublicSongByPublicId({
+        supabase,
+        publicId,
+    });
+
+    // Formatowanie odpowiedzi jako PublicSongDto
+    const response: PublicSongDto = {
+        title: songData.title,
+        content: songData.content,
+        repertoireNavigation: null, // Dla pojedynczej piosenki brak nawigacji
+    };
+
+    const headers = new Headers({
+        'Cache-Control': 'public, max-age=300', // Cache na 5 minut dla publicznych treści
+    });
+
+    return jsonResponse({ data: response }, { status: 200, headers });
 };
 

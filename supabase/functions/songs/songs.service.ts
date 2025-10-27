@@ -397,3 +397,60 @@ export const getSongDetails = async ({
     return songWithUsage;
 };
 
+/**
+ * Parametry dla funkcji pobierającej publiczną piosenkę
+ */
+export type GetPublicSongParams = {
+    supabase: RequestSupabaseClient;
+    publicId: string;
+};
+
+/**
+ * Kolumny pobierane dla publicznej piosenki
+ */
+const PUBLIC_SONG_COLUMNS = 'title, content';
+
+/**
+ * Pobiera opublikowaną piosenkę na podstawie publicId.
+ * Zwraca tylko title i content dla opublikowanych piosenek (published_at IS NOT NULL).
+ * Rzuca NotFoundError jeśli piosenka nie istnieje lub nie jest opublikowana.
+ */
+export const getPublicSongByPublicId = async ({
+    supabase,
+    publicId,
+}: GetPublicSongParams): Promise<{ title: string; content: string }> => {
+    const { data, error } = await supabase
+        .from('songs')
+        .select(PUBLIC_SONG_COLUMNS)
+        .eq('public_id', publicId)
+        .not('published_at', 'is', null)
+        .maybeSingle();
+
+    if (error) {
+        logger.error('Nie udało się pobrać publicznej piosenki', {
+            publicId,
+            error,
+        });
+        throw createInternalError('Nie udało się pobrać publicznej piosenki', error);
+    }
+
+    if (!data) {
+        logger.warn('Publiczna piosenka nie została znaleziona lub nie jest opublikowana', {
+            publicId,
+        });
+        throw createNotFoundError('Piosenka nie została znaleziona lub nie jest opublikowana', {
+            publicId,
+        });
+    }
+
+    logger.info('Pomyślnie pobrano publiczną piosenkę', {
+        publicId,
+        title: data.title,
+    });
+
+    return {
+        title: data.title,
+        content: data.content,
+    };
+};
+
