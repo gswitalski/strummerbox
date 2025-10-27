@@ -54,14 +54,43 @@ To set up and run the project locally, follow these steps:
     ```sh
     npm install
     ```
-3. **Set up environment variables:**
-   - Create a `.env` file in the root of the project if required for services like Supabase, and add the necessary configuration keys.
+3. **Set up Supabase locally:**
+   ```sh
+   # Install Supabase CLI (if not already installed)
+   npm install -g supabase
+   
+   # Start Supabase local development stack
+   supabase start
+   ```
 
-4.  **Run the application:**
+4. **Set up environment variables:**
+   Create a `.env` file in the root of the project with the following variables:
+   ```env
+   # Application public URL (for generating shareable links)
+   APP_PUBLIC_URL=http://localhost:4200
+   ```
+
+5.  **Run the application:**
     ```sh
     npm start
     ```
 The application will be available at `http://localhost:4200/`.
+
+### Testing Edge Functions
+
+To test Supabase Edge Functions locally:
+
+```sh
+# Serve a specific function
+supabase functions serve share --env-file .env
+
+# Or use the provided test scripts:
+# PowerShell (Windows):
+.\scripts\test-share-endpoint.ps1 -Token "your-jwt-token" -SongId "song-uuid"
+
+# Bash (Linux/macOS):
+./scripts/test-share-endpoint.sh "your-jwt-token" "song-uuid"
+```
 
 ## Available Scripts
 
