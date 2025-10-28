@@ -34,6 +34,9 @@ import type { RepertoireSummaryDto } from '../../../../../packages/contracts/typ
 import type { Sort } from '@angular/material/sort';
 import { CommonModule } from '@angular/common';
 import { RepertoireCreateDialogComponent } from '../components/repertoire-create-dialog/repertoire-create-dialog.component';
+import { ShareService } from '../../../core/services/share.service';
+import { ShareDialogComponent } from '../../../shared/components/share-dialog/share-dialog.component';
+import type { ShareDialogData } from '../../../shared/models/share-dialog.model';
 
 const DEFAULT_PAGE_SIZE = 20;
 const PAGE_SIZE_OPTIONS = [10, 20, 50];
@@ -62,6 +65,7 @@ const SEARCH_DEBOUNCE_MS = 300;
 })
 export class RepertoireListPageComponent {
     private readonly repertoireListService = inject(RepertoireListService);
+    private readonly shareService = inject(ShareService);
     private readonly snackBar = inject(MatSnackBar);
     private readonly router = inject(Router);
     private readonly dialog = inject(MatDialog);
@@ -202,7 +206,38 @@ export class RepertoireListPageComponent {
     }
 
     public onShareRepertoire(repertoireId: string): void {
-        void this.router.navigate(['/management/repertoires', repertoireId, 'share']);
+        // Pobierz metadane udostępniania dla repertuaru
+        this.shareService.getRepertoireShareMeta(repertoireId).subscribe({
+            next: (shareMeta) => {
+                // Znajdź repertuar w liście, aby uzyskać jego nazwę
+                const repertoire = this.viewState().repertoires.find(r => r.id === repertoireId);
+                const repertoireName = repertoire?.name ?? 'Repertuar';
+
+                // Mapuj DTO na ShareDialogData
+                const dialogData: ShareDialogData = {
+                    title: `Udostępnij repertuar "${repertoireName}"`,
+                    publicUrl: shareMeta.publicUrl,
+                    qrPayload: shareMeta.qrPayload,
+                };
+
+                // Otwórz dialog
+                this.dialog.open(ShareDialogComponent, {
+                    width: '600px',
+                    maxWidth: '90vw',
+                    data: dialogData,
+                });
+            },
+            error: (error) => {
+                console.error('RepertoireListPageComponent: share error', error);
+                this.snackBar.open(
+                    'Wystąpił błąd. Nie udało się wygenerować linku.',
+                    'OK',
+                    {
+                        duration: 5000,
+                    }
+                );
+            },
+        });
     }
 
     public retryLoad(): void {

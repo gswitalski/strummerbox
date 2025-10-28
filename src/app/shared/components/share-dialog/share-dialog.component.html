@@ -1,0 +1,41 @@
+<h2 mat-dialog-title>{{ data.title }}</h2>
+
+<mat-dialog-content>
+    <div class="share-content">
+        <!-- Link publiczny -->
+        <div class="link-section">
+            <p class="section-label">Link do udostępnienia:</p>
+            <div class="link-container">
+                <a [href]="data.publicUrl" target="_blank" rel="noopener noreferrer" class="public-link">
+                    {{ data.publicUrl }}
+                </a>
+                <button
+                    mat-icon-button
+                    (click)="copyToClipboard()"
+                    aria-label="Kopiuj link"
+                    class="copy-button">
+                    <mat-icon>content_copy</mat-icon>
+                </button>
+            </div>
+        </div>
+
+        <!-- Kod QR -->
+        <div class="qr-section">
+            <p class="section-label">Kod QR:</p>
+            <div class="qr-container">
+                <qrcode
+                    [qrdata]="data.qrPayload"
+                    [width]="256"
+                    [errorCorrectionLevel]="'M'"
+                    [colorDark]="'#000000'"
+                    [colorLight]="'#ffffff'"
+                    [cssClass]="'qr-code'">
+                </qrcode>
+            </div>
+        </div>
+    </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+    <button mat-button (click)="close()">Zamknij</button>
+</mat-dialog-actions>

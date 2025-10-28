@@ -10,6 +10,7 @@ import {
     signal,
 } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
+import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -32,6 +33,9 @@ import { EmptyStateComponent } from '../../../shared/components/empty-state/empt
 import type { SongSummaryDto } from '../../../../../packages/contracts/types';
 import type { Sort } from '@angular/material/sort';
 import { CommonModule } from '@angular/common';
+import { ShareService } from '../../../core/services/share.service';
+import { ShareDialogComponent } from '../../../shared/components/share-dialog/share-dialog.component';
+import type { ShareDialogData } from '../../../shared/models/share-dialog.model';
 
 interface SongListState {
     songs: SongSummaryVM[];
@@ -72,7 +76,9 @@ const SEARCH_DEBOUNCE_MS = 300;
 })
 export class SongListPageComponent {
     private readonly songListService = inject(SongListService);
+    private readonly shareService = inject(ShareService);
     private readonly snackBar = inject(MatSnackBar);
+    private readonly dialog = inject(MatDialog);
     private readonly router = inject(Router);
     private readonly destroyRef = inject(DestroyRef);
 
@@ -211,7 +217,38 @@ export class SongListPageComponent {
     }
 
     public onShareSong(songId: string): void {
-        void this.router.navigate(['/management/songs', songId, 'share']);
+        // Pobierz metadane udostępniania dla piosenki
+        this.shareService.getSongShareMeta(songId).subscribe({
+            next: (shareMeta) => {
+                // Znajdź piosenkę w liście, aby uzyskać jej tytuł
+                const song = this.viewState().songs.find(s => s.id === songId);
+                const songTitle = song?.title ?? 'Piosenka';
+
+                // Mapuj DTO na ShareDialogData
+                const dialogData: ShareDialogData = {
+                    title: `Udostępnij piosenkę "${songTitle}"`,
+                    publicUrl: shareMeta.publicUrl,
+                    qrPayload: shareMeta.qrPayload,
+                };
+
+                // Otwórz dialog
+                this.dialog.open(ShareDialogComponent, {
+                    width: '600px',
+                    maxWidth: '90vw',
+                    data: dialogData,
+                });
+            },
+            error: (error) => {
+                console.error('SongListPageComponent: share error', error);
+                this.snackBar.open(
+                    'Wystąpił błąd. Nie udało się wygenerować linku.',
+                    'OK',
+                    {
+                        duration: 5000,
+                    }
+                );
+            },
+        });
     }
 
     public retryLoad(): void {
