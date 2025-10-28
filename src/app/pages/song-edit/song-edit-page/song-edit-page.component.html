@@ -1,4 +1,4 @@
-<div class="song-edit" [ngClass]="['song-edit--' + viewState().layoutMode]">
+<div class="song-edit" [ngClass]="['song-edit--' + layoutMode()]">
     <header class="song-edit__header">
         <div class="song-edit__header-title">
             <button mat-icon-button type="button" class="song-edit__back" (click)="onCancel()" aria-label="Powrót do listy piosenek">
@@ -6,28 +6,28 @@
             </button>
             <h1>Edytuj piosenkę</h1>
         </div>
-        @if (!viewState().isLoading && viewState().error !== 'not_found' && viewState().error !== 'load_failed') {
+        @if (!isLoading() && error() !== 'not_found' && error() !== 'load_failed') {
             <div class="song-edit__actions">
-                <button mat-stroked-button type="button" (click)="onCancel()" [disabled]="viewState().isSaving">
+                <button mat-stroked-button type="button" (click)="onCancel()" [disabled]="isSaving()">
                     Anuluj
                 </button>
-                <button mat-flat-button color="primary" type="button" (click)="onSubmit()" [disabled]="!viewState().isFormValid || viewState().isSaving">
+                <button mat-flat-button color="primary" type="button" (click)="onSubmit()" [disabled]="!isFormValid() || isSaving()">
                     Zapisz
                 </button>
             </div>
         }
     </header>
 
-    @if (viewState().isSaving) {
+    @if (isSaving()) {
         <mat-progress-bar mode="indeterminate" class="song-edit__progress"></mat-progress-bar>
     }
 
-    @if (viewState().isLoading) {
+    @if (isLoading()) {
         <div class="song-edit__loading">
             <mat-spinner></mat-spinner>
             <p>Ładowanie piosenki...</p>
         </div>
-    } @else if (viewState().error === 'not_found') {
+    } @else if (error() === 'not_found') {
         <div class="song-edit__error-page">
             <mat-icon class="song-edit__error-icon">error_outline</mat-icon>
             <h2>Nie znaleziono piosenki</h2>
@@ -36,7 +36,7 @@
                 Wróć do listy piosenek
             </button>
         </div>
-    } @else if (viewState().error === 'load_failed') {
+    } @else if (error() === 'load_failed') {
         <div class="song-edit__error-page">
             <mat-icon class="song-edit__error-icon">error_outline</mat-icon>
             <h2>Wystąpił błąd</h2>
@@ -46,18 +46,18 @@
             </button>
         </div>
     } @else {
-        @if (viewState().error === 'save_failed') {
+        @if (error() === 'save_failed') {
             <div class="song-edit__error">
                 Nie udało się zaktualizować piosenki. Spróbuj ponownie później.
             </div>
         }
 
-        @if (viewState().layoutMode === 'split') {
+        @if (layoutMode() === 'split') {
             <div class="song-edit__content song-edit__content--split">
                 <stbo-song-form
                     class="song-edit__form"
-                    [initialState]="viewState().formValue"
-                    [isSaving]="viewState().isSaving"
+                    [initialState]="formValue()"
+                    [isSaving]="isSaving()"
                     (formValueChange)="onFormValueChange($event)"
                     (formStatusChange)="onFormStatusChange($event)"
                     (formSubmit)="onFormSubmit($event)"
@@ -70,8 +70,8 @@
                 <mat-tab label="Formularz">
                     <stbo-song-form
                         class="song-edit__form"
-                        [initialState]="viewState().formValue"
-                        [isSaving]="viewState().isSaving"
+                        [initialState]="formValue()"
+                        [isSaving]="isSaving()"
                         (formValueChange)="onFormValueChange($event)"
                         (formStatusChange)="onFormStatusChange($event)"
                         (formSubmit)="onFormSubmit($event)"

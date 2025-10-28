@@ -37,15 +37,6 @@ interface SongEditFormViewModel {
 
 type SongEditError = 'load_failed' | 'not_found' | 'save_failed' | 'duplicate' | null;
 
-interface SongEditState {
-    formValue: SongEditFormViewModel;
-    isLoading: boolean;
-    isSaving: boolean;
-    error: SongEditError;
-    layoutMode: 'split' | 'tabs';
-    isFormValid: boolean;
-}
-
 const LARGE_SCREEN_QUERY = '(min-width: 1024px)' as const;
 
 @Component({
@@ -90,17 +81,16 @@ export class SongEditPageComponent implements OnInit {
     private readonly layoutModeState: WritableSignal<'split' | 'tabs'> = signal('split');
     private readonly isFormValidState: WritableSignal<boolean> = signal(false);
 
-    public readonly viewState: Signal<SongEditState> = computed(() => ({
-        formValue: this.formValueState(),
-        isLoading: this.isLoadingState(),
-        isSaving: this.isSavingState(),
-        error: this.errorState(),
-        layoutMode: this.layoutModeState(),
-        isFormValid: this.isFormValidState(),
-    }));
+    // Osobne computed signals dla wartości używanych w template
+    public readonly formValue: Signal<SongEditFormViewModel> = computed(() => this.formValueState());
+    public readonly isLoading: Signal<boolean> = computed(() => this.isLoadingState());
+    public readonly isSaving: Signal<boolean> = computed(() => this.isSavingState());
+    public readonly error: Signal<SongEditError> = computed(() => this.errorState());
+    public readonly layoutMode: Signal<'split' | 'tabs'> = computed(() => this.layoutModeState());
+    public readonly isFormValid: Signal<boolean> = computed(() => this.isFormValidState());
 
     public readonly currentContent: Signal<string> = computed(
-        () => this.viewState().formValue.content
+        () => this.formValueState().content
     );
 
     constructor() {

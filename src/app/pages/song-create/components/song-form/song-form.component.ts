@@ -55,8 +55,10 @@ export class SongFormComponent {
             return;
         }
 
+        // Patch formularz bez emitowania valueChanges - to tylko inicjalizacja wartościami z parenta
+        // Emitujemy tylko status, bo formularz może zmienić się z invalid na valid
         this.form.patchValue(value, { emitEvent: false });
-        this.emitCurrentState();
+        this.formStatusChange.emit(this.form.valid);
     }
 
     @Input()
@@ -94,6 +96,9 @@ export class SongFormComponent {
             .subscribe(() => {
                 this.formStatusChange.emit(this.form.valid);
             });
+
+        // Emituj początkowy status formularza
+        this.formStatusChange.emit(this.form.valid);
     }
 
     public submitForm(): void {
