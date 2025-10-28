@@ -5,6 +5,7 @@ import { buildErrorResponse, withErrorHandling } from '../_shared/http.ts';
 import { logger } from '../_shared/logger.ts';
 import { ApplicationError, createInternalError } from '../_shared/errors.ts';
 import { songsRouter } from './songs.handlers.ts';
+import { repertoiresRouter } from './repertoires.handlers.ts';
 
 serve(async (request) => {
     const url = new URL(request.url);
@@ -16,10 +17,21 @@ serve(async (request) => {
         // Wszystkie endpointy w /share wymagają uwierzytelnienia
         const user = await requireAuth(supabase);
 
-        // Routing do handlerów piosenek (/share/songs/*)
-        const sharePathRegex = /\/share\/songs(?:\/[^/]+)?$/;
+        // Routing do handlerów repertuarów (/share/repertoires/*)
+        const repertoiresPathRegex = /\/share\/repertoires(?:\/[^/]+)?$/;
 
-        if (sharePathRegex.test(path)) {
+        if (repertoiresPathRegex.test(path)) {
+            const response = await repertoiresRouter(request, supabase, user, path);
+
+            if (response !== null) {
+                return response;
+            }
+        }
+
+        // Routing do handlerów piosenek (/share/songs/*)
+        const songsPathRegex = /\/share\/songs(?:\/[^/]+)?$/;
+
+        if (songsPathRegex.test(path)) {
             const response = await songsRouter(request, supabase, user, path);
 
             if (response !== null) {
