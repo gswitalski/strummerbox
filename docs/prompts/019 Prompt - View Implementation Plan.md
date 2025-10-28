@@ -18,17 +18,20 @@ Najpierw przejrzyj następujące informacje:
 
 3. Nazwa widoku do implementacji
 <view_name>
-Tworzenie Repertuaru (Repertoire Create View)
+6. Lista Piosenek (Song List View) - w zakresie generowania linku i kodu QR
+    oraz
+8. Lista Repertuarów (Repertoire List View)**  - w zakresie generowania linku i kodu QR
 </view_name>
 
 4. User Stories:
 <user_stories>
--   ID: US-008
--   Title: Tworzenie nowego repertuaru
--   Description: Jako Organizator, chcę móc stworzyć nowy repertuar, nadając mu nazwę opis.
+-   ID: US-012
+-   Title: Generowanie linku i kodu QR
+-   Description: Jako Organizator, chcę móc wygenerować stały link publiczny i kod QR dla każdej mojej piosenki i każdego repertuaru.
 -   Acceptance Criteria:
-    -   Formularz tworzenia repertuaru w oknie modalnym pozwala na wpisanie unikalnej nazwy  oraz opisu.
-    -   Po zapisaniu okienko dialogowe jest zamykane i aplikacja przechodzi do trybu edycji repertuaru.
+    -   W widoku listy piosenek oraz listy repertuaró (w trybie zarządzania) znajduje się przycisk "Udostępnij".
+    -   Po kliknięciu wyświetla się link publiczny oraz kod QR.
+    -   Mogę łatwo skopiować link do schowka.
 </user_stories>
 
 5. Endpoint Description:
@@ -108,7 +111,7 @@ Upewnij się, że Twój plan jest zgodny z PRD, historyjkami użytkownika i uwzg
 
 uwzględnij juz zaiplementowany formularz do tworzenia piosenki aby optymalnie uzywać reużywalnych komponentów
 
-Ostateczne wyniki powinny być w języku polskim i zapisane w pliku o nazwie .ai/{view-name}-view-implementation-plan.md. Nie uwzględniaj żadnej analizy i planowania w końcowym wyniku.
+Ostateczne wyniki powinny być w języku polskim i zapisane w pliku o nazwie docs/results/impl-plans/views/{view-name}-view-implementation-plan.md. Nie uwzględniaj żadnej analizy i planowania w końcowym wyniku.
 
 Oto przykład tego, jak powinien wyglądać plik wyjściowy (treść jest do zastąpienia):
 
