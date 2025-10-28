@@ -4,17 +4,18 @@ Zanim zaczniemy, zapoznaj się z poniższymi informacjami:
 
 1. Route API specification:
 <route_api_specification>
-#### GET /share/songs/{id}
+
+#### GET /share/repertoires/{id}
 - **Method:** GET
-- **Path:** `/share/songs/{id}`
-- **Description:** Return sharing metadata for organizer use (link + QR payload).
+- **Path:** `/share/repertoires/{id}`
+- **Description:** Return share metadata (public URL, QR payload) for an organizer to distribute.
 - **Response JSON:**
 ```json
 {
-  "id": "58b8a0d0-5bf4-4d8a-82de-a2ad8c37b8a5",
-  "publicId": "6e42f88a-2d46-4c27-8371-98dd621b6af2",
-  "publicUrl": "https://app.strummerbox.com/public/songs/6e42f88a-2d46-4c27-8371-98dd621b6af2",
-  "qrPayload": "https://app.strummerbox.com/public/songs/6e42f88a-2d46-4c27-8371-98dd621b6af2"
+  "id": "5f7a8f35-1cde-4f62-991e-0e020df3ac42",
+  "publicId": "8729a118-3b9b-4ce4-b268-36c9d6a6a46c",
+  "publicUrl": "https://app.strummerbox.com/public/repertoires/8729a118-3b9b-4ce4-b268-36c9d6a6a46c",
+  "qrPayload": "https://app.strummerbox.com/public/repertoires/8729a118-3b9b-4ce4-b268-36c9d6a6a46c"
 }
 ```
 - **Success:** `200 OK`
@@ -93,7 +94,7 @@ Końcowym wynikiem powinien być dobrze zorganizowany plan wdrożenia w formacie
 
 ## 2. Szczegóły żądania
 - Metoda HTTP: [GET/POST/PUT/DELETE]
-- Struktura URL: [wzorzec URL]
+- StrukturKędzierzyn-Koźlea URL: [wzorzec URL]
 - Parametry:
   - Wymagane: [Lista wymaganych parametrów]
   - Opcjonalne: [Lista opcjonalnych parametrów]
