@@ -1,0 +1,60 @@
+.song-content-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 1.5rem;
+    background-color: var(--mat-sys-background);
+    color: var(--mat-sys-on-background);
+}
+
+.song-title {
+    margin: 0 0 1.5rem 0;
+    font-size: 2rem;
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--mat-sys-on-background);
+    text-align: center;
+    word-wrap: break-word;
+}
+
+.song-lyrics {
+    margin: 0;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 1.125rem;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    color: var(--mat-sys-on-surface);
+    background-color: var(--mat-sys-surface);
+    padding: 1rem;
+    border-radius: 0.5rem;
+}
+
+// Responsywność dla urządzeń mobilnych
+@media (max-width: 600px) {
+    .song-content-container {
+        padding: 1rem;
+    }
+
+    .song-title {
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .song-lyrics {
+        font-size: 1rem;
+        padding: 0.75rem;
+    }
+}
+
+// Zwiększona czcionka dla większych ekranów
+@media (min-width: 1024px) {
+    .song-title {
+        font-size: 2.5rem;
+    }
+
+    .song-lyrics {
+        font-size: 1.25rem;
+        padding: 1.5rem;
+    }
+}
+

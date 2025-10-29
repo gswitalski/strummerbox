@@ -1,0 +1,46 @@
+.error-display {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    text-align: center;
+    min-height: 300px;
+}
+
+.error-display__icon-wrapper {
+    margin-bottom: 1rem;
+}
+
+.error-display__icon {
+    font-size: 4rem;
+    width: 4rem;
+    height: 4rem;
+    color: var(--mat-sys-error);
+}
+
+.error-display__message {
+    margin: 0;
+    font-size: 1.125rem;
+    line-height: 1.5;
+    color: var(--mat-sys-on-surface);
+    max-width: 500px;
+}
+
+@media (max-width: 600px) {
+    .error-display {
+        padding: 1.5rem;
+        min-height: 200px;
+    }
+
+    .error-display__icon {
+        font-size: 3rem;
+        width: 3rem;
+        height: 3rem;
+    }
+
+    .error-display__message {
+        font-size: 1rem;
+    }
+}
+

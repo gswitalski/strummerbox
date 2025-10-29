@@ -1,0 +1,23 @@
+<div class="public-song-view">
+    @if (isLoading) {
+        <div class="public-song-view__loading">
+            <mat-spinner diameter="60"></mat-spinner>
+            <p class="public-song-view__loading-text">Ładowanie piosenki...</p>
+        </div>
+    }
+
+    @if (isLoaded && loadedSong) {
+        <stbo-song-content-view
+            [title]="loadedSong.title"
+            [content]="loadedSong.content">
+        </stbo-song-content-view>
+    }
+
+    @if (isError && errorData) {
+        <stbo-error-display
+            [code]="errorData.code"
+            [message]="errorData.message">
+        </stbo-error-display>
+    }
+</div>
+

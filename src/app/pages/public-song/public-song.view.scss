@@ -1,0 +1,29 @@
+.public-song-view {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--mat-sys-background);
+}
+
+.public-song-view__loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem;
+    min-height: 50vh;
+    gap: 1.5rem;
+}
+
+.public-song-view__loading-text {
+    margin: 0;
+    font-size: 1rem;
+    color: var(--mat-sys-on-surface-variant);
+}
+
+@media (max-width: 600px) {
+    .public-song-view__loading {
+        padding: 2rem;
+    }
+}
+

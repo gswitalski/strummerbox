@@ -75,6 +75,13 @@ export const routes: Routes = [
         ],
     },
     {
+        path: 'public/songs',
+        loadChildren: () =>
+            import('./pages/public-song/public-song.routes').then(
+                (m) => m.publicSongRoutes
+            ),
+    },
+    {
         path: '',
         pathMatch: 'full',
         redirectTo: 'management',
