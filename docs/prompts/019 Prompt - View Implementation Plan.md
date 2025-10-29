@@ -18,25 +18,36 @@ Najpierw przejrzyj następujące informacje:
 
 3. Nazwa widoku do implementacji
 <view_name>
-6. Lista Piosenek (Song List View) - w zakresie generowania linku i kodu QR
-    oraz
-8. Lista Repertuarów (Repertoire List View)**  - w zakresie generowania linku i kodu QR
+4. Publiczny Widok Piosenki (Public Song View)
 </view_name>
 
 4. User Stories:
 <user_stories>
--   ID: US-012
--   Title: Generowanie linku i kodu QR
--   Description: Jako Organizator, chcę móc wygenerować stały link publiczny i kod QR dla każdej mojej piosenki i każdego repertuaru.
+-   ID: US-013
+-   Title: Dostęp Biesiadnika do piosenki
+-   Description: Jako Biesiadnik, po zeskanowaniu kodu QR lub otwarciu linku do piosenki, chcę zobaczyć jej tekst na moim telefonie.
 -   Acceptance Criteria:
-    -   W widoku listy piosenek oraz listy repertuaró (w trybie zarządzania) znajduje się przycisk "Udostępnij".
-    -   Po kliknięciu wyświetla się link publiczny oraz kod QR.
-    -   Mogę łatwo skopiować link do schowka.
+    -   Strona wyświetla tylko tekst piosenki, bez akordów.
+    -   Czcionka jest duża i czytelna, a tekst dopasowany do szerokości ekranu mobilnego.
+    -   Strona nie zawiera żadnych elementów nawigacyjnych poza tekstem piosenki.
 </user_stories>
 
 5. Endpoint Description:
 <endpoint_description>
-
+#### GET /public/songs/{publicId}
+- **Method:** GET
+- **Path:** `/public/songs/{publicId}`
+- **Description:** Return published song text with chords for anonymous viewers.
+- **Response JSON:**
+```json
+{
+  "title": "Knockin' on Heaven's Door",
+  "content": "Mama, take this badge off of me...",
+  "repertoireNavigation": null
+}
+```
+- **Success:** `200 OK`
+- **Errors:** `404 Not Found` (song not published or does not exist), `410 Gone` (song deleted after link issued).
 
 </endpoint_description>
 
