@@ -32,8 +32,8 @@
 }
 
 .song-list-page__error {
-    background-color: rgba(198, 40, 40, 0.08);
-    color: #c62828;
+    background-color: var(--mat-sys-error-container);
+    color: var(--mat-sys-on-error-container);
     padding: 1rem;
     border-radius: 0.5rem;
     display: flex;

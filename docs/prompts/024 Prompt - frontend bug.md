@@ -34,11 +34,11 @@ Zapoznaj się z następującymi materiałami:
 </aktualna_implementacja>
 
 <aktualne_zachowanie>
-w komponencie ShareDialogComponent generuje się kod QR który jest zwykłym tekstem
+na liście piosenek kolor warrości kolumny "status" nie jest dopasowany do kolorystyki angualr matetrial
 </aktualne_zachowanie>
 
 <oczekiwane_zachowanie>
-w komponencie ShareDialogComponent generuje się kod QR który jest linkiem, do kórego można przejść w przeglądarce bezpośrednio bez konieczności kopiowania i wklejania adresu URL
+status wyświetla sie w kolorze ze schematu angular material
 
 </oczekiwane_zachowanie>
 

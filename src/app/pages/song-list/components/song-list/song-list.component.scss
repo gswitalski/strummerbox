@@ -19,10 +19,10 @@ table {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    color: rgba(0, 0, 0, 0.6);
+    color: var(--mat-sys-on-surface-variant);
 
     &--published {
-        color: #2e7d32;
+        color: var(--mat-sys-primary);
     }
 }
 
