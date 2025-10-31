@@ -60,6 +60,15 @@ export const createConflictError = (message: string, details?: unknown): Applica
     });
 };
 
+export const createResourceGoneError = (message: string, details?: unknown): ApplicationError => {
+    return new ApplicationError({
+        code: 'resource_gone',
+        status: 410,
+        message,
+        details,
+    });
+};
+
 export const createInternalError = (message: string, cause?: unknown): ApplicationError => {
     return new ApplicationError({
         code: 'internal_error',
