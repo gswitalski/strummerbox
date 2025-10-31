@@ -1,0 +1,22 @@
+<div class="not-found-container">
+    <div class="not-found-content">
+        <div class="error-code">404</div>
+        <h1 class="error-title">Strona nie znaleziona</h1>
+        <p class="error-message">
+            Ups! Wygląda na to, że zabłądziłeś. Strona, której szukasz, nie istnieje lub została przeniesiona.
+        </p>
+        <div class="actions">
+            <button mat-raised-button color="primary" (click)="goHome()">
+                <mat-icon>home</mat-icon>
+                Strona główna
+            </button>
+            <button mat-stroked-button (click)="goBack()">
+                <mat-icon>arrow_back</mat-icon>
+                Wróć
+            </button>
+        </div>
+    </div>
+    <div class="illustration">
+        <mat-icon class="large-icon">search_off</mat-icon>
+    </div>
+</div>
