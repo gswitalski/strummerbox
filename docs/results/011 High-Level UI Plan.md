@@ -51,7 +51,7 @@ Zarządzanie stanem aplikacji będzie realizowane za pomocą serwisów Angulara 
 *   **Kluczowe informacje:** Nazwa i opis repertuaru, uporządkowana lista piosenek (tylko tytuły).
 *   **Kluczowe komponenty:** `mat-list` z `mat-list-item`.
 *   **UX, dostępność, bezpieczeństwo:**
-    *   **UX:** Prosty, czytelny widok zoptymalizowany dla urządzeń mobilnych. Kliknięcie w tytuł piosenki przenosi do Publicznego Widoku Piosenki.
+    *   **UX:** Prosty, czytelny widok zoptymalizowany dla urządzeń mobilnych. Kliknięcie w tytuł piosenki przenosi do Publicznego Widoku Piosenki używając ścieżki /public/repertoires/:publicId/songs/:songPublicId.
     *   **Dostępność:** Duża, czytelna czcionka.
     *   **Bezpieczeństwo:** Widok jest publiczny, ale zawiera metatag `noindex, nofollow`, aby uniemożliwić indeksowanie przez wyszukiwarki.
 

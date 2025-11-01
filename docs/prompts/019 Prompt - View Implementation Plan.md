@@ -18,36 +18,41 @@ Najpierw przejrzyj następujące informacje:
 
 3. Nazwa widoku do implementacji
 <view_name>
-4. Publiczny Widok Piosenki (Public Song View)
+3. Publiczny Widok Repertuaru (Public Repertoire View)
 </view_name>
 
 4. User Stories:
 <user_stories>
--   ID: US-013
--   Title: Dostęp Biesiadnika do piosenki
--   Description: Jako Biesiadnik, po zeskanowaniu kodu QR lub otwarciu linku do piosenki, chcę zobaczyć jej tekst na moim telefonie.
+  ID: US-014
+-   Title: Dostęp Biesiadnika do repertuaru
+-   Description: Jako Biesiadnik, po zeskanowaniu kodu QR lub otwarciu linku do repertuaru, chcę zobaczyć listę piosenek w tym repertuarze.
 -   Acceptance Criteria:
-    -   Strona wyświetla tylko tekst piosenki, bez akordów.
-    -   Czcionka jest duża i czytelna, a tekst dopasowany do szerokości ekranu mobilnego.
-    -   Strona nie zawiera żadnych elementów nawigacyjnych poza tekstem piosenki.
+    -   Wyświetla się strona z tytułem repertuaru i listą piosenek w ustalonej kolejności.
+    -   Kliknięcie na tytuł piosenki przenosi mnie do jej widoku (zgodnie z US-013).
 </user_stories>
 
 5. Endpoint Description:
 <endpoint_description>
-#### GET /public/songs/{publicId}
+
+#### GET /public/repertoires/{publicId}
 - **Method:** GET
-- **Path:** `/public/songs/{publicId}`
-- **Description:** Return published song text with chords for anonymous viewers.
+- **Path:** `/public/repertoires/{publicId}`
+- **Description:** Return published repertoire metadata and ordered list of songs (titles only) for anonymous viewers.
 - **Response JSON:**
 ```json
 {
-  "title": "Knockin' on Heaven's Door",
-  "content": "Mama, take this badge off of me...",
-  "repertoireNavigation": null
+  "name": "Ognisko 2025",
+  "description": "Wieczorne granie",
+  "songs": [
+    {
+      "title": "Knockin' on Heaven's Door",
+      "publicSongUrl": "https://app.strummerbox.com/public/repertoires/8729a118-3b9b-4ce4-b268-36c9d6a6a46c/songs/6e42f88a-2d46-4c27-8371-98dd621b6af2"
+    }
+  ]
 }
 ```
 - **Success:** `200 OK`
-- **Errors:** `404 Not Found` (song not published or does not exist), `410 Gone` (song deleted after link issued).
+- **Errors:** `404 Not Found`, `410 Gone`.
 
 </endpoint_description>
 
