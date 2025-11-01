@@ -1,0 +1,213 @@
+.biesiada-repertoire-list-page {
+    min-height: 100vh;
+    padding: 16px;
+    background-color: var(--mat-sys-background);
+
+    &__container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    &__header {
+        margin-bottom: 32px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid var(--mat-sys-outline-variant);
+    }
+
+    &__title {
+        margin: 0 0 8px 0;
+        font-size: 28px;
+        font-weight: 500;
+        color: var(--mat-sys-on-background);
+        line-height: 1.2;
+    }
+
+    &__subtitle {
+        margin: 0;
+        font-size: 14px;
+        color: var(--mat-sys-on-surface-variant);
+        line-height: 1.5;
+    }
+
+    &__loading {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 50vh;
+        gap: 24px;
+    }
+
+    &__loading-text {
+        margin: 0;
+        color: var(--mat-sys-on-surface-variant);
+        font-size: 16px;
+    }
+
+    &__error {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 50vh;
+        gap: 16px;
+        padding: 32px 16px;
+        text-align: center;
+    }
+
+    &__error-icon {
+        font-size: 48px;
+        width: 48px;
+        height: 48px;
+        color: var(--mat-sys-error);
+    }
+
+    &__error-message {
+        margin: 0;
+        color: var(--mat-sys-on-surface);
+        font-size: 16px;
+        line-height: 1.5;
+    }
+
+    &__empty {
+        min-height: 50vh;
+    }
+
+    &__content {
+        margin-top: 16px;
+    }
+
+    &__list {
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    &__list-item {
+        cursor: pointer;
+        border-radius: 8px;
+        padding: 20px 16px !important;
+        min-height: 72px !important;
+        height: auto !important;
+        background-color: var(--mat-sys-surface-container);
+        transition: all 0.2s ease;
+
+        // Force horizontal layout for mat-list-item
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+
+        // Increase touch target for mobile
+        -webkit-tap-highlight-color: transparent;
+
+        // Override Material's internal styles
+        ::ng-deep .mat-mdc-list-item-unscoped-content {
+            display: flex !important;
+            flex-direction: row !important;
+            align-items: center !important;
+            width: 100%;
+        }
+
+        &:hover {
+            background-color: var(--mat-sys-surface-container-high);
+            transform: translateX(4px);
+        }
+
+        &:active {
+            background-color: var(--mat-sys-surface-container-highest);
+            transform: translateX(4px) scale(0.98);
+        }
+
+        // Focus state for keyboard navigation
+        &:focus-visible {
+            outline: 2px solid var(--mat-sys-primary);
+            outline-offset: 2px;
+        }
+    }
+
+    &__list-item-wrapper {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        gap: 16px;
+    }
+
+    &__list-item-content {
+        flex: 1;
+        display: flex;
+        flex-direction: row;
+        align-items: baseline;
+        gap: 12px;
+        min-width: 0; // Allow text truncation if needed
+    }
+
+    &__list-item-title {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 500;
+        color: var(--mat-sys-on-surface);
+        line-height: 1.3;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        flex-shrink: 1;
+    }
+
+    &__list-item-meta {
+        margin: 0;
+        font-size: 14px;
+        color: var(--mat-sys-on-surface-variant);
+        line-height: 1.4;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
+    &__list-item-icon {
+        color: var(--mat-sys-on-surface-variant);
+        margin-left: 16px;
+        flex-shrink: 0;
+        transition: transform 0.2s ease;
+    }
+
+    &__list-item:hover &__list-item-icon {
+        transform: translateX(4px);
+    }
+}
+
+// Tablet and desktop
+@media (min-width: 768px) {
+    .biesiada-repertoire-list-page {
+        padding: 32px;
+
+        &__header {
+            margin-bottom: 40px;
+            padding-bottom: 24px;
+        }
+
+        &__title {
+            font-size: 36px;
+        }
+
+        &__subtitle {
+            font-size: 16px;
+        }
+
+        &__list-item {
+            padding: 24px 20px;
+            min-height: 80px;
+        }
+
+        &__list-item-title {
+            font-size: 20px;
+        }
+
+        &__list-item-meta {
+            font-size: 16px;
+        }
+    }
+}
+

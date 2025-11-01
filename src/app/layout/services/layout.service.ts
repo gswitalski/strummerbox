@@ -31,9 +31,9 @@ export class LayoutService {
     ]);
     private readonly biesiadaLinksState: Signal<NavLink[]> = signal<NavLink[]>([
         {
-            path: '/management/biesiada',
+            path: '/biesiada/repertoires',
             icon: 'celebration',
-            label: 'Tryb Biesiada',
+            label: 'Repertuary',
         },
     ]);
 

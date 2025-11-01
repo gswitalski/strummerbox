@@ -89,6 +89,13 @@ export const routes: Routes = [
             ),
     },
     {
+        path: 'biesiada',
+        loadChildren: () =>
+            import('./pages/biesiada/biesiada.routes').then(
+                (m) => m.biesiadaRoutes
+            ),
+    },
+    {
         path: '',
         pathMatch: 'full',
         redirectTo: 'management',

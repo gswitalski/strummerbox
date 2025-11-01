@@ -1,0 +1,73 @@
+<div class="biesiada-repertoire-list-page">
+    <div class="biesiada-repertoire-list-page__container">
+        <header class="biesiada-repertoire-list-page__header">
+            <h1 class="biesiada-repertoire-list-page__title">Repertuary</h1>
+            <p class="biesiada-repertoire-list-page__subtitle">
+                Wybierz repertuar do prowadzenia spotkania
+            </p>
+        </header>
+
+        @if (vm().isLoading) {
+            <div class="biesiada-repertoire-list-page__loading" aria-live="polite" role="status">
+                <mat-spinner diameter="60" aria-label="Ładowanie repertuarów"></mat-spinner>
+                <p class="biesiada-repertoire-list-page__loading-text">Ładowanie repertuarów...</p>
+            </div>
+        }
+
+        @if (vm().error) {
+            <section class="biesiada-repertoire-list-page__error" role="alert" aria-live="assertive">
+                <mat-icon class="biesiada-repertoire-list-page__error-icon" aria-hidden="true">error_outline</mat-icon>
+                <p class="biesiada-repertoire-list-page__error-message">{{ vm().error }}</p>
+                <button 
+                    mat-raised-button 
+                    color="primary" 
+                    type="button"
+                    aria-label="Spróbuj załadować repertuary ponownie"
+                    (click)="onRetry()">
+                    Spróbuj ponownie
+                </button>
+            </section>
+        }
+
+        @if (vm().repertoires.length === 0 && !vm().isLoading && !vm().error) {
+            <stbo-empty-state
+                class="biesiada-repertoire-list-page__empty"
+                message="Nie masz jeszcze żadnych repertuarów. Przejdź do zarządzania repertuarami, aby utworzyć pierwszy."
+                buttonText="Przejdź do repertuarów"
+                icon="library_music"
+                (ctaClick)="onNavigateToRepertoires()">
+            </stbo-empty-state>
+        }
+
+        @if (vm().repertoires.length > 0 && !vm().isLoading) {
+            <section class="biesiada-repertoire-list-page__content" aria-label="Lista repertuarów">
+                <mat-list class="biesiada-repertoire-list-page__list" role="list">
+                    @for (repertoire of vm().repertoires; track repertoire.id) {
+                        <mat-list-item 
+                            class="biesiada-repertoire-list-page__list-item"
+                            role="listitem"
+                            [routerLink]="['/biesiada/repertoires', repertoire.id]"
+                            [attr.aria-label]="'Otwórz repertuar ' + repertoire.name + ', ' + repertoire.songCount + ' ' + (repertoire.songCount === 1 ? 'piosenka' : (repertoire.songCount >= 2 && repertoire.songCount <= 4) ? 'piosenki' : 'piosenek')">
+                            <div class="biesiada-repertoire-list-page__list-item-wrapper">
+                                <span class="biesiada-repertoire-list-page__list-item-content">
+                                    <span class="biesiada-repertoire-list-page__list-item-title">
+                                        {{ repertoire.name }}
+                                    </span>
+                                    <span class="biesiada-repertoire-list-page__list-item-meta" aria-hidden="true">
+                                        {{ repertoire.songCount }} 
+                                        {{ repertoire.songCount === 1 ? 'piosenka' : 
+                                           (repertoire.songCount >= 2 && repertoire.songCount <= 4) ? 'piosenki' : 'piosenek' }}
+                                    </span>
+                                </span>
+                                <mat-icon class="biesiada-repertoire-list-page__list-item-icon" aria-hidden="true">
+                                    chevron_right
+                                </mat-icon>
+                            </div>
+                        </mat-list-item>
+                    }
+                </mat-list>
+            </section>
+        }
+    </div>
+</div>
+
