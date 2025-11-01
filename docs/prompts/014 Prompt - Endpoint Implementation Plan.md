@@ -4,27 +4,35 @@ Zanim zaczniemy, zapoznaj się z poniższymi informacjami:
 
 1. Route API specification:
 <route_api_specification>
-
-#### GET /me/biesiada/repertoires
+#### GET /me/biesiada/repertoires/{id}/songs
 - **Method:** GET
-- **Path:** `/me/biesiada/repertoires`
-- **Description:** Lightweight listing of organizer repertoires optimized for mobile Biesiada mode.
-- **Query Parameters:** `includePublished` (`true|false`, default `false` to show all owned repertoires).
+- **Path:** `/me/biesiada/repertoires/{id}/songs`
+- **Description:** Return an ordered list of song summaries (ID, title) for a repertoire, designed for the Biesiada mode song selection screen. It also includes sharing metadata for the entire repertoire.
 - **Response JSON:**
 ```json
 {
-  "items": [
+  "repertoireId": "5f7a8f35-1cde-4f62-991e-0e020df3ac42",
+  "repertoireName": "Ognisko 2025",
+  "share": {
+    "publicUrl": "https://app.strummerbox.com/public/repertoires/8729a118-3b9b-4ce4-b268-36c9d6a6a46c",
+    "qrPayload": "https://app.strummerbox.com/public/repertoires/8729a118-3b9b-4ce4-b268-36c9d6a6a46c"
+  },
+  "songs": [
     {
-      "id": "5f7a8f35-1cde-4f62-991e-0e020df3ac42",
-      "name": "Ognisko 2025",
-      "songCount": 12,
-      "publishedAt": "2025-10-15T08:35:44Z"
+      "songId": "58b8a0d0-5bf4-4d8a-82de-a2ad8c37b8a5",
+      "title": "Knockin' on Heaven's Door",
+      "position": 1
+    },
+    {
+      "songId": "a1320a1b-4e2b-44b0-a1f6-8e37b406df1d",
+      "title": "Hej Sokoły",
+      "position": 2
     }
   ]
 }
 ```
 - **Success:** `200 OK`
-- **Errors:** `401 Unauthorized`.
+- **Errors:** `401 Unauthorized`, `403 Forbidden`, `404 Not Found`.
 
 </route_api_specification>
 
