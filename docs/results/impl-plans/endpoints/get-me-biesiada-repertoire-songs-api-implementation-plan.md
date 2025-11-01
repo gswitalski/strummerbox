@@ -112,4 +112,4 @@ export type BiesiadaRepertoireSongListResponseDto = {
 5.  **Aktualizacja routera:**
     -   W `supabase/functions/me/index.ts` (lub w routerze `biesiada`), dodaj nową ścieżkę, która będzie obsługiwać `GET` dla wzorca `/biesiada/repertoires/([^/]+)/songs` i kierować do nowo utworzonego handlera.
 6.  **Zmienne środowiskowe:** Upewnij się, że zmienne środowiskowe potrzebne do konstruowania `publicUrl` (np. `APP_BASE_URL`) są dostępne dla Edge Function.
-7.  **Testy:** Zaimplementuj testy jednostkowe dla logiki serwisu, zwłaszcza dla sprawdzania uprawnień i poprawnego mapowania danych.
+

@@ -377,6 +377,35 @@ export type BiesiadaRepertoireListResponseDto = {
 };
 
 /**
+ * Sharing metadata for a repertoire in Biesiada mode.
+ */
+export type BiesiadaRepertoireShareMetaDto = {
+    publicUrl: string;
+    qrPayload: string;
+};
+
+/**
+ * A simplified song entry for a repertoire list in Biesiada mode.
+ */
+export type BiesiadaRepertoireSongEntryDto = {
+    songId: SongRow['id'];
+    title: SongRow['title'];
+    position: RepertoireSongRow['position'];
+};
+
+/**
+ * Response containing a list of songs for a specific repertoire in Biesiada mode,
+ * including repertoire-level sharing information.
+ * Used in: GET /me/biesiada/repertoires/{id}/songs
+ */
+export type BiesiadaRepertoireSongListResponseDto = {
+    repertoireId: RepertoireRow['id'];
+    repertoireName: RepertoireRow['name'];
+    share: BiesiadaRepertoireShareMetaDto;
+    songs: BiesiadaRepertoireSongEntryDto[];
+};
+
+/**
  * Song with chords for Biesiada mode, including QR sharing URL.
  * Used in: GET /me/biesiada/repertoires/{id}/songs
  */

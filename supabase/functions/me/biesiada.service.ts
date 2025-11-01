@@ -1,5 +1,9 @@
-import type { BiesiadaRepertoireSummaryDto } from '../../../packages/contracts/types.ts';
-import { createInternalError } from '../_shared/errors.ts';
+import type {
+    BiesiadaRepertoireSummaryDto,
+    BiesiadaRepertoireSongListResponseDto,
+    BiesiadaRepertoireSongEntryDto,
+} from '../../../packages/contracts/types.ts';
+import { ApplicationError, createInternalError } from '../_shared/errors.ts';
 import type { RequestSupabaseClient } from '../_shared/supabase-client.ts';
 import { logger } from '../_shared/logger.ts';
 
@@ -112,5 +116,139 @@ export const getBiesiadaRepertoires = async (
     });
 
     return repertoires;
+};
+
+/**
+ * Kolumny pobierane dla repertuaru i jego piosenek w trybie Biesiada.
+ */
+const REPERTOIRE_WITH_SONGS_COLUMNS = `
+    id,
+    name,
+    public_id,
+    organizer_id
+`;
+
+const REPERTOIRE_SONGS_COLUMNS = `
+    repertoire_songs!inner (
+        id,
+        position,
+        song:songs!inner (
+            id,
+            title
+        )
+    )
+`;
+
+/**
+ * Pobiera szczegóły repertuaru wraz z listą piosenek dla trybu Biesiada.
+ * Zwraca uporządkowaną listę piosenek z metadanymi do udostępniania.
+ * 
+ * @param supabase - Klient Supabase skonfigurowany dla bieżącego żądania
+ * @param params - Parametry zapytania
+ * @param params.repertoireId - UUID repertuaru
+ * @param params.userId - ID uwierzytelnionego użytkownika (organizatora)
+ * @returns Obiekt BiesiadaRepertoireSongListResponseDto
+ * @throws ApplicationError - Jeśli repertuar nie istnieje lub użytkownik nie ma uprawnień
+ */
+export const getBiesiadaRepertoireSongs = async (
+    supabase: RequestSupabaseClient,
+    params: {
+        repertoireId: string;
+        userId: string;
+    },
+): Promise<BiesiadaRepertoireSongListResponseDto> => {
+    const { repertoireId, userId } = params;
+
+    logger.info('Fetching biesiada repertoire songs', {
+        repertoireId,
+        userId,
+    });
+
+    // Pobieramy repertuar wraz z piosenkami w jednym zapytaniu
+    // Używamy !inner aby wymusić INNER JOIN
+    const { data: repertoireData, error: repertoireError } = await supabase
+        .from('repertoires')
+        .select(`
+            ${REPERTOIRE_WITH_SONGS_COLUMNS},
+            ${REPERTOIRE_SONGS_COLUMNS}
+        `)
+        .eq('id', repertoireId)
+        .eq('organizer_id', userId)
+        .single();
+
+    if (repertoireError) {
+        logger.error('Failed to fetch biesiada repertoire songs', {
+            repertoireId,
+            userId,
+            error: repertoireError,
+        });
+
+        // Jeśli kod błędu to PGRST116, oznacza to że nie znaleziono rekordu
+        if (repertoireError.code === 'PGRST116') {
+            throw new ApplicationError(
+                'resource_not_found',
+                'Nie znaleziono repertuaru lub nie masz do niego uprawnień',
+                { repertoireId, userId },
+            );
+        }
+
+        throw createInternalError(
+            'Nie udało się pobrać piosenek z repertuaru w trybie Biesiada',
+            repertoireError,
+        );
+    }
+
+    if (!repertoireData) {
+        logger.warn('Repertoire not found or access denied', {
+            repertoireId,
+            userId,
+        });
+        throw new ApplicationError(
+            'resource_not_found',
+            'Nie znaleziono repertuaru lub nie masz do niego uprawnień',
+            { repertoireId, userId },
+        );
+    }
+
+    // Pobieramy publiczny URL aplikacji ze zmiennych środowiskowych
+    const appPublicUrl = Deno.env.get('APP_PUBLIC_URL');
+    
+    if (!appPublicUrl) {
+        logger.error('APP_PUBLIC_URL environment variable is not set');
+        throw createInternalError(
+            'Błąd konfiguracji serwera - brak APP_PUBLIC_URL',
+            new Error('APP_PUBLIC_URL not configured'),
+        );
+    }
+
+    // Budujemy publicUrl i qrPayload
+    const publicUrl = `${appPublicUrl}/public/repertoires/${repertoireData.public_id}`;
+
+    // Mapujemy piosenki na DTO
+    // repertoire_songs to tablica obiektów z zagnieżdżonym obiektem song
+    const songs: BiesiadaRepertoireSongEntryDto[] = (repertoireData.repertoire_songs || [])
+        .map((rs: any) => ({
+            songId: rs.song.id,
+            title: rs.song.title,
+            position: rs.position,
+        }))
+        .sort((a, b) => a.position - b.position); // Sortujemy po pozycji rosnąco
+
+    const response: BiesiadaRepertoireSongListResponseDto = {
+        repertoireId: repertoireData.id,
+        repertoireName: repertoireData.name,
+        share: {
+            publicUrl,
+            qrPayload: publicUrl,
+        },
+        songs,
+    };
+
+    logger.info('Successfully fetched biesiada repertoire songs', {
+        repertoireId,
+        songCount: songs.length,
+    });
+
+    return response;
 };
 
