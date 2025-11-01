@@ -18,41 +18,28 @@ Najpierw przejrzyj następujące informacje:
 
 3. Nazwa widoku do implementacji
 <view_name>
-3. Publiczny Widok Repertuaru (Public Repertoire View)
+Publiczny Widok Piosenki (Public Song View) w kontekscie repertuaru czyli dla sciezki
+`/public/repertoires/:publicId/songs/:songPublicId`
+
 </view_name>
 
 4. User Stories:
 <user_stories>
-  ID: US-014
--   Title: Dostęp Biesiadnika do repertuaru
--   Description: Jako Biesiadnik, po zeskanowaniu kodu QR lub otwarciu linku do repertuaru, chcę zobaczyć listę piosenek w tym repertuarze.
+-   ID: US-015
+-   Title: Nawigacja Biesiadnika w repertuarze
+-   Description: Jako Biesiadnik, przeglądając piosenkę w ramach repertuaru, chcę móc łatwo przejść do następnej lub poprzedniej piosenki.
 -   Acceptance Criteria:
-    -   Wyświetla się strona z tytułem repertuaru i listą piosenek w ustalonej kolejności.
-    -   Kliknięcie na tytuł piosenki przenosi mnie do jej widoku (zgodnie z US-013).
+    -   W widoku piosenki dostępne są przyciski "Następna" i "Poprzednia".
+    -   Przycisk "Poprzednia" jest nieaktywny dla pierwszej piosenki na liście.
+    -   Przycisk "Następna" jest nieaktywny dla ostatniej piosenki na liście.
+    -   Kliknięcie przenosi do widoku odpowiedniej piosenki bez powrotu do listy.
+
+dodatkowwo zaimplanuj przeniesienie do tego widoku z listu piosenke widzianych przez publicznego  biesiadnika na publicznej strony biesiady
 </user_stories>
 
 5. Endpoint Description:
 <endpoint_description>
 
-#### GET /public/repertoires/{publicId}
-- **Method:** GET
-- **Path:** `/public/repertoires/{publicId}`
-- **Description:** Return published repertoire metadata and ordered list of songs (titles only) for anonymous viewers.
-- **Response JSON:**
-```json
-{
-  "name": "Ognisko 2025",
-  "description": "Wieczorne granie",
-  "songs": [
-    {
-      "title": "Knockin' on Heaven's Door",
-      "publicSongUrl": "https://app.strummerbox.com/public/repertoires/8729a118-3b9b-4ce4-b268-36c9d6a6a46c/songs/6e42f88a-2d46-4c27-8371-98dd621b6af2"
-    }
-  ]
-}
-```
-- **Success:** `200 OK`
-- **Errors:** `404 Not Found`, `410 Gone`.
 
 </endpoint_description>
 
