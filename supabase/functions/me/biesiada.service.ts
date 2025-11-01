@@ -2,6 +2,10 @@ import type {
     BiesiadaRepertoireSummaryDto,
     BiesiadaRepertoireSongListResponseDto,
     BiesiadaRepertoireSongEntryDto,
+    BiesiadaRepertoireSongDetailDto,
+    BiesiadaSongOrderDto,
+    BiesiadaSongLinkDto,
+    BiesiadaSongShareMetaDto,
 } from '../../../packages/contracts/types.ts';
 import { ApplicationError, createInternalError } from '../_shared/errors.ts';
 import type { RequestSupabaseClient } from '../_shared/supabase-client.ts';
@@ -250,5 +254,179 @@ export const getBiesiadaRepertoireSongs = async (
     });
 
     return response;
+};
+
+/**
+ * Kolumny pobierane dla szczegółów piosenki w trybie Biesiada.
+ */
+const REPERTOIRE_SONG_DETAIL_COLUMNS = `
+    id,
+    name,
+    public_id,
+    organizer_id,
+    repertoire_songs!inner (
+        position,
+        song:songs!inner (
+            id,
+            title,
+            content
+        )
+    )
+`;
+
+/**
+ * Pobiera szczegółowe informacje o konkretnej piosence w kontekście repertuaru dla trybu Biesiada.
+ * Zwraca pełną treść piosenki z akordami, metadane nawigacyjne (poprzednia/następna)
+ * oraz informacje potrzebne do udostępniania publicznego.
+ * 
+ * UWAGA WYDAJNOŚCIOWA:
+ * Obecna implementacja pobiera wszystkie piosenki z repertuaru, co jest akceptowalne dla
+ * typowych repertuarów (10-50 piosenek). Dla repertuarów z setkami piosenek rozważ użycie
+ * funkcji RPC PostgreSQL z funkcjami okna (LAG/LEAD) - patrz _docs/biesiada-song-detail-optimization.sql
+ * 
+ * @param supabase - Klient Supabase skonfigurowany dla bieżącego żądania
+ * @param params - Parametry zapytania
+ * @param params.repertoireId - UUID repertuaru
+ * @param params.songId - UUID piosenki
+ * @param params.userId - ID uwierzytelnionego użytkownika (organizatora)
+ * @returns Obiekt BiesiadaRepertoireSongDetailDto lub null jeśli nie znaleziono
+ * @throws ApplicationError - Jeśli wystąpił błąd podczas pobierania danych
+ */
+export const getBiesiadaRepertoireSongDetails = async (
+    supabase: RequestSupabaseClient,
+    params: {
+        repertoireId: string;
+        songId: string;
+        userId: string;
+    },
+): Promise<BiesiadaRepertoireSongDetailDto | null> => {
+    const { repertoireId, songId, userId } = params;
+
+    logger.info('Fetching biesiada repertoire song details', {
+        repertoireId,
+        songId,
+        userId,
+    });
+
+    // Pobieramy repertuar wraz z WSZYSTKIMI piosenkami w jednym zapytaniu
+    // Potrzebujemy wszystkich piosenek, aby znaleźć poprzednią i następną
+    // UWAGA: Sortowanie wykonujemy w kodzie, nie w zapytaniu (PostgREST nie obsługuje
+    // sortowania zagnieżdżonych relacji one-to-many)
+    const { data: repertoireData, error: repertoireError } = await supabase
+        .from('repertoires')
+        .select(REPERTOIRE_SONG_DETAIL_COLUMNS)
+        .eq('id', repertoireId)
+        .eq('organizer_id', userId)
+        .single();
+
+    if (repertoireError) {
+        logger.error('Failed to fetch repertoire for song details', {
+            repertoireId,
+            songId,
+            userId,
+            error: repertoireError,
+        });
+
+        // Jeśli kod błędu to PGRST116, oznacza to że nie znaleziono rekordu
+        if (repertoireError.code === 'PGRST116') {
+            logger.warn('Repertoire not found or access denied', {
+                repertoireId,
+                userId,
+            });
+            return null;
+        }
+
+        throw createInternalError(
+            'Nie udało się pobrać szczegółów piosenki z repertuaru',
+            repertoireError,
+        );
+    }
+
+    if (!repertoireData || !repertoireData.repertoire_songs || repertoireData.repertoire_songs.length === 0) {
+        logger.warn('Repertoire not found, access denied, or repertoire has no songs', {
+            repertoireId,
+            userId,
+        });
+        return null;
+    }
+
+    // Mapujemy piosenki na wewnętrzną strukturę i sortujemy po pozycji
+    const songs = (repertoireData.repertoire_songs as any[])
+        .map((rs) => ({
+            songId: rs.song.id,
+            title: rs.song.title,
+            content: rs.song.content,
+            position: rs.position,
+        }))
+        .sort((a, b) => a.position - b.position);
+
+    // Znajdujemy index bieżącej piosenki
+    const currentIndex = songs.findIndex((s) => s.songId === songId);
+
+    if (currentIndex === -1) {
+        logger.warn('Song not found in repertoire', {
+            repertoireId,
+            songId,
+            userId,
+        });
+        return null;
+    }
+
+    const currentSong = songs[currentIndex];
+
+    // Określamy poprzednią i następną piosenkę
+    const previousSong = currentIndex > 0 ? songs[currentIndex - 1] : null;
+    const nextSong = currentIndex < songs.length - 1 ? songs[currentIndex + 1] : null;
+
+    // Budujemy obiekt order
+    const order: BiesiadaSongOrderDto = {
+        position: currentSong.position,
+        total: songs.length,
+        previous: previousSong ? {
+            songId: previousSong.songId,
+            title: previousSong.title,
+        } : null,
+        next: nextSong ? {
+            songId: nextSong.songId,
+            title: nextSong.title,
+        } : null,
+    };
+
+    // Pobieramy publiczny URL aplikacji ze zmiennych środowiskowych
+    const appPublicUrl = Deno.env.get('APP_PUBLIC_URL');
+    
+    if (!appPublicUrl) {
+        logger.error('APP_PUBLIC_URL environment variable is not set');
+        throw createInternalError(
+            'Błąd konfiguracji serwera - brak APP_PUBLIC_URL',
+            new Error('APP_PUBLIC_URL not configured'),
+        );
+    }
+
+    // Budujemy publicUrl i qrPayload dla repertuaru
+    const publicUrl = `${appPublicUrl}/public/repertoires/${repertoireData.public_id}`;
+
+    const share: BiesiadaSongShareMetaDto = {
+        publicUrl,
+        qrPayload: publicUrl,
+    };
+
+    // Konstruujemy finalny obiekt DTO
+    const result: BiesiadaRepertoireSongDetailDto = {
+        songId: currentSong.songId,
+        title: currentSong.title,
+        content: currentSong.content,
+        order,
+        share,
+    };
+
+    logger.info('Successfully fetched biesiada repertoire song details', {
+        repertoireId,
+        songId,
+        position: currentSong.position,
+        total: songs.length,
+    });
+
+    return result;
 };
 

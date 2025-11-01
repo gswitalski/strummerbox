@@ -1,13 +1,14 @@
 import type {
     BiesiadaRepertoireListResponseDto,
     BiesiadaRepertoireSongListResponseDto,
+    BiesiadaRepertoireSongDetailDto,
 } from '../../../packages/contracts/types.ts';
 import { jsonResponse } from '../_shared/http.ts';
 import type { AuthenticatedUser } from '../_shared/auth.ts';
 import type { RequestSupabaseClient } from '../_shared/supabase-client.ts';
 import { logger } from '../_shared/logger.ts';
 import { ApplicationError } from '../_shared/errors.ts';
-import { getBiesiadaRepertoires, getBiesiadaRepertoireSongs } from './biesiada.service.ts';
+import { getBiesiadaRepertoires, getBiesiadaRepertoireSongs, getBiesiadaRepertoireSongDetails } from './biesiada.service.ts';
 
 /**
  * Handler dla GET /me/biesiada/repertoires
@@ -144,6 +145,126 @@ export const handleGetBiesiadaRepertoireSongs = async (
 };
 
 /**
+ * Handler dla GET /me/biesiada/repertoires/{id}/songs/{songId}
+ * Zwraca szczegółowe informacje o konkretnej piosence w kontekście repertuaru dla trybu Biesiada.
+ * 
+ * @param request - Obiekt Request
+ * @param supabase - Klient Supabase skonfigurowany dla bieżącego żądania
+ * @param user - Uwierzytelniony użytkownik (organizator)
+ * @param repertoireId - UUID repertuaru z URL
+ * @param songId - UUID piosenki z URL
+ * @returns Response ze szczegółami piosenki lub błędem
+ */
+export const handleGetBiesiadaRepertoireSong = async (
+    request: Request,
+    supabase: RequestSupabaseClient,
+    user: AuthenticatedUser,
+    repertoireId: string,
+    songId: string,
+): Promise<Response> => {
+    // Walidacja formatu UUID dla repertoireId
+    if (!isValidUUID(repertoireId)) {
+        logger.warn('Invalid UUID format for repertoire ID', {
+            repertoireId,
+            userId: user.id,
+        });
+
+        return new Response(
+            JSON.stringify({
+                error: {
+                    code: 'validation_error',
+                    message: 'Nieprawidłowy format identyfikatora repertuaru',
+                    details: { repertoireId: 'Must be a valid UUID' },
+                },
+            }),
+            {
+                status: 400,
+                headers: { 'Content-Type': 'application/json' },
+            },
+        );
+    }
+
+    // Walidacja formatu UUID dla songId
+    if (!isValidUUID(songId)) {
+        logger.warn('Invalid UUID format for song ID', {
+            songId,
+            userId: user.id,
+        });
+
+        return new Response(
+            JSON.stringify({
+                error: {
+                    code: 'validation_error',
+                    message: 'Nieprawidłowy format identyfikatora piosenki',
+                    details: { songId: 'Must be a valid UUID' },
+                },
+            }),
+            {
+                status: 400,
+                headers: { 'Content-Type': 'application/json' },
+            },
+        );
+    }
+
+    logger.info('Handling GET /me/biesiada/repertoires/{id}/songs/{songId}', {
+        userId: user.id,
+        repertoireId,
+        songId,
+    });
+
+    try {
+        // Wywołanie warstwy serwisu
+        const songDetails = await getBiesiadaRepertoireSongDetails(supabase, {
+            repertoireId,
+            songId,
+            userId: user.id,
+        });
+
+        // Jeśli serwis zwrócił null, oznacza to że nie znaleziono zasobu
+        if (!songDetails) {
+            return new Response(
+                JSON.stringify({
+                    error: {
+                        code: 'resource_not_found',
+                        message: 'Nie znaleziono piosenki w repertuarze lub nie masz do niej uprawnień',
+                    },
+                }),
+                {
+                    status: 404,
+                    headers: { 'Content-Type': 'application/json' },
+                },
+            );
+        }
+
+        return jsonResponse<BiesiadaRepertoireSongDetailDto>(songDetails, {
+            headers: {
+                // Biesiada mode - krótki cache dla lepszej wydajności
+                'Cache-Control': 'private, max-age=30',
+            },
+        });
+    } catch (error) {
+        // ApplicationError jest rzucany przez serwis w przypadku błędów wewnętrznych
+        if (error instanceof ApplicationError) {
+            return new Response(
+                JSON.stringify({
+                    error: {
+                        code: error.code,
+                        message: error.message,
+                    },
+                }),
+                {
+                    status: error.status,
+                    headers: { 'Content-Type': 'application/json' },
+                },
+            );
+        }
+
+        // Inne błędy propagujemy dalej
+        throw error;
+    }
+};
+
+/**
  * Router dla ścieżki /me/biesiada/*
  * Obsługuje zagnieżdżone endpointy związane z trybem Biesiada.
  * 
@@ -160,8 +281,17 @@ export const biesiadaRouter = async (
     const url = new URL(request.url);
     const path = url.pathname;
 
+    // GET /me/biesiada/repertoires/{id}/songs/{songId}
+    // Sprawdzamy NAJPIERW najdłuższą, najbardziej specyficzną ścieżkę
+    const repertoireSongDetailMatch = path.match(/\/biesiada\/repertoires\/([^/]+)\/songs\/([^/]+)$/);
+    if (repertoireSongDetailMatch && request.method === 'GET') {
+        const repertoireId = repertoireSongDetailMatch[1];
+        const songId = repertoireSongDetailMatch[2];
+        return await handleGetBiesiadaRepertoireSong(request, supabase, user, repertoireId, songId);
+    }
+
     // GET /me/biesiada/repertoires/{id}/songs
-    // Sprawdzamy NAJPIERW dłuższą, bardziej specyficzną ścieżkę
+    // Następnie sprawdzamy krótszą ścieżkę
     const repertoireSongsMatch = path.match(/\/biesiada\/repertoires\/([^/]+)\/songs$/);
     if (repertoireSongsMatch && request.method === 'GET') {
         const repertoireId = repertoireSongsMatch[1];
@@ -172,8 +302,6 @@ export const biesiadaRouter = async (
     if (path.endsWith('/biesiada/repertoires') && request.method === 'GET') {
         return await handleGetBiesiadaRepertoires(request, supabase, user);
     }
-
-    // TODO: Dodać obsługę /me/biesiada/repertoires/{id}/songs/{songId}
 
     // Nieobsłużona ścieżka w routerze biesiada
     logger.warn('Unhandled path in biesiada router', { path, method: request.method });
