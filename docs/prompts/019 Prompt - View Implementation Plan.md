@@ -18,7 +18,7 @@ Najpierw przejrzyj następujące informacje:
 
 3. Nazwa widoku do implementacji
 <view_name>
-11. Tryb Biesiada - Lista Repertuarów (Biesiada Repertoire List View)
+12. Tryb Biesiada - Lista Piosenek w Repertuarze (Biesiada Repertoire's Song List View)
 </view_name>
 
 4. User Stories:
@@ -36,6 +36,35 @@ Najpierw przejrzyj następujące informacje:
 
 5. Endpoint Description:
 <endpoint_description>
+#### GET /me/biesiada/repertoires/{id}/songs
+- **Method:** GET
+- **Path:** `/me/biesiada/repertoires/{id}/songs`
+- **Description:** Return an ordered list of song summaries (ID, title) for a repertoire, designed for the Biesiada mode song selection screen. It also includes sharing metadata for the entire repertoire.
+- **Response JSON:**
+```json
+{
+  "repertoireId": "5f7a8f35-1cde-4f62-991e-0e020df3ac42",
+  "repertoireName": "Ognisko 2025",
+  "share": {
+    "publicUrl": "https://app.strummerbox.com/public/repertoires/8729a118-3b9b-4ce4-b268-36c9d6a6a46c",
+    "qrPayload": "https://app.strummerbox.com/public/repertoires/8729a118-3b9b-4ce4-b268-36c9d6a6a46c"
+  },
+  "songs": [
+    {
+      "songId": "58b8a0d0-5bf4-4d8a-82de-a2ad8c37b8a5",
+      "title": "Knockin' on Heaven's Door",
+      "position": 1
+    },
+    {
+      "songId": "a1320a1b-4e2b-44b0-a1f6-8e37b406df1d",
+      "title": "Hej Sokoły",
+      "position": 2
+    }
+  ]
+}
+```
+- **Success:** `200 OK`
+- **Errors:** `401 Unauthorized`, `403 Forbidden`, `404 Not Found`.
 
 
 </endpoint_description>
