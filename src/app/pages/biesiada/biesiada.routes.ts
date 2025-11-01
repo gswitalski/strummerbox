@@ -14,11 +14,13 @@ export const biesiadaRoutes: Routes = [
                 (m) => m.BiesiadaRepertoireListPageComponent
             ),
     },
-    // TODO: Add route for repertoire song list view
-    // {
-    //     path: 'repertoires/:id',
-    //     canActivate: [authGuard],
-    //     loadComponent: () => import('./repertoire-songs/...').then(...)
-    // },
+    {
+        path: 'repertoires/:id',
+        canActivate: [authGuard],
+        loadComponent: () =>
+            import('./repertoires/songs/biesiada-repertoire-song-list-page.component').then(
+                (m) => m.BiesiadaRepertoireSongListPageComponent
+            ),
+    },
 ];
 

@@ -1,0 +1,78 @@
+.biesiada-song-list-page {
+    min-height: 100vh;
+    background-color: var(--mat-sys-background);
+    display: flex;
+    flex-direction: column;
+
+    &__toolbar {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    &__toolbar-title {
+        margin-left: 1rem;
+        font-size: 1.25rem;
+        font-weight: 500;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    &__container {
+        flex: 1;
+        max-width: 800px;
+        width: 100%;
+        margin: 0 auto;
+        padding: 0;
+    }
+
+    &__content {
+        padding: 0;
+    }
+
+    &__error {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 50vh;
+        gap: 1rem;
+        padding: 2rem 1rem;
+        text-align: center;
+    }
+
+    &__error-icon {
+        font-size: 3rem;
+        width: 3rem;
+        height: 3rem;
+        color: var(--mat-sys-error);
+    }
+
+    &__error-message {
+        margin: 0;
+        color: var(--mat-sys-on-surface);
+        font-size: 1rem;
+        line-height: 1.5;
+        max-width: 40ch;
+    }
+}
+
+// Tablet and desktop
+@media (min-width: 768px) {
+    .biesiada-song-list-page {
+        &__toolbar-title {
+            font-size: 1.5rem;
+        }
+
+        &__container {
+            padding: 0;
+        }
+
+        &__error {
+            padding: 3rem 2rem;
+        }
+    }
+}
+

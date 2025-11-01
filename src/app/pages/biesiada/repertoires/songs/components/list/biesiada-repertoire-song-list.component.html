@@ -1,0 +1,35 @@
+@if (songs.length === 0) {
+    <div class="biesiada-song-list__empty" role="status">
+        <mat-icon class="biesiada-song-list__empty-icon" aria-hidden="true">music_off</mat-icon>
+        <p class="biesiada-song-list__empty-message">
+            Ten repertuar nie zawiera żadnych piosenek.
+        </p>
+    </div>
+}
+
+@if (songs.length > 0) {
+    <mat-list class="biesiada-song-list" role="list">
+        @for (song of songs; track song.songId) {
+            <mat-list-item 
+                class="biesiada-song-list__item"
+                role="listitem"
+                (click)="onSongClick(song.songId)"
+                [attr.aria-label]="'Otwórz piosenkę ' + song.title">
+                <div class="biesiada-song-list__item-wrapper">
+                    <span class="biesiada-song-list__item-content">
+                        <span class="biesiada-song-list__item-position" aria-hidden="true">
+                            {{ song.position }}
+                        </span>
+                        <span class="biesiada-song-list__item-title">
+                            {{ song.title }}
+                        </span>
+                    </span>
+                    <mat-icon class="biesiada-song-list__item-icon" aria-hidden="true">
+                        chevron_right
+                    </mat-icon>
+                </div>
+            </mat-list-item>
+        }
+    </mat-list>
+}
+

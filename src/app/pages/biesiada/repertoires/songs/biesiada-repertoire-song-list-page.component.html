@@ -1,0 +1,52 @@
+<div class="biesiada-song-list-page">
+    <mat-toolbar class="biesiada-song-list-page__toolbar" color="primary">
+        <button 
+            mat-icon-button 
+            type="button"
+            aria-label="Wróć do listy repertuarów"
+            (click)="navigateBack()">
+            <mat-icon>arrow_back</mat-icon>
+        </button>
+        <span class="biesiada-song-list-page__toolbar-title">
+            {{ vm().repertoireName || 'Repertuar' }}
+        </span>
+    </mat-toolbar>
+
+    @if (vm().isLoading) {
+        <mat-progress-bar 
+            mode="indeterminate" 
+            aria-label="Ładowanie piosenek">
+        </mat-progress-bar>
+    }
+
+    <div class="biesiada-song-list-page__container">
+        @if (vm().error) {
+            <section class="biesiada-song-list-page__error" role="alert" aria-live="assertive">
+                <mat-icon class="biesiada-song-list-page__error-icon" aria-hidden="true">
+                    error_outline
+                </mat-icon>
+                <p class="biesiada-song-list-page__error-message">
+                    {{ vm().error }}
+                </p>
+                <button 
+                    mat-raised-button 
+                    color="primary" 
+                    type="button"
+                    aria-label="Spróbuj załadować piosenki ponownie"
+                    (click)="onRetry()">
+                    Spróbuj ponownie
+                </button>
+            </section>
+        }
+
+        @if (!vm().isLoading && !vm().error) {
+            <div class="biesiada-song-list-page__content">
+                <stbo-biesiada-repertoire-song-list
+                    [songs]="vm().songs"
+                    (songSelected)="onSongSelected($event)">
+                </stbo-biesiada-repertoire-song-list>
+            </div>
+        }
+    </div>
+</div>
+
