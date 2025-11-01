@@ -6,7 +6,7 @@ import {
     inject,
     signal,
 } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Title, Meta } from '@angular/platform-browser';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatListModule } from '@angular/material/list';
@@ -32,6 +32,7 @@ import type { PublicRepertoireDto } from '../../../../packages/contracts/types';
     imports: [
         MatProgressSpinnerModule,
         MatListModule,
+        RouterLink,
         ErrorDisplayComponent,
     ],
     templateUrl: './public-repertoire.view.html',
@@ -74,6 +75,13 @@ export class PublicRepertoireViewComponent implements OnInit {
     get errorData() {
         const currentState = this.state();
         return currentState.status === 'error' ? currentState.error : null;
+    }
+
+    /**
+     * Zwraca repertoirePublicId z URL - używane w template
+     */
+    get repertoirePublicId(): string | null {
+        return this.route.snapshot.paramMap.get('publicId');
     }
 
     ngOnInit(): void {
@@ -158,6 +166,19 @@ export class PublicRepertoireViewComponent implements OnInit {
             name: 'robots',
             content: 'noindex, nofollow',
         });
+    }
+
+    /**
+     * Wyciąga songPublicId z pełnego URL piosenki
+     * Przykład: "/public/songs/xyz789" -> "xyz789"
+     * 
+     * @param publicSongUrl - Pełny URL do publicznej piosenki
+     * @returns songPublicId lub null jeśli nie udało się wyciągnąć
+     */
+    public extractSongPublicId(publicSongUrl: string): string | null {
+        if (!publicSongUrl) return null;
+        const segments = publicSongUrl.split('/');
+        return segments[segments.length - 1] || null;
     }
 }
 

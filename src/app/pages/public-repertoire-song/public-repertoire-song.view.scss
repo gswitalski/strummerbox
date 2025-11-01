@@ -1,0 +1,126 @@
+:host {
+    display: block;
+    min-height: 100vh;
+    background-color: var(--mat-sys-surface);
+}
+
+.loading-container {
+    padding: 1rem;
+}
+
+.error-container {
+    padding: 2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 50vh;
+}
+
+.song-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 1rem;
+}
+
+.song-header {
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.song-title {
+    font-size: 1.75rem;
+    font-weight: 500;
+    margin: 0 0 0.5rem 0;
+    color: var(--mat-sys-on-surface);
+    line-height: 1.3;
+}
+
+.song-position {
+    font-size: 0.875rem;
+    color: var(--mat-sys-on-surface-variant);
+}
+
+.song-content {
+    flex: 1;
+    margin-bottom: 2rem;
+    overflow-x: auto;
+}
+
+.song-lyrics {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 1rem;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    color: var(--mat-sys-on-surface);
+    margin: 0;
+    padding: 1rem;
+    background-color: var(--mat-sys-surface-container);
+    border-radius: 8px;
+}
+
+.song-navigation {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 0;
+    border-top: 1px solid var(--mat-sys-outline-variant);
+    position: sticky;
+    bottom: 0;
+    background-color: var(--mat-sys-surface);
+}
+
+.nav-button {
+    flex: 1;
+    min-height: 48px;
+    font-size: 1rem;
+
+    &:disabled {
+        opacity: 0.38;
+        cursor: not-allowed;
+    }
+}
+
+// Responsive design
+@media (min-width: 768px) {
+    .song-container {
+        padding: 2rem;
+    }
+
+    .song-title {
+        font-size: 2.5rem;
+    }
+
+    .song-lyrics {
+        font-size: 1.125rem;
+        padding: 1.5rem;
+    }
+
+    .nav-button {
+        flex: 0 1 200px;
+    }
+}
+
+// Optymalizacja dla urządzeń mobilnych
+@media (max-width: 767px) {
+    .song-title {
+        font-size: 1.5rem;
+    }
+
+    .song-lyrics {
+        font-size: 0.9375rem;
+    }
+
+    .song-navigation {
+        padding: 0.75rem 0;
+    }
+
+    .nav-button {
+        font-size: 0.875rem;
+        padding: 0 0.75rem;
+    }
+}
+

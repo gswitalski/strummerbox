@@ -33,7 +33,7 @@
                         @for (song of loadedRepertoire.songs; track song.publicSongUrl) {
                             <mat-list-item class="song-item">
                                 <a
-                                    [href]="song.publicSongUrl"
+                                    [routerLink]="['/public/repertoires', repertoirePublicId, 'songs', extractSongPublicId(song.publicSongUrl)]"
                                     class="song-link"
                                     matListItemTitle
                                 >

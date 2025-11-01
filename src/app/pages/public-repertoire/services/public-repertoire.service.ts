@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, catchError, throwError, map } from 'rxjs';
 import { environment } from '../../../../environments/environment';
-import type { PublicRepertoireDto } from '../../../../../packages/contracts/types';
+import type { PublicRepertoireDto, PublicRepertoireSongDto } from '../../../../../packages/contracts/types';
 
 /**
  * Serwis do pobierania publicznych repertuarów dla niezalogowanych użytkowników.
@@ -45,6 +45,52 @@ export class PublicRepertoireService {
                 catchError((error: HttpErrorResponse) => {
                     console.error('PublicRepertoireService: Error fetching repertoire', {
                         publicId,
+                        status: error.status,
+                        message: error.message,
+                    });
+                    return throwError(() => error);
+                })
+            );
+    }
+
+    /**
+     * Pobiera publiczną piosenkę w kontekście repertuaru.
+     *
+     * @param repertoirePublicId - Publiczny identyfikator repertuaru
+     * @param songPublicId - Publiczny identyfikator piosenki
+     * @returns Observable z danymi piosenki w kontekście repertuaru (z nawigacją)
+     *
+     * @throws HttpErrorResponse
+     * - 404: Piosenka lub repertuar nie zostały znalezione
+     * - 410: Piosenka lub repertuar nie są już dostępne (unpublished)
+     * - 5xx: Błąd serwera
+     */
+    public getRepertoireSong(
+        repertoirePublicId: string,
+        songPublicId: string
+    ): Observable<PublicRepertoireSongDto> {
+        return this.http
+            .get<{ data: PublicRepertoireSongDto } | PublicRepertoireSongDto>(
+                `${this.baseUrl}/${repertoirePublicId}/songs/${songPublicId}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${environment.supabase.anonKey}`,
+                        apikey: environment.supabase.anonKey,
+                    },
+                }
+            )
+            .pipe(
+                map((response) => {
+                    // API może zwracać dane bezpośrednio lub w { data: ... }
+                    if (response && typeof response === 'object' && 'data' in response) {
+                        return response.data;
+                    }
+                    return response as PublicRepertoireSongDto;
+                }),
+                catchError((error: HttpErrorResponse) => {
+                    console.error('PublicRepertoireService: Error fetching repertoire song', {
+                        repertoirePublicId,
+                        songPublicId,
                         status: error.status,
                         message: error.message,
                     });
