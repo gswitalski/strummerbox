@@ -161,20 +161,33 @@ Zarządzanie stanem aplikacji będzie realizowane za pomocą serwisów Angulara 
 *   **Kluczowe informacje:** Lista repertuarów (nazwa, liczba piosenek).
 *   **Kluczowe komponenty:** `mat-list` lub `mat-card` w mobilnym układzie.
 *   **UX, dostępność, bezpieczeństwo:**
-    *   **UX:** Duże, łatwe do kliknięcia elementy listy, zoptymalizowane pod kątem obsługi dotykowej.
+    *   **UX:** Duże, łatwe do kliknięcia elementy listy, zoptymalizowane pod kątem obsługi dotykowej. Kliknięcie w repertuar przenosi użytkownika do nowego "Widoku Listy Piosenek w Repertuarze" (`/biesiada/repertoires/:id`).
     *   **Dostępność:** Duża czcionka, wysoki kontrast.
     *   **Bezpieczeństwo:** Dostęp chroniony.
 
 ---
 
-#### **12. Tryb Biesiada - Widok Piosenki (Biesiada Song View)**
+#### **12. Tryb Biesiada - Lista Piosenek w Repertuarze (Biesiada Repertoire's Song List View)**
+
+*   **Ścieżka:** `/biesiada/repertoires/:id`
+*   **Główny cel:** Wyświetlenie listy piosenek z wybranego repertuaru, umożliwiając Organizatorowi nawigację podczas biesiady.
+*   **Kluczowe informacje:** Nazwa repertuaru, uporządkowana lista piosenek. Przycisk nawigacji powrotnej do listy repertuarów.
+*   **Kluczowe komponenty:** `mat-toolbar` z przyciskiem "wstecz", `mat-list` z `mat-list-item`.
+*   **UX, dostępność, bezpieczeństwo:**
+    *   **UX:** Prosty widok listy piosenek. Kliknięcie w tytuł piosenki przenosi do widoku piosenki w trybie biesiada. Przycisk "wstecz" w nagłówku pozwala na powrót do listy wszystkich repertuarów (`/biesiada/repertoires`).
+    *   **Dostępność:** Duża, czytelna czcionka.
+    *   **Bezpieczeństwo:** Dostęp chroniony.
+
+---
+
+#### **13. Tryb Biesiada - Widok Piosenki (Biesiada Song View)**
 
 *   **Ścieżka:** `/biesiada/repertoires/:id/songs/:songId`
 *   **Główny cel:** Wyświetlenie Organizatorowi piosenki z akordami podczas prowadzenia biesiady.
-*   **Kluczowe informacje:** Tytuł, treść piosenki z akordami, przyciski nawigacyjne "Następna" / "Poprzednia", przycisk "Pokaż kod QR".
-*   **Kluczowe komponenty:** `mat-fab` (pływający przycisk akcji) do wyświetlania QR, `mat-dialog` do wyświetlania kodu QR.
+*   **Kluczowe informacje:** Tytuł, treść piosenki z akordami, przyciski nawigacyjne "Następna" / "Poprzednia", przycisk "Pokaż kod QR". Przycisk nawigacji powrotnej do listy piosenek.
+*   **Kluczowe komponenty:** `mat-toolbar` z przyciskiem "wstecz", `mat-fab` (pływający przycisk akcji) do wyświetlania QR, `mat-dialog` do wyświetlania kodu QR.
 *   **UX, dostępność, bezpieczeństwo:**
-    *   **UX:** Interfejs skupiony na czytelności tekstu. Pływający przycisk akcji (`FAB`) nie zasłania treści. Kliknięcie w niego otwiera modal z dużym, czytelnym kodem QR.
+    *   **UX:** Interfejs skupiony na czytelności tekstu. Pływający przycisk akcji (`FAB`) nie zasłania treści. Kliknięcie w niego otwiera modal z dużym, czytelnym kodem QR. Przycisk "wstecz" w nagłówku pozwala na powrót do listy piosenek w repertuarze (`/biesiada/repertoires/:id`).
     *   **Dostępność:** Wysoki kontrast, duża czcionka.
     *   **Bezpieczeństwo:** Dostęp chroniony.
 
@@ -194,6 +207,15 @@ Zarządzanie stanem aplikacji będzie realizowane za pomocą serwisów Angulara 
 2.  **Przeglądanie Repertuaru:** W przeglądarce otwiera mu się strona `/public/repertoires/:publicId`, na której widzi listę piosenek.
 3.  **Wyświetlanie Piosenki:** Klika tytuł pierwszej piosenki. Przechodzi na stronę `/public/repertoires/:publicId/songs/:songPublicId`.
 4.  **Nawigacja:** Czyta tekst. Gdy piosenka się kończy, używa przycisku "Następna", aby płynnie przejść do kolejnego utworu, bez potrzeby wracania do listy.
+
+#### Scenariusz 3: Organizator prowadzi śpiewanie podczas biesiady.
+
+1.  **Wejście w Tryb Biesiada:** Organizator, zalogowany na swoim urządzeniu mobilnym, wybiera z bocznej nawigacji link "Moje Biesiady" i przechodzi na stronę `/biesiada/repertoires`.
+2.  **Wybór Repertuaru:** Na ekranie widzi listę swoich repertuarów. Wybiera ten przygotowany na dzisiejsze spotkanie, co przenosi go na stronę `/biesiada/repertoires/:id`.
+3.  **Wybór Piosenki:** Widzi teraz listę piosenek w ramach wybranego repertuaru. Wybiera pierwszą piosenkę z listy, przechodząc na stronę `/biesiada/repertoires/:id/songs/:songId`.
+4.  **Prowadzenie Śpiewania:** Na ekranie wyświetla mu się tekst piosenki wraz z akordami. Po zakończeniu utworu, używa przycisku "Następna", by przejść do kolejnej piosenki.
+5.  **Udostępnianie:** W trakcie imprezy podchodzi nowa osoba. Organizator klika pływający przycisk "Pokaż kod QR", aby wyświetlić duży kod na ekranie, który nowa osoba może łatwo zeskanować.
+6.  **Zmiana Repertuaru:** W razie potrzeby, używając przycisku "wstecz" w nagłówku, wraca do listy piosenek, a następnie do listy repertuarów, aby zmienić aktualnie używany repertuar.
 
 ## 4. Układ i struktura nawigacji
 

@@ -21,17 +21,10 @@ Oto dokumenty do analizy:
 </aktualny_plan_ui>
 
 <nowe_wymagania>
-Wydaje mi się, że w planie UI brakuje widoku dla historyjki
--   ID: US-012
--   Title: Generowanie linku i kodu QR
--   Description: Jako Organizator, chcę móc wygenerować stały link publiczny i kod QR dla każdej mojej piosenki i każdego repertuaru.
--   Acceptance Criteria:
-    -   W widoku listy piosenek oraz listy repertuaró (w trybie zarządzania) znajduje się przycisk "Udostępnij".
-    -   Po kliknięciu wyświetla się link publiczny oraz kod QR.
-    -   Mogę łatwo skopiować link do schowka.
 
-potwierdz to, a jesli potwierdzisz to uzupełnij plan ui
+W PRD zmodyfikowałem wymagania do historyjki US-016 - tryb biesiada dla organizatora. historyjka dokładniej opisuje teraz jak mają wyglądać kolejne ekrany i nawigacja.
 
+Pod kątem tych wymagań zweryfikuj plan UI oraz plan API i wprowadź odpowidnie zmiany.
 
 </nowe_wymagania>
 
