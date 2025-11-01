@@ -1,0 +1,54 @@
+<div class="public-repertoire-container">
+    <!-- Stan ładowania -->
+    @if (isLoading) {
+        <div class="loading-state">
+            <mat-spinner diameter="48"></mat-spinner>
+            <p class="loading-text">Ładowanie repertuaru...</p>
+        </div>
+    }
+
+    <!-- Stan błędu -->
+    @if (isError && errorData) {
+        <stbo-error-display
+            [code]="errorData.code"
+            [message]="errorData.message"
+        ></stbo-error-display>
+    }
+
+    <!-- Stan sukcesu -->
+    @if (isLoaded && loadedRepertoire) {
+        <div class="repertoire-content">
+            <!-- Nagłówek repertuaru -->
+            <header class="repertoire-header">
+                <h1 class="repertoire-title">{{ loadedRepertoire.name }}</h1>
+                @if (loadedRepertoire.description) {
+                    <p class="repertoire-description">{{ loadedRepertoire.description }}</p>
+                }
+            </header>
+
+            <!-- Lista piosenek -->
+            <section class="songs-section">
+                @if (loadedRepertoire.songs.length > 0) {
+                    <mat-list class="songs-list">
+                        @for (song of loadedRepertoire.songs; track song.publicSongUrl) {
+                            <mat-list-item class="song-item">
+                                <a
+                                    [href]="song.publicSongUrl"
+                                    class="song-link"
+                                    matListItemTitle
+                                >
+                                    {{ song.title }}
+                                </a>
+                            </mat-list-item>
+                        }
+                    </mat-list>
+                } @else {
+                    <div class="empty-state">
+                        <p class="empty-text">Ten repertuar nie zawiera jeszcze piosenek.</p>
+                    </div>
+                }
+            </section>
+        </div>
+    }
+</div>
+

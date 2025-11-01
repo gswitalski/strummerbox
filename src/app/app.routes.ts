@@ -82,6 +82,13 @@ export const routes: Routes = [
             ),
     },
     {
+        path: 'public/repertoires',
+        loadChildren: () =>
+            import('./pages/public-repertoire/public-repertoire.routes').then(
+                (m) => m.publicRepertoireRoutes
+            ),
+    },
+    {
         path: '',
         pathMatch: 'full',
         redirectTo: 'management',
