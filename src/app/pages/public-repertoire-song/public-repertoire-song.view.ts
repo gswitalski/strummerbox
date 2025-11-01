@@ -15,6 +15,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Subject, switchMap, takeUntil, catchError, of, map } from 'rxjs';
 import { PublicRepertoireService } from '../public-repertoire/services/public-repertoire.service';
 import { ErrorDisplayComponent } from '../../shared/components/error-display/error-display.component';
+import { stripChords } from '../public-song/utils/chord-stripper';
 import type { PublicRepertoireSongState } from './public-repertoire-song.types';
 import type { PublicRepertoireSongDto } from '../../../../packages/contracts/types';
 
@@ -102,6 +103,17 @@ export class PublicRepertoireSongViewComponent implements OnInit, OnDestroy {
 
     get repertoirePublicId(): string | null {
         return this.route.snapshot.paramMap.get('repertoirePublicId');
+    }
+
+    /**
+     * Zwraca treść piosenki bez akordów (stripped)
+     */
+    get strippedContent(): string {
+        const song = this.loadedSong;
+        if (!song || !song.content) {
+            return '';
+        }
+        return stripChords(song.content);
     }
 
     ngOnInit(): void {
