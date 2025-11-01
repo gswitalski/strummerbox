@@ -5,26 +5,26 @@ Zanim zaczniemy, zapoznaj się z poniższymi informacjami:
 1. Route API specification:
 <route_api_specification>
 
-#### GET /public/repertoires/{publicId}/songs/{songPublicId}
+#### GET /me/biesiada/repertoires
 - **Method:** GET
-- **Path:** `/public/repertoires/{publicId}/songs/{songPublicId}`
-- **Description:** Return a repertoire song view for anonymous users with navigation hints.
+- **Path:** `/me/biesiada/repertoires`
+- **Description:** Lightweight listing of organizer repertoires optimized for mobile Biesiada mode.
+- **Query Parameters:** `includePublished` (`true|false`, default `false` to show all owned repertoires).
 - **Response JSON:**
 ```json
 {
-  "title": "Knockin' on Heaven's Door",
-  "content": "Mama, take this badge off of me...",
-  "order": {
-    "position": 2,
-    "total": 12,
-    "previous": "https://app.strummerbox.com/public/repertoires/8729a118-.../songs/prev-id",
-    "next": "https://app.strummerbox.com/public/repertoires/8729a118-.../songs/next-id"
-  }
+  "items": [
+    {
+      "id": "5f7a8f35-1cde-4f62-991e-0e020df3ac42",
+      "name": "Ognisko 2025",
+      "songCount": 12,
+      "publishedAt": "2025-10-15T08:35:44Z"
+    }
+  ]
 }
 ```
 - **Success:** `200 OK`
-- **Errors:** `404 Not Found`, `410 Gone`.
-
+- **Errors:** `401 Unauthorized`.
 
 </route_api_specification>
 
