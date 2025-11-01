@@ -18,23 +18,20 @@ Najpierw przejrzyj następujące informacje:
 
 3. Nazwa widoku do implementacji
 <view_name>
-Publiczny Widok Piosenki (Public Song View) w kontekscie repertuaru czyli dla sciezki
-`/public/repertoires/:publicId/songs/:songPublicId`
-
+11. Tryb Biesiada - Lista Repertuarów (Biesiada Repertoire List View)
 </view_name>
 
 4. User Stories:
 <user_stories>
--   ID: US-015
--   Title: Nawigacja Biesiadnika w repertuarze
--   Description: Jako Biesiadnik, przeglądając piosenkę w ramach repertuaru, chcę móc łatwo przejść do następnej lub poprzedniej piosenki.
+-   ID: US-016
+-   Title: Tryb 'Biesiada' dla Organizatora
+-   Description: Jako Organizator, chcę mieć dostęp do specjalnego trybu 'Biesiada' na moim telefonie, abym mógł prowadzić śpiewanie, widząc akordy.
 -   Acceptance Criteria:
-    -   W widoku piosenki dostępne są przyciski "Następna" i "Poprzednia".
-    -   Przycisk "Poprzednia" jest nieaktywny dla pierwszej piosenki na liście.
-    -   Przycisk "Następna" jest nieaktywny dla ostatniej piosenki na liście.
-    -   Kliknięcie przenosi do widoku odpowiedniej piosenki bez powrotu do listy.
-
-dodatkowwo zaimplanuj przeniesienie do tego widoku z listu piosenke widzianych przez publicznego  biesiadnika na publicznej strony biesiady
+    -   Po zalogowaniu mogę przełączyć się na tryb 'Biesiada'.
+    -   W tym trybie widzę listę moich repertuarów.
+    -   Po wybraniu repertuaru widze liste piosenek przypidaną do repertuaru. W tym trybie mogę powrócić do listy repertuarów lub wybrać dowolną piosenkę.
+    -  po wybraniu piosenki, widzę jej tekst wraz z akordami w uproszczonym widoku analogicznie jak anonimowy biesiadnik widzi publicznie udostepnioną piosenkę z tą różnicą, zę ja jako organizator widzę tekst piosenki wraz z akordami.
+    -   Interfejs jest uproszczony i zoptymalizowany pod kątem odczytu, bez funkcji edycyjnych.
 </user_stories>
 
 5. Endpoint Description:
