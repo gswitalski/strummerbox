@@ -5,21 +5,21 @@ Zanim zaczniemy, zapoznaj się z poniższymi informacjami:
 1. Route API specification:
 <route_api_specification>
 
-#### GET /public/repertoires/{publicId}
+#### GET /public/repertoires/{publicId}/songs/{songPublicId}
 - **Method:** GET
-- **Path:** `/public/repertoires/{publicId}`
-- **Description:** Return published repertoire metadata and ordered list of songs (titles only) for anonymous viewers.
+- **Path:** `/public/repertoires/{publicId}/songs/{songPublicId}`
+- **Description:** Return a repertoire song view for anonymous users with navigation hints.
 - **Response JSON:**
 ```json
 {
-  "name": "Ognisko 2025",
-  "description": "Wieczorne granie",
-  "songs": [
-    {
-      "title": "Knockin' on Heaven's Door",
-      "publicSongUrl": "https://app.strummerbox.com/public/repertoires/8729a118-3b9b-4ce4-b268-36c9d6a6a46c/songs/6e42f88a-2d46-4c27-8371-98dd621b6af2"
-    }
-  ]
+  "title": "Knockin' on Heaven's Door",
+  "content": "Mama, take this badge off of me...",
+  "order": {
+    "position": 2,
+    "total": 12,
+    "previous": "https://app.strummerbox.com/public/repertoires/8729a118-.../songs/prev-id",
+    "next": "https://app.strummerbox.com/public/repertoires/8729a118-.../songs/next-id"
+  }
 }
 ```
 - **Success:** `200 OK`

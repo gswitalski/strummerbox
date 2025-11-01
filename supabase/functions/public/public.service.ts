@@ -1,4 +1,9 @@
-import type { PublicRepertoireDto, PublicRepertoireSongLinkDto } from '../../../packages/contracts/types.ts';
+import type { 
+    PublicRepertoireDto, 
+    PublicRepertoireSongLinkDto,
+    PublicRepertoireSongDto,
+    PublicRepertoireSongOrderDto,
+} from '../../../packages/contracts/types.ts';
 import type { ServiceRoleSupabaseClient } from '../_shared/supabase-client.ts';
 import { createNotFoundError, createResourceGoneError } from '../_shared/errors.ts';
 import { logger } from '../_shared/logger.ts';
@@ -15,10 +20,10 @@ const SONG_COLUMNS = 'title, public_id';
 
 /**
  * Base URL pattern for constructing public song URLs
- * Format: {baseUrl}/public/repertoires/{repertoirePublicId}/songs/{songPublicId}
+ * Format: {baseUrl}/functions/v1/public/repertoires/{repertoirePublicId}/songs/{songPublicId}
  */
 const PUBLIC_SONG_URL_PATTERN = (baseUrl: string, repertoirePublicId: string, songPublicId: string): string => {
-    return `${baseUrl}/public/repertoires/${repertoirePublicId}/songs/${songPublicId}`;
+    return `${baseUrl}/functions/v1/public/repertoires/${repertoirePublicId}/songs/${songPublicId}`;
 };
 
 /**
@@ -145,6 +150,127 @@ export const getPublicRepertoire = async (
         name: repertoire.name,
         description: repertoire.description,
         songs,
+    };
+};
+
+/**
+ * RPC response type for get_public_repertoire_song_details function
+ */
+type PublicRepertoireSongRpcResult = {
+    song_title: string;
+    song_content: string;
+    song_published_at: string | null;
+    repertoire_published_at: string | null;
+    position_in_repertoire: number;
+    total_songs_count: number;
+    previous_song_public_id: string | null;
+    next_song_public_id: string | null;
+};
+
+/**
+ * Fetches details of a single song within a public repertoire context.
+ * 
+ * This service calls an RPC function that performs a single optimized query
+ * to retrieve the song content and navigation metadata (position, previous, next).
+ * 
+ * @param supabase - Service role Supabase client for database access
+ * @param repertoirePublicId - Public UUID of the repertoire
+ * @param songPublicId - Public UUID of the song
+ * @returns PublicRepertoireSongDto with song content and order navigation
+ * @throws NotFoundError if repertoire or song don't exist, or song is not in repertoire
+ * @throws ResourceGoneError if either resource exists but is not published
+ */
+export const getPublicRepertoireSongDetails = async (
+    supabase: ServiceRoleSupabaseClient,
+    repertoirePublicId: string,
+    songPublicId: string,
+): Promise<PublicRepertoireSongDto> => {
+    logger.info('Fetching public repertoire song details', {
+        repertoirePublicId,
+        songPublicId,
+    });
+
+    // Call RPC function to get song details with navigation in one query
+    const { data, error } = await supabase
+        .rpc('get_public_repertoire_song_details', {
+            repertoire_public_id: repertoirePublicId,
+            song_public_id: songPublicId,
+        })
+        .single();
+
+    if (error) {
+        logger.error('Database error while fetching repertoire song details', {
+            repertoirePublicId,
+            songPublicId,
+            error,
+        });
+        throw createNotFoundError(
+            'Nie znaleziono piosenki w repertuarze',
+        );
+    }
+
+    // If RPC returns no data, resource doesn't exist or song is not in repertoire
+    if (!data) {
+        logger.warn('Repertoire song not found or not part of repertoire', {
+            repertoirePublicId,
+            songPublicId,
+        });
+        throw createNotFoundError(
+            'Nie znaleziono piosenki w repertuarze',
+        );
+    }
+
+    const rpcResult = data as PublicRepertoireSongRpcResult;
+
+    // Check if repertoire is published
+    if (!rpcResult.repertoire_published_at) {
+        logger.warn('Repertoire not published', {
+            repertoirePublicId,
+            songPublicId,
+        });
+        throw createResourceGoneError(
+            'Repertuar nie jest już dostępny',
+            { reason: 'repertoire_unpublished' },
+        );
+    }
+
+    // Check if song is published
+    if (!rpcResult.song_published_at) {
+        logger.warn('Song not published', {
+            repertoirePublicId,
+            songPublicId,
+        });
+        throw createResourceGoneError(
+            'Piosenka nie jest już dostępna',
+            { reason: 'song_unpublished' },
+        );
+    }
+
+    // Construct full URLs for navigation
+    const baseUrl = getBaseUrl();
+    
+    const order: PublicRepertoireSongOrderDto = {
+        position: rpcResult.position_in_repertoire,
+        total: rpcResult.total_songs_count,
+        previous: rpcResult.previous_song_public_id
+            ? PUBLIC_SONG_URL_PATTERN(baseUrl, repertoirePublicId, rpcResult.previous_song_public_id)
+            : null,
+        next: rpcResult.next_song_public_id
+            ? PUBLIC_SONG_URL_PATTERN(baseUrl, repertoirePublicId, rpcResult.next_song_public_id)
+            : null,
+    };
+
+    logger.info('Successfully fetched public repertoire song details', {
+        repertoirePublicId,
+        songPublicId,
+        position: order.position,
+        total: order.total,
+    });
+
+    return {
+        title: rpcResult.song_title,
+        content: rpcResult.song_content,
+        order,
     };
 };
 
