@@ -5,7 +5,15 @@ import { createValidationError } from '../_shared/errors.ts';
 import { logger } from '../_shared/logger.ts';
 import type { AuthenticatedUser } from '../_shared/auth.ts';
 import type { RequestSupabaseClient } from '../_shared/supabase-client.ts';
-import { createSong, getSongDetails, getSongs, updateSong, getPublicSongByPublicId, type SongPatchCommand } from './songs.service.ts';
+import {
+    createSong,
+    getSongDetails,
+    getSongs,
+    updateSong,
+    getPublicSongByPublicId,
+    type SongPatchCommand,
+    publishSong,
+} from './songs.service.ts';
 import type { GetSongsFilters } from './songs.service.ts';
 
 const SONG_ID_SCHEMA = z.string().uuid('Nieprawidłowy identyfikator piosenki');
@@ -399,6 +407,28 @@ export const handlePatchSong = async (
     return jsonResponse({ data: song }, { status: 200 });
 };
 
+export const handlePublishSong = async (
+    request: Request,
+    supabase: RequestSupabaseClient,
+    user: AuthenticatedUser,
+    rawSongId: string,
+): Promise<Response> => {
+    const songId = parseSongId(rawSongId);
+
+    logger.info('Rozpoczęto publikowanie piosenki', {
+        userId: user.id,
+        songId,
+    });
+
+    const song = await publishSong({
+        supabase,
+        organizerId: user.id,
+        songId,
+    });
+
+    return jsonResponse({ data: song }, { status: 200 });
+};
+
 export const songsRouter = async (
     request: Request,
     supabase: RequestSupabaseClient,
@@ -418,6 +448,21 @@ export const songsRouter = async (
             status: 405,
             headers: {
                 Allow: 'GET, POST',
+            },
+        });
+    }
+
+    const songPublishMatch = path.match(/\/songs\/([^/]+)\/publish$/);
+    if (songPublishMatch) {
+        if (request.method === 'POST') {
+            const songId = songPublishMatch[1];
+            return await handlePublishSong(request, supabase, user, songId);
+        }
+
+        return new Response(null, {
+            status: 405,
+            headers: {
+                Allow: 'POST',
             },
         });
     }

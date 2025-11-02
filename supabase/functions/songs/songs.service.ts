@@ -6,7 +6,12 @@ import type {
     SongSummaryDto,
     SongUsageDto,
 } from '../../../packages/contracts/types.ts';
-import { createConflictError, createInternalError, createNotFoundError } from '../_shared/errors.ts';
+import {
+    createConflictError,
+    createInternalError,
+    createNotFoundError,
+    ApplicationError,
+} from '../_shared/errors.ts';
 import type { RequestSupabaseClient } from '../_shared/supabase-client.ts';
 import { logger } from '../_shared/logger.ts';
 
@@ -395,6 +400,50 @@ export const getSongDetails = async ({
     const songWithUsage: SongDetailDto = usages.length > 0 ? { ...song, repertoires: usages } : song;
 
     return songWithUsage;
+};
+
+export type PublishSongParams = {
+    supabase: RequestSupabaseClient;
+    organizerId: string;
+    songId: string;
+};
+
+export const publishSong = async ({
+    supabase,
+    organizerId,
+    songId,
+}: PublishSongParams): Promise<SongDto> => {
+    const { data, error } = await supabase
+        .from('songs')
+        .update({ published_at: new Date().toISOString() })
+        .eq('id', songId)
+        .eq('organizer_id', organizerId)
+        .select(SONG_COLUMNS)
+        .single();
+
+    if (error) {
+        logger.error('Nie udało się opublikować piosenki', {
+            organizerId,
+            songId,
+            error,
+        });
+        throw createInternalError('Nie udało się opublikować piosenki', error);
+    }
+
+    if (!data) {
+        logger.warn('Nie znaleziono piosenki do publikacji', {
+            organizerId,
+            songId,
+        });
+        throw createNotFoundError('Piosenka nie została znaleziona', { songId });
+    }
+
+    logger.info('Pomyślnie opublikowano piosenkę', {
+        organizerId,
+        songId,
+    });
+
+    return mapToSongDto(data);
 };
 
 /**

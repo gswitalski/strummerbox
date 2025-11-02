@@ -5,14 +5,11 @@ Zanim zaczniemy, zapoznaj się z poniższymi informacjami:
 1. Route API specification:
 <route_api_specification>
 
-#### POST /songs/{id}/publish
+#### POST /songs/{id}/unpublish
 - **Method:** POST
-- **Path:** `/songs/{id}/publish`
-- **Description:** Mark song as published (sets `published_at = now()`).
-- **Request JSON:** _none_
-- **Response JSON:** song resource with `publishedAt` populated.
-- **Success:** `200 OK`
-- **Errors:** `401 Unauthorized`, `403 Forbidden`, `404 Not Found`.
+- **Path:** `/songs/{id}/unpublish`
+- **Description:** Revoke publication (`published_at = null`).
+- **Success/Error codes:** same as publish.
 
 2. Related database resources:
 <related_db_resources>

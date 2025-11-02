@@ -21,7 +21,7 @@ serve(async (request) => {
         }
 
         // Protected endpoints (authentication required)
-        const songsPathRegex = /\/songs(?:\/[^/]+)?$/;
+        const songsPathRegex = /^\/songs(\/[^/]+(\/(publish))?)?$/;
 
         if (songsPathRegex.test(path)) {
             const user = await requireAuth(supabase);
