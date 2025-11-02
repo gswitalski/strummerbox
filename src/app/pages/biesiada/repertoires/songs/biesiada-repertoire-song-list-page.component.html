@@ -48,5 +48,20 @@
             </div>
         }
     </div>
+
+    <!-- Pływający przycisk akcji (FAB) do pokazywania kodu QR -->
+    @if (!vm().isLoading && !vm().error && vm().share) {
+        <button
+            mat-fab
+            extended
+            color="primary"
+            class="biesiada-song-list-page__qr-fab"
+            (click)="showQrCode()"
+            type="button"
+            aria-label="Pokaż kod QR repertuaru">
+            <mat-icon>qr_code</mat-icon>
+            <span>Udostępnij</span>
+        </button>
+    }
 </div>
 

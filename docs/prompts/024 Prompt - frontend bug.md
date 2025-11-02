@@ -30,16 +30,17 @@ Zapoznaj się z następującymi materiałami:
 
 
 
-
 </aktualna_implementacja>
 
 <aktualne_zachowanie>
-na liście piosenek kolor warrości kolumny "status" nie jest dopasowany do kolorystyki angualr matetrial
+na ekranie widoku listy piosenek w trybie biesiady organizatora brak pływającego przycisku do wygenerowania kodu QR z udostępnieniem repertuaru
+taki przycisk jest na widoku piosenki (w trybie biesiada organizatora)
+
 </aktualne_zachowanie>
 
 <oczekiwane_zachowanie>
-status wyświetla sie w kolorze ze schematu angular material
-
+na ekranie widoku listy piosenek w trybie biesiady organizatora jest pływający przycisk do wygenerowania kodu QR z udostępnieniem repertuaru 
+taki jak na widoku piosenki (w trybie biesiada organizatora)
 </oczekiwane_zachowanie>
 
 

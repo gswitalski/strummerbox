@@ -4,8 +4,11 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatDialog } from '@angular/material/dialog';
 import { BiesiadaRepertoireSongListService } from './services/biesiada-repertoire-song-list.service';
 import { BiesiadaRepertoireSongListComponent } from './components/list/biesiada-repertoire-song-list.component';
+import { ShareDialogComponent } from '../../../../shared/components/share-dialog/share-dialog.component';
+import type { ShareDialogData } from '../../../../shared/models/share-dialog.model';
 
 /**
  * Biesiada Repertoire Song List Page Component
@@ -30,6 +33,7 @@ export class BiesiadaRepertoireSongListPageComponent implements OnInit, OnDestro
     private readonly service = inject(BiesiadaRepertoireSongListService);
     private readonly route = inject(ActivatedRoute);
     private readonly router = inject(Router);
+    private readonly dialog = inject(MatDialog);
 
     /**
      * View model signal exposed from the service
@@ -84,6 +88,30 @@ export class BiesiadaRepertoireSongListPageComponent implements OnInit, OnDestro
         if (repertoireId) {
             this.service.fetchRepertoireSongs(repertoireId);
         }
+    }
+
+    /**
+     * Show QR code dialog for sharing the repertoire
+     */
+    showQrCode(): void {
+        const share = this.vm().share;
+        const repertoireName = this.vm().repertoireName;
+        
+        if (!share) {
+            return;
+        }
+
+        const dialogData: ShareDialogData = {
+            title: `Udostępnij repertuar "${repertoireName || 'Repertuar'}"`,
+            publicUrl: share.publicUrl,
+            qrPayload: share.qrPayload,
+        };
+
+        this.dialog.open(ShareDialogComponent, {
+            data: dialogData,
+            width: '400px',
+            maxWidth: '90vw',
+        });
     }
 }
 

@@ -14,6 +14,7 @@ const initialState: BiesiadaRepertoireSongListViewModel = {
     repertoireId: null,
     repertoireName: null,
     songs: [],
+    share: null,
     isLoading: false,
     error: null,
 };
@@ -66,6 +67,7 @@ export class BiesiadaRepertoireSongListService {
                 repertoireId: response.repertoireId,
                 repertoireName: response.repertoireName,
                 songs: response.songs,
+                share: response.share,
                 isLoading: false,
                 error: null,
             }));

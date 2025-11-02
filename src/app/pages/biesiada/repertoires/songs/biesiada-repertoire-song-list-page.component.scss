@@ -57,6 +57,15 @@
         line-height: 1.5;
         max-width: 40ch;
     }
+
+    // Pływający przycisk akcji (FAB) do pokazywania kodu QR
+    &__qr-fab {
+        position: fixed;
+        bottom: 1.5rem;
+        right: 1rem;
+        z-index: 5;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
 }
 
 // Tablet and desktop
@@ -72,6 +81,20 @@
 
         &__error {
             padding: 3rem 2rem;
+        }
+
+        &__qr-fab {
+            bottom: 2rem;
+            right: 2rem;
+        }
+    }
+}
+
+// Desktop
+@media (min-width: 1024px) {
+    .biesiada-song-list-page {
+        &__qr-fab {
+            right: 3rem;
         }
     }
 }
