@@ -175,18 +175,39 @@
 
 .nav-button {
     display: flex;
+    flex-direction: row;
     align-items: center;
     gap: 0.5rem;
     min-height: 48px;
     flex: 1;
     max-width: 300px;
 
+    mat-icon {
+        flex-shrink: 0;
+    }
+
     &.nav-previous {
         justify-content: flex-start;
+
+        mat-icon {
+            order: 0;
+        }
+
+        .nav-label {
+            order: 1;
+        }
     }
 
     &.nav-next {
         justify-content: flex-end;
+
+        .nav-label {
+            order: 1;
+        }
+
+        mat-icon {
+            order: 2;
+        }
     }
 }
 
