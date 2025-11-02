@@ -32,10 +32,23 @@
             <ng-container matColumnDef="status">
                 <th mat-header-cell *matHeaderCellDef> Status </th>
                 <td mat-cell *matCellDef="let repertoire">
-                    <span class="repertoire-list__status" [ngClass]="{ 'repertoire-list__status--published': repertoire.isPublished }">
-                        <mat-icon aria-hidden="true">{{ repertoire.isPublished ? 'public' : 'lock' }}</mat-icon>
-                        {{ repertoire.isPublished ? 'Opublikowany' : 'Szkic' }}
-                    </span>
+                    <div class="repertoire-list__status-toggle">
+                        <mat-slide-toggle
+                            [checked]="repertoire.isPublished"
+                            [disabled]="repertoire.isTogglingStatus"
+                            (change)="handleStatusChange(repertoire.id, repertoire.isPublished)"
+                            [attr.aria-label]="repertoire.isPublished ? 'Cofnij publikację repertuaru ' + repertoire.name : 'Opublikuj repertuar ' + repertoire.name"
+                        >
+                            {{ repertoire.isPublished ? 'Opublikowany' : 'Szkic' }}
+                        </mat-slide-toggle>
+                        @if (repertoire.isTogglingStatus) {
+                            <mat-progress-spinner
+                                mode="indeterminate"
+                                diameter="20"
+                                aria-label="Trwa zmiana statusu"
+                            ></mat-progress-spinner>
+                        }
+                    </div>
                 </td>
             </ng-container>
 
@@ -97,10 +110,23 @@
                         <mat-icon aria-hidden="true">music_note</mat-icon>
                         {{ repertoire.songCount }} {{ repertoire.songCount === 1 ? 'piosenka' : 'piosenek' }}
                     </p>
-                    <span class="repertoire-list__status" [ngClass]="{ 'repertoire-list__status--published': repertoire.isPublished }">
-                        <mat-icon aria-hidden="true">{{ repertoire.isPublished ? 'public' : 'lock' }}</mat-icon>
-                        {{ repertoire.isPublished ? 'Opublikowany' : 'Szkic' }}
-                    </span>
+                    <div class="repertoire-list__status-toggle">
+                        <mat-slide-toggle
+                            [checked]="repertoire.isPublished"
+                            [disabled]="repertoire.isTogglingStatus"
+                            (change)="handleStatusChange(repertoire.id, repertoire.isPublished)"
+                            [attr.aria-label]="repertoire.isPublished ? 'Cofnij publikację repertuaru ' + repertoire.name : 'Opublikuj repertuar ' + repertoire.name"
+                        >
+                            {{ repertoire.isPublished ? 'Opublikowany' : 'Szkic' }}
+                        </mat-slide-toggle>
+                        @if (repertoire.isTogglingStatus) {
+                            <mat-progress-spinner
+                                mode="indeterminate"
+                                diameter="20"
+                                aria-label="Trwa zmiana statusu"
+                            ></mat-progress-spinner>
+                        }
+                    </div>
                 </mat-card-content>
                 <mat-card-actions>
                     <button

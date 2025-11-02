@@ -10,6 +10,7 @@ import {
 import { firstValueFrom } from 'rxjs';
 
 import type {
+    RepertoireDto,
     RepertoireListResponseDto,
 } from '../../../../../packages/contracts/types';
 import { environment } from '../../../../environments/environment';
@@ -93,6 +94,72 @@ export class RepertoireListService {
         } finally {
             this.isDeletingState.set(false);
         }
+    }
+
+    /**
+     * Publishes a repertoire by calling the POST /repertoires/{id}/publish endpoint.
+     * @param repertoireId - The ID of the repertoire to publish
+     * @returns Promise with updated repertoire data including publishedAt timestamp
+     * @throws Error if no active session or API call fails
+     */
+    public async publishRepertoire(repertoireId: string): Promise<RepertoireDto> {
+        const session = await this.getSession();
+        const url = `${this.baseUrl}/${repertoireId}/publish`;
+
+        const response = await firstValueFrom(
+            this.http.post<RepertoireDto | { data: RepertoireDto }>(
+                url,
+                {},
+                {
+                    headers: {
+                        Authorization: `Bearer ${session.access_token}`,
+                    },
+                }
+            )
+        );
+
+        // API może zwracać dane bezpośrednio lub w { data: ... }
+        if (response && typeof response === 'object') {
+            if ('data' in response && response.data) {
+                return response.data as RepertoireDto;
+            }
+            return response as RepertoireDto;
+        }
+
+        throw new Error('Invalid API response structure');
+    }
+
+    /**
+     * Unpublishes a repertoire by calling the POST /repertoires/{id}/unpublish endpoint.
+     * @param repertoireId - The ID of the repertoire to unpublish
+     * @returns Promise with updated repertoire data with publishedAt set to null
+     * @throws Error if no active session or API call fails
+     */
+    public async unpublishRepertoire(repertoireId: string): Promise<RepertoireDto> {
+        const session = await this.getSession();
+        const url = `${this.baseUrl}/${repertoireId}/unpublish`;
+
+        const response = await firstValueFrom(
+            this.http.post<RepertoireDto | { data: RepertoireDto }>(
+                url,
+                {},
+                {
+                    headers: {
+                        Authorization: `Bearer ${session.access_token}`,
+                    },
+                }
+            )
+        );
+
+        // API może zwracać dane bezpośrednio lub w { data: ... }
+        if (response && typeof response === 'object') {
+            if ('data' in response && response.data) {
+                return response.data as RepertoireDto;
+            }
+            return response as RepertoireDto;
+        }
+
+        throw new Error('Invalid API response structure');
     }
 
     /**

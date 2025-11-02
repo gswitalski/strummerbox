@@ -240,6 +240,57 @@ export class RepertoireListPageComponent {
         });
     }
 
+    /**
+     * Handles repertoire status toggle (publish/unpublish).
+     * Updates the isTogglingStatus flag, calls the appropriate API method,
+     * and updates the repertoire in the state with the new data.
+     */
+    public async onToggleRepertoireStatus(repertoireId: string, isPublished: boolean): Promise<void> {
+        // Set isTogglingStatus to true for the specific repertoire
+        this.updateRepertoireTogglingStatus(repertoireId, true);
+
+        try {
+            // Call the appropriate API method
+            const updatedRepertoire = isPublished
+                ? await this.repertoireListService.unpublishRepertoire(repertoireId)
+                : await this.repertoireListService.publishRepertoire(repertoireId);
+
+            // Update the repertoire in the state with new data
+            this.state.update((current) => ({
+                ...current,
+                repertoires: current.repertoires.map((repertoire) =>
+                    repertoire.id === repertoireId
+                        ? {
+                              ...repertoire,
+                              isPublished: updatedRepertoire.publishedAt !== null,
+                              isTogglingStatus: false,
+                          }
+                        : repertoire
+                ),
+            }));
+
+            // Show success message
+            const message = isPublished
+                ? 'Repertuar został cofnięty do szkicu.'
+                : 'Repertuar został opublikowany.';
+            this.snackBar.open(message, undefined, {
+                duration: 3000,
+            });
+        } catch (error) {
+            console.error('RepertoireListPageComponent: toggle status error', error);
+
+            // Revert the toggle and show error message
+            this.updateRepertoireTogglingStatus(repertoireId, false);
+            this.snackBar.open(
+                'Nie udało się zaktualizować statusu repertuaru. Spróbuj ponownie.',
+                undefined,
+                {
+                    duration: 5000,
+                }
+            );
+        }
+    }
+
     public retryLoad(): void {
         this.refreshState.update((value) => value + 1);
     }
@@ -332,6 +383,20 @@ export class RepertoireListPageComponent {
                 error: 'Nie udało się pobrać listy repertuarów. Spróbuj ponownie później.',
             }));
         }
+    }
+
+    /**
+     * Updates the isTogglingStatus flag for a specific repertoire.
+     */
+    private updateRepertoireTogglingStatus(repertoireId: string, isToggling: boolean): void {
+        this.state.update((current) => ({
+            ...current,
+            repertoires: current.repertoires.map((repertoire) =>
+                repertoire.id === repertoireId
+                    ? { ...repertoire, isTogglingStatus: isToggling }
+                    : repertoire
+            ),
+        }));
     }
 }
 

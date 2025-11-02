@@ -16,6 +16,11 @@ export interface RepertoireSummaryVM {
     createdAt: string; // Sformatowana data, np. '23.10.2025'
     updatedAt: string; // Sformatowana data
     isPublished: boolean;
+    /**
+     * Flag to control loading indicator during status toggle operation.
+     * When true, the toggle should be disabled and a spinner should be visible.
+     */
+    isTogglingStatus: boolean;
 }
 
 /**
@@ -56,5 +61,6 @@ export const mapRepertoireDtoToViewModel = (dto: RepertoireSummaryDto): Repertoi
     createdAt: new Date(dto.createdAt).toLocaleDateString('pl-PL'),
     updatedAt: new Date(dto.updatedAt).toLocaleDateString('pl-PL'),
     isPublished: dto.publishedAt !== null,
+    isTogglingStatus: false,
 });
 

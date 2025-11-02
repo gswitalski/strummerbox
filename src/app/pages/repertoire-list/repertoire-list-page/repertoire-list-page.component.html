@@ -57,6 +57,7 @@
                 (deleteRepertoire)="onDeleteRepertoire($event)"
                 (shareRepertoire)="onShareRepertoire($event)"
                 (sortChange)="onSortChange($event)"
+                (statusChange)="onToggleRepertoireStatus($event.repertoireId, $event.isPublished)"
             ></stbo-repertoire-list>
 
             @if (isLoading()) {

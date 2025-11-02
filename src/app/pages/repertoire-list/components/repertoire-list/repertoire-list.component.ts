@@ -1,5 +1,5 @@
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
-import { CommonModule, NgClass } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import {
     ChangeDetectionStrategy,
     Component,
@@ -13,6 +13,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSortModule, Sort } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -32,9 +33,9 @@ import type {
         MatCardModule,
         MatIconModule,
         MatProgressSpinnerModule,
+        MatSlideToggleModule,
         MatSortModule,
         MatTableModule,
-        NgClass,
     ],
     templateUrl: './repertoire-list.component.html',
     styleUrl: './repertoire-list.component.scss',
@@ -66,6 +67,9 @@ export class RepertoireListComponent {
 
     @Output()
     public readonly sortChange = new EventEmitter<Sort>();
+
+    @Output()
+    public readonly statusChange = new EventEmitter<{ repertoireId: string; isPublished: boolean }>();
 
     private readonly displayModeSignal: Signal<'table' | 'cards'> = this.createDisplayModeSignal();
 
@@ -100,6 +104,10 @@ export class RepertoireListComponent {
 
     public handleShareRepertoire(repertoireId: string): void {
         this.shareRepertoire.emit(repertoireId);
+    }
+
+    public handleStatusChange(repertoireId: string, isPublished: boolean): void {
+        this.statusChange.emit({ repertoireId, isPublished });
     }
 }
 

@@ -101,7 +101,7 @@ export class SongListService {
         const url = `${this.baseUrl}/${songId}/publish`;
 
         const response = await firstValueFrom(
-            this.http.post<{ data: SongDto }>(
+            this.http.post<SongDto | { data: SongDto }>(
                 url,
                 {},
                 {
@@ -112,7 +112,15 @@ export class SongListService {
             )
         );
 
-        return response.data;
+        // API może zwracać dane bezpośrednio lub w { data: ... }
+        if (response && typeof response === 'object') {
+            if ('data' in response && response.data) {
+                return response.data as SongDto;
+            }
+            return response as SongDto;
+        }
+
+        throw new Error('Invalid API response structure');
     }
 
     /**
@@ -126,7 +134,7 @@ export class SongListService {
         const url = `${this.baseUrl}/${songId}/unpublish`;
 
         const response = await firstValueFrom(
-            this.http.post<{ data: SongDto }>(
+            this.http.post<SongDto | { data: SongDto }>(
                 url,
                 {},
                 {
@@ -137,7 +145,15 @@ export class SongListService {
             )
         );
 
-        return response.data;
+        // API może zwracać dane bezpośrednio lub w { data: ... }
+        if (response && typeof response === 'object') {
+            if ('data' in response && response.data) {
+                return response.data as SongDto;
+            }
+            return response as SongDto;
+        }
+
+        throw new Error('Invalid API response structure');
     }
 
     private async getSession(): Promise<SupabaseSession> {
