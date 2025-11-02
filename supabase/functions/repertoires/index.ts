@@ -16,10 +16,12 @@ serve(async (request) => {
         // Obsługuje ścieżki:
         // - /repertoires
         // - /repertoires/{id}
+        // - /repertoires/{id}/publish
+        // - /repertoires/{id}/unpublish
         // - /repertoires/{id}/songs
         // - /repertoires/{id}/songs/reorder
         // - /repertoires/{id}/songs/{repertoireSongId}
-        const repertoiresPathRegex = /^\/repertoires(?:\/[^/]+(?:\/songs(?:\/(?:reorder|[^/]+))?)?)?$/;
+        const repertoiresPathRegex = /^\/repertoires(?:\/[^/]+(?:\/(publish|unpublish|songs(?:\/(?:reorder|[^/]+))?))?)?$/;
 
         if (repertoiresPathRegex.test(path)) {
             const user = await requireAuth(supabase);

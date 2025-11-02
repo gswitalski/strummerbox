@@ -1447,3 +1447,123 @@ export const reorderSongsInRepertoire = async ({
     return response;
 };
 
+// ============================================================================
+// Publish/Unpublish Repertoire Service
+// ============================================================================
+
+export type PublishRepertoireParams = {
+    supabase: RequestSupabaseClient;
+    repertoireId: string;
+    organizerId: string;
+};
+
+/**
+ * Publikuje repertuar - ustawia published_at na aktualny timestamp.
+ * Repertuar staje się dostępny publicznie.
+ *
+ * @throws {ApplicationError} 404 - repertuar nie istnieje lub nie należy do użytkownika
+ * @throws {ApplicationError} 500 - błąd bazy danych
+ */
+export const publishRepertoire = async ({
+    supabase,
+    repertoireId,
+    organizerId,
+}: PublishRepertoireParams): Promise<RepertoireDto> => {
+    const { data, error } = await supabase
+        .from('repertoires')
+        .update({ published_at: new Date().toISOString() })
+        .eq('id', repertoireId)
+        .eq('organizer_id', organizerId)
+        .select(REPERTOIRE_COLUMNS)
+        .single();
+
+    if (error) {
+        logger.error('Nie udało się opublikować repertuaru', {
+            organizerId,
+            repertoireId,
+            error,
+        });
+        throw createInternalError('Nie udało się opublikować repertuaru', error);
+    }
+
+    if (!data) {
+        logger.warn('Nie znaleziono repertuaru do publikacji', {
+            organizerId,
+            repertoireId,
+        });
+        throw createNotFoundError('Repertuar nie został znaleziony', { repertoireId });
+    }
+
+    logger.info('Pomyślnie opublikowano repertuar', {
+        organizerId,
+        repertoireId,
+    });
+
+    // Pobieramy pełny obiekt z piosenkami
+    const fullRepertoire = await fetchRepertoireWithSongs({
+        supabase,
+        repertoireId: data.id,
+        organizerId,
+    });
+
+    return fullRepertoire;
+};
+
+export type UnpublishRepertoireParams = {
+    supabase: RequestSupabaseClient;
+    repertoireId: string;
+    organizerId: string;
+};
+
+/**
+ * Odpublikowanie repertuaru - ustawienie published_at na null.
+ * Repertuar przestaje być dostępny publicznie.
+ *
+ * @throws {ApplicationError} 404 - repertuar nie istnieje lub nie należy do użytkownika
+ * @throws {ApplicationError} 500 - błąd bazy danych
+ */
+export const unpublishRepertoire = async ({
+    supabase,
+    repertoireId,
+    organizerId,
+}: UnpublishRepertoireParams): Promise<RepertoireDto> => {
+    const { data, error } = await supabase
+        .from('repertoires')
+        .update({ published_at: null })
+        .eq('id', repertoireId)
+        .eq('organizer_id', organizerId)
+        .select(REPERTOIRE_COLUMNS)
+        .single();
+
+    if (error) {
+        logger.error('Nie udało się odpublikować repertuaru', {
+            organizerId,
+            repertoireId,
+            error,
+        });
+        throw createInternalError('Nie udało się odpublikować repertuaru', error);
+    }
+
+    if (!data) {
+        logger.warn('Nie znaleziono repertuaru do odpublikowania', {
+            organizerId,
+            repertoireId,
+        });
+        throw createNotFoundError('Repertuar nie został znaleziony', { repertoireId });
+    }
+
+    logger.info('Pomyślnie odpublikowano repertuar', {
+        organizerId,
+        repertoireId,
+    });
+
+    // Pobieramy pełny obiekt z piosenkami
+    const fullRepertoire = await fetchRepertoireWithSongs({
+        supabase,
+        repertoireId: data.id,
+        organizerId,
+    });
+
+    return fullRepertoire;
+};
+

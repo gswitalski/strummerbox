@@ -5,7 +5,7 @@ import { createValidationError } from '../_shared/errors.ts';
 import { logger } from '../_shared/logger.ts';
 import type { AuthenticatedUser } from '../_shared/auth.ts';
 import type { RequestSupabaseClient } from '../_shared/supabase-client.ts';
-import { addSongsToRepertoire, createRepertoire, getRepertoireById, listRepertoires, removeSongFromRepertoire, reorderSongsInRepertoire, updateRepertoire } from './repertoires.service.ts';
+import { addSongsToRepertoire, createRepertoire, getRepertoireById, listRepertoires, publishRepertoire, removeSongFromRepertoire, reorderSongsInRepertoire, unpublishRepertoire, updateRepertoire } from './repertoires.service.ts';
 
 // ============================================================================
 // Validation Schemas
@@ -762,6 +762,112 @@ export const handleReorderRepertoireSongs = async (
     return jsonResponse<RepertoireReorderResponseDto>(response, { status: 200 });
 };
 
+/**
+ * Handler dla POST /repertoires/{id}/publish - publikacja repertuaru.
+ *
+ * Przepływ:
+ * 1. Uwierzytelnienie użytkownika (requireAuth w router)
+ * 2. Walidacja parametru path `id` (musi być UUID)
+ * 3. Wywołanie serwisu publishRepertoire
+ * 4. Zwrócenie odpowiedzi 200 OK z zaktualizowanym RepertoireDto
+ *
+ * @throws {ApplicationError} 400 - błąd walidacji (nieprawidłowy UUID)
+ * @throws {ApplicationError} 404 - repertuar nie istnieje lub nie należy do użytkownika
+ * @throws {ApplicationError} 500 - błąd serwera
+ */
+export const handlePublishRepertoire = async (
+    request: Request,
+    supabase: RequestSupabaseClient,
+    user: AuthenticatedUser,
+    repertoireId: string,
+): Promise<Response> => {
+    logger.info('Rozpoczęcie publikowania repertuaru', {
+        organizerId: user.id,
+        repertoireId,
+    });
+
+    // Walidacja parametru path (UUID)
+    const pathResult = GET_BY_ID_PATH_SCHEMA.safeParse({ id: repertoireId });
+
+    if (!pathResult.success) {
+        logger.warn('Błędy walidacji parametru path dla POST /repertoires/{id}/publish', {
+            issues: pathResult.error.issues,
+        });
+
+        throw createValidationError('Nieprawidłowy identyfikator repertuaru', pathResult.error.format());
+    }
+
+    const validatedId = pathResult.data.id;
+
+    // Wywołanie serwisu
+    const publishedRepertoire = await publishRepertoire({
+        supabase,
+        repertoireId: validatedId,
+        organizerId: user.id,
+    });
+
+    logger.info('Repertuar opublikowany pomyślnie', {
+        organizerId: user.id,
+        repertoireId: publishedRepertoire.id,
+        name: publishedRepertoire.name,
+    });
+
+    return jsonResponse<RepertoireDto>(publishedRepertoire, { status: 200 });
+};
+
+/**
+ * Handler dla POST /repertoires/{id}/unpublish - odpublikowanie repertuaru.
+ *
+ * Przepływ:
+ * 1. Uwierzytelnienie użytkownika (requireAuth w router)
+ * 2. Walidacja parametru path `id` (musi być UUID)
+ * 3. Wywołanie serwisu unpublishRepertoire
+ * 4. Zwrócenie odpowiedzi 200 OK z zaktualizowanym RepertoireDto
+ *
+ * @throws {ApplicationError} 400 - błąd walidacji (nieprawidłowy UUID)
+ * @throws {ApplicationError} 404 - repertuar nie istnieje lub nie należy do użytkownika
+ * @throws {ApplicationError} 500 - błąd serwera
+ */
+export const handleUnpublishRepertoire = async (
+    request: Request,
+    supabase: RequestSupabaseClient,
+    user: AuthenticatedUser,
+    repertoireId: string,
+): Promise<Response> => {
+    logger.info('Rozpoczęcie odpublikowania repertuaru', {
+        organizerId: user.id,
+        repertoireId,
+    });
+
+    // Walidacja parametru path (UUID)
+    const pathResult = GET_BY_ID_PATH_SCHEMA.safeParse({ id: repertoireId });
+
+    if (!pathResult.success) {
+        logger.warn('Błędy walidacji parametru path dla POST /repertoires/{id}/unpublish', {
+            issues: pathResult.error.issues,
+        });
+
+        throw createValidationError('Nieprawidłowy identyfikator repertuaru', pathResult.error.format());
+    }
+
+    const validatedId = pathResult.data.id;
+
+    // Wywołanie serwisu
+    const unpublishedRepertoire = await unpublishRepertoire({
+        supabase,
+        repertoireId: validatedId,
+        organizerId: user.id,
+    });
+
+    logger.info('Repertuar odpublikowany pomyślnie', {
+        organizerId: user.id,
+        repertoireId: unpublishedRepertoire.id,
+        name: unpublishedRepertoire.name,
+    });
+
+    return jsonResponse<RepertoireDto>(unpublishedRepertoire, { status: 200 });
+};
+
 // ============================================================================
 // Router
 // ============================================================================
@@ -773,6 +879,8 @@ export const handleReorderRepertoireSongs = async (
  * - POST /repertoires - utworzenie nowego repertuaru
  * - GET /repertoires/{id} - pobranie szczegółów repertuaru
  * - PATCH /repertoires/{id} - częściowa aktualizacja repertuaru
+ * - POST /repertoires/{id}/publish - publikacja repertuaru
+ * - POST /repertoires/{id}/unpublish - odpublikowanie repertuaru
  * - POST /repertoires/{id}/songs - dodawanie piosenek do repertuaru
  * - POST /repertoires/{id}/songs/reorder - zmiana kolejności piosenek w repertuarze
  * - DELETE /repertoires/{id}/songs/{repertoireSongId} - usunięcie piosenki z repertuaru
@@ -815,6 +923,42 @@ export const repertoiresRouter = async (
         if (request.method === 'POST') {
             return await handleAddSongsToRepertoire(request, supabase, user, repertoireId);
         }
+    }
+
+    // POST /repertoires/{id}/publish - publikacja repertuaru
+    const publishMatch = path.match(/^\/repertoires\/([^/]+)\/publish$/);
+
+    if (publishMatch) {
+        const repertoireId = publishMatch[1];
+
+        if (request.method === 'POST') {
+            return await handlePublishRepertoire(request, supabase, user, repertoireId);
+        }
+
+        return new Response(null, {
+            status: 405,
+            headers: {
+                Allow: 'POST',
+            },
+        });
+    }
+
+    // POST /repertoires/{id}/unpublish - odpublikowanie repertuaru
+    const unpublishMatch = path.match(/^\/repertoires\/([^/]+)\/unpublish$/);
+
+    if (unpublishMatch) {
+        const repertoireId = unpublishMatch[1];
+
+        if (request.method === 'POST') {
+            return await handleUnpublishRepertoire(request, supabase, user, repertoireId);
+        }
+
+        return new Response(null, {
+            status: 405,
+            headers: {
+                Allow: 'POST',
+            },
+        });
     }
 
     // GET /repertoires/{id} - pobranie szczegółów repertuaru (musi być przed GET /repertoires)
