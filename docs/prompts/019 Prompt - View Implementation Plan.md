@@ -18,56 +18,37 @@ Najpierw przejrzyj następujące informacje:
 
 3. Nazwa widoku do implementacji
 <view_name>
-13. Tryb Biesiada - Widok Piosenki (Biesiada Song View)
+6. Lista Piosenek (Song List View) - roszerzenie widoku o oopcję zmiany statusu piosenki
 </view_name>
 
 4. User Stories:
 <user_stories>
--   ID: US-016
--   Title: Tryb 'Biesiada' dla Organizatora
--   Description: Jako Organizator, chcę mieć dostęp do specjalnego trybu 'Biesiada' na moim telefonie, abym mógł prowadzić śpiewanie, widząc akordy.
+-   ID: US-005
+-   Title: Przeglądanie listy piosenek
+-   Description: Jako Organizator, chcę widzieć listę wszystkich moich piosenek, aby móc nimi zarządzać.
 -   Acceptance Criteria:
-    -   Po zalogowaniu mogę przełączyć się na tryb 'Biesiada'.
-    -   W tym trybie widzę listę moich repertuarów.
-    -   Po wybraniu repertuaru widze liste piosenek przypidaną do repertuaru. W tym trybie mogę powrócić do listy repertuarów lub wybrać dowolną piosenkę.
-    -   po wybraniu piosenki, widzę jej tekst wraz z akordami w uproszczonym widoku analogicznie jak anonimowy biesiadnik widzi publicznie udostepnioną piosenkę z tą różnicą, zę ja jako organizator widzę tekst piosenki wraz z akordami.
-    -   Interfejs jest uproszczony i zoptymalizowany pod kątem odczytu, bez funkcji edycyjnych.
+    -   W panelu zarządzania znajduje się sekcja z listą wszystkich dodanych przeze mnie piosenek.
+    -   Dla każdej piosenki na liście widoczne są opcje edycji i usunięcia.
+    -   Dla każdej piosenki na liście dostępna jest opcja zmiany statusu z 'szkic' na 'opublikowana' i odwrotnie.
+    -   Jeśli nie dodałem żadnej piosenki, widzę komunikat "pustego stanu" z zachętą do działania.
 </user_stories>
 
 5. Endpoint Description:
 <endpoint_description>
-#### GET /me/biesiada/repertoires/{id}/songs/{songId}
-- **Method:** GET
-- **Path:** `/me/biesiada/repertoires/{id}/songs/{songId}`
-- **Description:** Return specific song with chords and navigation metadata for organizer-led session.
-- **Response JSON:**
-```json
-{
-  "repertoireId": "5f7a8f35-1cde-4f62-991e-0e020df3ac42",
-  "repertoireName": "Ognisko 2025",
-  "songId": "58b8a0d0-5bf4-4d8a-82de-a2ad8c37b8a5",
-  "title": "Knockin' on Heaven's Door",
-  "content": "[G]Mama...",
-  "order": {
-    "position": 2,
-    "total": 12,
-    "previous": {
-      "songId": "prev-song-id",
-      "title": "Hej Sokoły"
-    },
-    "next": {
-      "songId": "next-song-id",
-      "title": "Wonderwall"
-    }
-  },
-  "share": {
-    "publicUrl": "https://app.strummerbox.com/public/repertoires/8729a118-3b9b-4ce4-b268-36c9d6a6a46c",
-    "qrPayload": "https://app.strummerbox.com/public/repertoires/8729a118-3b9b-4ce4-b268-36c9d6a6a46c"
-  }
-}
-```
+#### POST /songs/{id}/publish
+- **Method:** POST
+- **Path:** `/songs/{id}/publish`
+- **Description:** Mark song as published (sets `published_at = now()`).
+- **Request JSON:** _none_
+- **Response JSON:** song resource with `publishedAt` populated.
 - **Success:** `200 OK`
 - **Errors:** `401 Unauthorized`, `403 Forbidden`, `404 Not Found`.
+
+#### POST /songs/{id}/unpublish
+- **Method:** POST
+- **Path:** `/songs/{id}/unpublish`
+- **Description:** Revoke publication (`published_at = null`).
+- **Success/Error codes:** same as publish.
 
 </endpoint_description>
 

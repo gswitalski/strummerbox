@@ -91,7 +91,7 @@ Zarządzanie stanem aplikacji będzie realizowane za pomocą serwisów Angulara 
 
 *   **Ścieżka:** `/management/songs`
 *   **Główny cel:** Umożliwienie Organizatorowi przeglądania, wyszukiwania i zarządzania swoją biblioteką piosenek.
-*   **Kluczowe informacje:** Lista piosenek (na desktopie tabela, na mobile karty) z tytułem i datą modyfikacji. Pole wyszukiwania. Przycisk "Dodaj nową piosenkę". Opcje dla każdej piosenki: "Edytuj", "Usuń", "Udostępnij".
+*   **Kluczowe informacje:** Lista piosenek (na desktopie tabela, na mobile karty) z tytułem i datą modyfikacji. Pole wyszukiwania. Przycisk "Dodaj nową piosenkę". Opcje dla każdej piosenki: "Edytuj", "Usuń", "Udostępnij". Każda piosenka po klikneciu na status zienia staus z 'Szkic' na 'Opublikowana' i na odwrót.
 *   **Kluczowe komponenty:** `mat-table` / `mat-card`, `mat-form-field` (dla wyszukiwania), `mat-paginator`, `mat-icon-button`, `EmptyStateComponent`.
 *   **UX, dostępność, bezpieczeństwo:**
     *   **UX:** Obsługa pustego stanu (gdy brak piosenek). Wyszukiwanie w czasie rzeczywistym. Potwierdzenie akcji usunięcia w oknie modalnym. Wskaźnik ładowania (`MatSpinner`) podczas pobierania danych.
