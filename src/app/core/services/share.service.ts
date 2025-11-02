@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable, from, switchMap } from 'rxjs';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { Observable, from, switchMap, map, catchError, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { SupabaseService } from './supabase.service';
 import type { SongShareMetaDto, RepertoireShareMetaDto } from '../../../../packages/contracts/types';
@@ -29,13 +29,27 @@ export class ShareService {
     getSongShareMeta(songId: string): Observable<SongShareMetaDto> {
         return from(this.getSession()).pipe(
             switchMap((session) =>
-                this.http.get<{ data: SongShareMetaDto }>(`${this.baseUrl}/share/songs/${songId}`, {
+                this.http.get<{ data: SongShareMetaDto } | SongShareMetaDto>(`${this.baseUrl}/share/songs/${songId}`, {
                     headers: {
                         Authorization: `Bearer ${session.access_token}`,
                     },
                 })
             ),
-            switchMap((response) => [response.data])
+            map((response) => {
+                // API może zwracać dane bezpośrednio lub w { data: ... }
+                if (response && typeof response === 'object' && 'data' in response) {
+                    return response.data;
+                }
+                return response as SongShareMetaDto;
+            }),
+            catchError((error: HttpErrorResponse) => {
+                console.error('ShareService: Error fetching song share meta', {
+                    songId,
+                    status: error.status,
+                    message: error.message,
+                });
+                return throwError(() => error);
+            })
         );
     }
 
@@ -47,13 +61,27 @@ export class ShareService {
     getRepertoireShareMeta(repertoireId: string): Observable<RepertoireShareMetaDto> {
         return from(this.getSession()).pipe(
             switchMap((session) =>
-                this.http.get<{ data: RepertoireShareMetaDto }>(`${this.baseUrl}/share/repertoires/${repertoireId}`, {
+                this.http.get<{ data: RepertoireShareMetaDto } | RepertoireShareMetaDto>(`${this.baseUrl}/share/repertoires/${repertoireId}`, {
                     headers: {
                         Authorization: `Bearer ${session.access_token}`,
                     },
                 })
             ),
-            switchMap((response) => [response.data])
+            map((response) => {
+                // API może zwracać dane bezpośrednio lub w { data: ... }
+                if (response && typeof response === 'object' && 'data' in response) {
+                    return response.data;
+                }
+                return response as RepertoireShareMetaDto;
+            }),
+            catchError((error: HttpErrorResponse) => {
+                console.error('ShareService: Error fetching repertoire share meta', {
+                    repertoireId,
+                    status: error.status,
+                    message: error.message,
+                });
+                return throwError(() => error);
+            })
         );
     }
 

@@ -1,10 +1,3 @@
-<!-- Wskaźnik ładowania -->
-@if (isLoading) {
-    <div class="loading-container">
-        <mat-progress-bar mode="indeterminate"></mat-progress-bar>
-    </div>
-}
-
 <!-- Komunikat błędu -->
 @if (isError && errorData) {
     <div class="error-container">
@@ -16,36 +9,13 @@
 }
 
 <!-- Treść piosenki -->
-@if (isLoaded && loadedSong) {
-    <div class="song-container">
-        <header class="song-header">
-            <h1 class="song-title">{{ loadedSong.title }}</h1>
-            <div class="song-position">
-                Piosenka {{ loadedSong.order.position }} z {{ loadedSong.order.total }}
-            </div>
-        </header>
-
-        <div class="song-content">
-            <pre class="song-lyrics">{{ strippedContent }}</pre>
-        </div>
-
-        <nav class="song-navigation">
-            <a
-                mat-stroked-button
-                [routerLink]="['/public/repertoires', repertoirePublicId, 'songs', previousSongId]"
-                [disabled]="!hasPrevious"
-                class="nav-button nav-previous">
-                ← Poprzednia
-            </a>
-
-            <a
-                mat-stroked-button
-                [routerLink]="['/public/repertoires', repertoirePublicId, 'songs', nextSongId]"
-                [disabled]="!hasNext"
-                class="nav-button nav-next">
-                Następna →
-            </a>
-        </nav>
-    </div>
+@if ((isLoaded || isLoading) && navigation()) {
+    <stbo-song-viewer
+        [title]="loadedSong?.title ?? ''"
+        [content]="strippedContent()"
+        [navigation]="navigation()!"
+        [isLoading]="isLoading"
+        [showQrButton]="false">
+    </stbo-song-viewer>
 }
 

@@ -15,6 +15,14 @@ export const biesiadaRoutes: Routes = [
             ),
     },
     {
+        path: 'repertoires/:repertoireId/songs/:songId',
+        canActivate: [authGuard],
+        loadComponent: () =>
+            import('../biesiada-song/biesiada-song.view').then(
+                (m) => m.BiesiadaSongViewComponent
+            ),
+    },
+    {
         path: 'repertoires/:id',
         canActivate: [authGuard],
         loadComponent: () =>

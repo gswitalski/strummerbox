@@ -1,0 +1,22 @@
+<!-- Komunikat błędu -->
+@if (hasError) {
+    <div class="error-container">
+        <stbo-error-display
+            [code]="0"
+            [message]="errorMessage">
+        </stbo-error-display>
+    </div>
+}
+
+<!-- Treść piosenki z akordami -->
+@if (!hasError) {
+    <stbo-song-viewer
+        [title]="title()"
+        [content]="content()"
+        [navigation]="navigation() ?? { previous: null, next: null, back: null }"
+        [isLoading]="isLoading"
+        [showQrButton]="true"
+        (qrButtonClicked)="handleQrButtonClick()">
+    </stbo-song-viewer>
+}
+

@@ -6,18 +6,19 @@ import {
     inject,
     signal,
     OnDestroy,
+    computed,
 } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { Title, Meta } from '@angular/platform-browser';
-import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { MatButtonModule } from '@angular/material/button';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Subject, switchMap, takeUntil, catchError, of, map } from 'rxjs';
 import { PublicRepertoireService } from '../public-repertoire/services/public-repertoire.service';
 import { ErrorDisplayComponent } from '../../shared/components/error-display/error-display.component';
+import { SongViewerComponent } from '../../shared/components/song-viewer/song-viewer.component';
 import { stripChords } from '../public-song/utils/chord-stripper';
 import type { PublicRepertoireSongState } from './public-repertoire-song.types';
 import type { PublicRepertoireSongDto } from '../../../../packages/contracts/types';
+import type { SongNavigation } from '../../shared/components/song-viewer/song-viewer.types';
 
 /**
  * Główny komponent widoku publicznej piosenki w kontekście repertuaru (smart component).
@@ -32,10 +33,8 @@ import type { PublicRepertoireSongDto } from '../../../../packages/contracts/typ
     selector: 'stbo-public-repertoire-song-view',
     standalone: true,
     imports: [
-        MatProgressBarModule,
-        MatButtonModule,
-        RouterLink,
         ErrorDisplayComponent,
+        SongViewerComponent,
     ],
     templateUrl: './public-repertoire-song.view.html',
     styleUrl: './public-repertoire-song.view.scss',
@@ -81,40 +80,51 @@ export class PublicRepertoireSongViewComponent implements OnInit, OnDestroy {
     }
 
     /**
-     * Pomocnicze gettery dla nawigacji
+     * Computed signal - nawigacja dla SongViewerComponent
      */
-    get hasPrevious(): boolean {
-        return this.loadedSong?.order.previous !== null;
-    }
+    public readonly navigation = computed<SongNavigation | null>(() => {
+        const song = this.loadedSong;
+        if (!song) return null;
 
-    get hasNext(): boolean {
-        return this.loadedSong?.order.next !== null;
-    }
+        const repertoirePublicId = this.route.snapshot.paramMap.get('repertoirePublicId');
 
-    get previousSongId(): string | null {
-        const previousUrl = this.loadedSong?.order.previous;
-        return previousUrl ? this.extractSongId(previousUrl) : null;
-    }
-
-    get nextSongId(): string | null {
-        const nextUrl = this.loadedSong?.order.next;
-        return nextUrl ? this.extractSongId(nextUrl) : null;
-    }
-
-    get repertoirePublicId(): string | null {
-        return this.route.snapshot.paramMap.get('repertoirePublicId');
-    }
+        return {
+            previous: song.order.previous
+                ? {
+                      title: 'Poprzednia',
+                      link: [
+                          '/public/repertoires',
+                          repertoirePublicId,
+                          'songs',
+                          this.extractSongId(song.order.previous),
+                      ],
+                  }
+                : null,
+            next: song.order.next
+                ? {
+                      title: 'Następna',
+                      link: [
+                          '/public/repertoires',
+                          repertoirePublicId,
+                          'songs',
+                          this.extractSongId(song.order.next),
+                      ],
+                  }
+                : null,
+            back: ['/public/repertoires', repertoirePublicId],
+        };
+    });
 
     /**
-     * Zwraca treść piosenki bez akordów (stripped)
+     * Computed signal - treść piosenki bez akordów (stripped)
      */
-    get strippedContent(): string {
+    public readonly strippedContent = computed<string>(() => {
         const song = this.loadedSong;
         if (!song || !song.content) {
             return '';
         }
         return stripChords(song.content);
-    }
+    });
 
     ngOnInit(): void {
         // Reaktywne ładowanie danych przy każdej zmianie parametrów URL
