@@ -91,23 +91,23 @@ export class PublicRepertoireSongViewComponent implements OnInit, OnDestroy {
         return {
             previous: song.order.previous
                 ? {
-                      title: song.order.previous.title,
+                      title: 'Poprzednia',
                       link: [
                           '/public/repertoires',
                           repertoirePublicId,
                           'songs',
-                          this.extractSongId(song.order.previous.publicSongUrl),
+                          this.extractSongId(song.order.previous),
                       ],
                   }
                 : null,
             next: song.order.next
                 ? {
-                      title: song.order.next.title,
+                      title: 'Następna',
                       link: [
                           '/public/repertoires',
                           repertoirePublicId,
                           'songs',
-                          this.extractSongId(song.order.next.publicSongUrl),
+                          this.extractSongId(song.order.next),
                       ],
                   }
                 : null,
@@ -164,7 +164,7 @@ export class PublicRepertoireSongViewComponent implements OnInit, OnDestroy {
                             catchError((error: HttpErrorResponse) => {
                                 const code = error.status || 0;
                                 const message = this.getErrorMessage(code);
-                                
+
                                 // Ustaw ogólny tytuł dla błędów
                                 this.titleService.setTitle('Błąd - StrummerBox');
                                 this.metaService.updateTag({

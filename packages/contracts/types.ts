@@ -293,24 +293,14 @@ export type RepertoireSongsResponseDto = {
 // ============================================================================
 
 /**
- * Song link entry for public repertoire navigation.
- * Contains title and URL for navigation between songs.
- * Used in: GET /public/songs/{publicId}, GET /public/repertoires/{publicId}/songs/{songPublicId}
- */
-export type PublicSongLinkDto = {
-    title: SongRow['title'];
-    publicSongUrl: string;
-};
-
-/**
  * Navigation metadata for songs in a public repertoire context.
  * Used in: GET /public/songs/{publicId}, GET /public/repertoires/{publicId}/songs/{songPublicId}
  */
 export type PublicSongNavigationDto = {
     position: number;
     total: number;
-    previous: PublicSongLinkDto | null;
-    next: PublicSongLinkDto | null;
+    previous: string | null;
+    next: string | null;
 };
 
 /**
@@ -349,8 +339,8 @@ export type PublicRepertoireDto = {
 export type PublicRepertoireSongOrderDto = {
     position: number;
     total: number;
-    previous: PublicSongLinkDto | null;
-    next: PublicSongLinkDto | null;
+    previous: string | null;
+    next: string | null;
 };
 
 /**
