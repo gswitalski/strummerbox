@@ -5,39 +5,14 @@ Zanim zaczniemy, zapoznaj się z poniższymi informacjami:
 1. Route API specification:
 <route_api_specification>
 
-#### GET /me/biesiada/repertoires/{id}/songs/{songId}
-- **Method:** GET
-- **Path:** `/me/biesiada/repertoires/{id}/songs/{songId}`
-- **Description:** Return specific song with chords and navigation metadata for organizer-led session.
-- **Response JSON:**
-```json
-{
-  "repertoireId": "5f7a8f35-1cde-4f62-991e-0e020df3ac42",
-  "repertoireName": "Ognisko 2025",
-  "songId": "58b8a0d0-5bf4-4d8a-82de-a2ad8c37b8a5",
-  "title": "Knockin' on Heaven's Door",
-  "content": "[G]Mama...",
-  "order": {
-    "position": 2,
-    "total": 12,
-    "previous": {
-      "songId": "prev-song-id",
-      "title": "Hej Sokoły"
-    },
-    "next": {
-      "songId": "next-song-id",
-      "title": "Wonderwall"
-    }
-  },
-  "share": {
-    "publicUrl": "https://app.strummerbox.com/public/repertoires/8729a118-3b9b-4ce4-b268-36c9d6a6a46c",
-    "qrPayload": "https://app.strummerbox.com/public/repertoires/8729a118-3b9b-4ce4-b268-36c9d6a6a46c"
-  }
-}
-```
+#### POST /songs/{id}/publish
+- **Method:** POST
+- **Path:** `/songs/{id}/publish`
+- **Description:** Mark song as published (sets `published_at = now()`).
+- **Request JSON:** _none_
+- **Response JSON:** song resource with `publishedAt` populated.
 - **Success:** `200 OK`
 - **Errors:** `401 Unauthorized`, `403 Forbidden`, `404 Not Found`.
-</route_api_specification>
 
 2. Related database resources:
 <related_db_resources>
