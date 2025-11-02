@@ -32,6 +32,11 @@ export class PublicSongService {
                 headers: {
                     Authorization: `Bearer ${environment.supabase.anonKey}`,
                     apikey: environment.supabase.anonKey,
+                    // Wyłącz cache przeglądarki - zapobiega cachowaniu odpowiedzi błędów (np. 410)
+                    // gdy piosenka zostanie odpublikowana i opublikowana ponownie
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Pragma': 'no-cache',
+                    'Expires': '0',
                 },
             })
             .pipe(

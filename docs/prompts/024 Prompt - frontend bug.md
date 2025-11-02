@@ -34,12 +34,27 @@ Zapoznaj się z następującymi materiałami:
 
 <aktualne_zachowanie>
 
-✅ NAPRAWIONE - song viewer w trybie biesiady organizatora - przycisk kodem QR pokazuje link do piosenki z biesiady (publiczny link do piosenki w kontekście repertuaru)
+
+W insomni wywołuję
+get http://127.0.0.1:54321/functions/v1/public/repertoires/5a73b695-ccb3-4fb9-845f-7abbec1ae249
+
+i dostaję dane rpertuaru z kode 200
+
+dla funkcji na frorntendzie:http://localhost:4200/public/songs/27abd812-84b2-4583-abc4-886423d52b1c
+
+tego samego endpointa teoretyczne wuwołuje frontend. ale dla tego samego repertuaru frontend dostaje błąd 410 (repertuar nieopublkowane - chociaż jest opublikowany)
+
+ponieważ w insomni jest dobrze zakłądam że backend jest dobry czyli bład gdzies jest na frocie
+
+
+dodatkowa wskazówka:
+dla nowego repertuaru który został opublikowany - widok dizała. Wystarczy jednak raz repertuaer odpublicznić i upublicznić ponownie - i już widok nie zadziała, chociaż w insomni endpoint działa poprawnie
 
 </aktualne_zachowanie>
 
 <oczekiwane_zachowanie>
-✅ ZREALIZOWANE - song viewer w trybie biesiady organizatora - przycisk kodem QR pokazuje link do piosenki z biesiady (publiczny link do piosenki w kontekście repertuaru)
+
+frontend wysiwetla bubliczny widok repertuaru
 
 </oczekiwane_zachowanie>
 
