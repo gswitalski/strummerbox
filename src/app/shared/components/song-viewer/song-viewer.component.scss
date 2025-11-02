@@ -12,6 +12,9 @@
     display: flex;
     flex-direction: column;
     min-height: 100vh;
+    overflow-x: hidden;
+    box-sizing: border-box;
+    width: 100%;
 }
 
 // Toolbar
@@ -34,10 +37,12 @@
 .song-content-wrapper {
     flex: 1;
     overflow-y: auto;
+    overflow-x: hidden;
     padding: 1rem;
     max-width: 800px;
     margin: 0 auto;
     width: 100%;
+    box-sizing: border-box;
 }
 
 .song-title {
@@ -69,6 +74,13 @@
     line-height: 1.6;
     color: var(--mat-sys-on-surface);
 
+    // Zapobieganie poziomemu scrollowaniu
+    overflow-x: hidden;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    box-sizing: border-box;
+    max-width: 100%;
+
     // Mobile optimization
     @media (max-width: 767px) {
         font-size: 1rem;
@@ -84,40 +96,54 @@
 
 .song-content {
     display: block;
-    
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+
     // Override ChordProPreviewComponent styles dla spójności
     ::ng-deep .chord-pro-preview {
         gap: 0.5rem;
-        
+        width: 100%;
+        max-width: 100%;
+        overflow-wrap: break-word;
+        word-break: break-word;
+
         &__content {
             font-size: inherit;
             font-family: inherit;
             line-height: inherit;
             gap: 0.5rem;
+            max-width: 100%;
         }
-        
+
         &__chords {
             color: var(--mat-sys-primary);
             font-weight: 600;
             line-height: 1.4;
+            overflow-wrap: break-word;
+            word-break: break-word;
         }
-        
+
         &__lyrics {
             line-height: inherit;
+            overflow-wrap: break-word;
+            word-break: break-word;
         }
-        
+
         &__directive {
             font-style: italic;
             color: var(--mat-sys-on-surface-variant);
             line-height: inherit;
+            overflow-wrap: break-word;
         }
-        
+
         &__comment {
             color: var(--mat-sys-primary);
             opacity: 0.85;
             line-height: inherit;
+            overflow-wrap: break-word;
         }
-        
+
         &__spacer {
             height: 1rem;
         }
