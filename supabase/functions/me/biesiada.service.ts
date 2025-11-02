@@ -20,7 +20,7 @@ const BIESIADA_REPERTOIRE_COLUMNS = 'id, name, published_at';
 /**
  * Pobiera listę repertuarów organizatora w trybie Biesiada.
  * Zwraca uproszczoną listę z liczbą piosenek, zoptymalizowaną pod kątem szybkiego ładowania na urządzeniach mobilnych.
- * 
+ *
  * @param supabase - Klient Supabase skonfigurowany dla bieżącego żądania
  * @param params - Parametry zapytania
  * @param params.organizerId - ID uwierzytelnionego organizatora
@@ -82,7 +82,7 @@ export const getBiesiadaRepertoires = async (
 
     // Pobieramy liczbę piosenek dla każdego repertuaru w jednym zapytaniu
     const repertoireIds = repertoiresData.map(r => r.id);
-    
+
     const { data: songCounts, error: countError } = await supabase
         .from('repertoire_songs')
         .select('repertoire_id')
@@ -146,7 +146,7 @@ const REPERTOIRE_SONGS_COLUMNS = `
 /**
  * Pobiera szczegóły repertuaru wraz z listą piosenek dla trybu Biesiada.
  * Zwraca uporządkowaną listę piosenek z metadanymi do udostępniania.
- * 
+ *
  * @param supabase - Klient Supabase skonfigurowany dla bieżącego żądania
  * @param params - Parametry zapytania
  * @param params.repertoireId - UUID repertuaru
@@ -216,7 +216,7 @@ export const getBiesiadaRepertoireSongs = async (
 
     // Pobieramy publiczny URL aplikacji ze zmiennych środowiskowych
     const appPublicUrl = Deno.env.get('APP_PUBLIC_URL');
-    
+
     if (!appPublicUrl) {
         logger.error('APP_PUBLIC_URL environment variable is not set');
         throw createInternalError(
@@ -268,6 +268,7 @@ const REPERTOIRE_SONG_DETAIL_COLUMNS = `
         position,
         song:songs!inner (
             id,
+            public_id,
             title,
             content
         )
@@ -278,12 +279,12 @@ const REPERTOIRE_SONG_DETAIL_COLUMNS = `
  * Pobiera szczegółowe informacje o konkretnej piosence w kontekście repertuaru dla trybu Biesiada.
  * Zwraca pełną treść piosenki z akordami, metadane nawigacyjne (poprzednia/następna)
  * oraz informacje potrzebne do udostępniania publicznego.
- * 
+ *
  * UWAGA WYDAJNOŚCIOWA:
  * Obecna implementacja pobiera wszystkie piosenki z repertuaru, co jest akceptowalne dla
  * typowych repertuarów (10-50 piosenek). Dla repertuarów z setkami piosenek rozważ użycie
  * funkcji RPC PostgreSQL z funkcjami okna (LAG/LEAD) - patrz _docs/biesiada-song-detail-optimization.sql
- * 
+ *
  * @param supabase - Klient Supabase skonfigurowany dla bieżącego żądania
  * @param params - Parametry zapytania
  * @param params.repertoireId - UUID repertuaru
@@ -354,6 +355,7 @@ export const getBiesiadaRepertoireSongDetails = async (
     const songs = (repertoireData.repertoire_songs as any[])
         .map((rs) => ({
             songId: rs.song.id,
+            songPublicId: rs.song.public_id,
             title: rs.song.title,
             content: rs.song.content,
             position: rs.position,
@@ -394,7 +396,7 @@ export const getBiesiadaRepertoireSongDetails = async (
 
     // Pobieramy publiczny URL aplikacji ze zmiennych środowiskowych
     const appPublicUrl = Deno.env.get('APP_PUBLIC_URL');
-    
+
     if (!appPublicUrl) {
         logger.error('APP_PUBLIC_URL environment variable is not set');
         throw createInternalError(
@@ -403,8 +405,8 @@ export const getBiesiadaRepertoireSongDetails = async (
         );
     }
 
-    // Budujemy publicUrl i qrPayload dla repertuaru
-    const publicUrl = `${appPublicUrl}/public/repertoires/${repertoireData.public_id}`;
+    // Budujemy publicUrl i qrPayload dla piosenki w kontekście repertuaru
+    const publicUrl = `${appPublicUrl}/public/repertoires/${repertoireData.public_id}/songs/${currentSong.songPublicId}`;
 
     const share: BiesiadaSongShareMetaDto = {
         publicUrl,

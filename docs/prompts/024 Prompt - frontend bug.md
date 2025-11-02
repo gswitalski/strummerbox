@@ -34,12 +34,12 @@ Zapoznaj się z następującymi materiałami:
 
 <aktualne_zachowanie>
 
-song viewer - przycisk z następną piosenką ma z lewej strony ikonkę i napis z prawej strony "> Tytuł"
+✅ NAPRAWIONE - song viewer w trybie biesiady organizatora - przycisk kodem QR pokazuje link do piosenki z biesiady (publiczny link do piosenki w kontekście repertuaru)
 
 </aktualne_zachowanie>
 
 <oczekiwane_zachowanie>
-song viewer - przycisk z następną piosenką ma z prawej  strony ikonkę i napis z lewej strony "Tytuł >"
+✅ ZREALIZOWANE - song viewer w trybie biesiady organizatora - przycisk kodem QR pokazuje link do piosenki z biesiady (publiczny link do piosenki w kontekście repertuaru)
 
 </oczekiwane_zachowanie>
 
@@ -62,4 +62,3 @@ Przed podaniem rozwiązania, użyj tagów <analiza> do przemyślenia problemu:
 Następnie napraw buga.
 
 Pamiętaj, że wszystkie odpowiedzi, komentarze w kodzie i wyjaśnienia mają być w języku polskim. Kod powinien być gotowy do implementacji i zgodny z przedstawionym stosem technologicznym oraz planem API.
-
