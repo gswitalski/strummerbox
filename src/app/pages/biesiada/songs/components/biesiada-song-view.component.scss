@@ -1,0 +1,125 @@
+.biesiada-song-view {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    position: relative;
+}
+
+.song-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--mat-sys-surface);
+    border-bottom: 1px solid var(--mat-sys-outline-variant);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0 0.5rem;
+}
+
+.back-button {
+    flex-shrink: 0;
+}
+
+.song-title {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+}
+
+.song-content-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+    padding-bottom: 5rem; // Przestrzeń na FAB
+    gap: 1rem;
+}
+
+.song-info {
+    display: flex;
+    justify-content: center;
+    padding: 0.5rem;
+}
+
+.song-position {
+    color: var(--mat-sys-on-surface-variant);
+    font-size: 0.875rem;
+}
+
+.song-content {
+    flex: 1;
+    background: var(--mat-sys-surface-container-lowest);
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    overflow-x: auto;
+}
+
+.song-navigation {
+    display: flex;
+    gap: 1rem;
+    justify-content: space-between;
+    padding: 1rem 0;
+}
+
+.nav-button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 140px;
+
+    &.nav-previous {
+        justify-content: flex-start;
+    }
+
+    &.nav-next {
+        justify-content: flex-end;
+    }
+
+    &:disabled {
+        opacity: 0.4;
+    }
+}
+
+.share-fab {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    z-index: 100;
+}
+
+// Responsywność dla małych ekranów
+@media (max-width: 600px) {
+    .song-title {
+        font-size: 1.1rem;
+    }
+
+    .song-content-wrapper {
+        padding: 0.75rem;
+    }
+
+    .song-content {
+        padding: 1rem;
+    }
+
+    .song-navigation {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .nav-button {
+        width: 100%;
+        min-width: unset;
+    }
+
+    .share-fab {
+        bottom: 1rem;
+        right: 1rem;
+    }
+}
+
+

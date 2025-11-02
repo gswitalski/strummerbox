@@ -33,14 +33,14 @@ Zapoznaj się z następującymi materiałami:
 </aktualna_implementacja>
 
 <aktualne_zachowanie>
-na ekranie widoku listy piosenek w trybie biesiady organizatora brak pływającego przycisku do wygenerowania kodu QR z udostępnieniem repertuaru
-taki przycisk jest na widoku piosenki (w trybie biesiada organizatora)
+
+song viewer - przycisk z następną piosenką ma z lewej strony ikonkę i napis z prawej strony "> Tytuł"
 
 </aktualne_zachowanie>
 
 <oczekiwane_zachowanie>
-na ekranie widoku listy piosenek w trybie biesiady organizatora jest pływający przycisk do wygenerowania kodu QR z udostępnieniem repertuaru 
-taki jak na widoku piosenki (w trybie biesiada organizatora)
+song viewer - przycisk z następną piosenką ma z prawej  strony ikonkę i napis z lewej strony "Tytuł >"
+
 </oczekiwane_zachowanie>
 
 

@@ -1,0 +1,55 @@
+<div class="biesiada-song-view">
+    <!-- Nagłówek z tytułem -->
+    <mat-toolbar class="song-header">
+        <button mat-icon-button (click)="onBackClick()" class="back-button">
+            <mat-icon>arrow_back</mat-icon>
+        </button>
+        <h1 class="song-title">{{ songData().title }}</h1>
+    </mat-toolbar>
+
+    <!-- Treść piosenki z akordami -->
+    <div class="song-content-wrapper">
+        <div class="song-info">
+            <span class="song-position">
+                Piosenka {{ songData().order.position }} z {{ songData().order.total }}
+            </span>
+        </div>
+
+        <div class="song-content">
+            <stbo-chord-pro-preview [content]="songData().content" />
+        </div>
+
+        <!-- Nawigacja między piosenkami -->
+        <nav class="song-navigation">
+            <button
+                mat-stroked-button
+                (click)="onPreviousClick()"
+                [disabled]="!hasPrevious"
+                class="nav-button nav-previous">
+                <mat-icon>chevron_left</mat-icon>
+                Poprzednia
+            </button>
+
+            <button
+                mat-stroked-button
+                (click)="onNextClick()"
+                [disabled]="!hasNext"
+                class="nav-button nav-next">
+                Następna
+                <mat-icon>chevron_right</mat-icon>
+            </button>
+        </nav>
+    </div>
+
+    <!-- Floating Action Button do udostępniania -->
+    <button
+        mat-fab
+        color="primary"
+        (click)="onShareClick()"
+        class="share-fab"
+        aria-label="Udostępnij piosenkę">
+        <mat-icon>qr_code</mat-icon>
+    </button>
+</div>
+
+
