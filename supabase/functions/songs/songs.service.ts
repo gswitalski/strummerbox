@@ -447,6 +447,57 @@ export const publishSong = async ({
 };
 
 /**
+ * Parametry dla funkcji odpublikowania piosenki
+ */
+export type UnpublishSongParams = {
+    supabase: RequestSupabaseClient;
+    organizerId: string;
+    songId: string;
+};
+
+/**
+ * Odpublikowanie piosenki - ustawienie published_at na null.
+ * Piosenka przestaje być dostępna publicznie.
+ */
+export const unpublishSong = async ({
+    supabase,
+    organizerId,
+    songId,
+}: UnpublishSongParams): Promise<SongDto> => {
+    const { data, error } = await supabase
+        .from('songs')
+        .update({ published_at: null })
+        .eq('id', songId)
+        .eq('organizer_id', organizerId)
+        .select(SONG_COLUMNS)
+        .single();
+
+    if (error) {
+        logger.error('Nie udało się odpublikować piosenki', {
+            organizerId,
+            songId,
+            error,
+        });
+        throw createInternalError('Nie udało się odpublikować piosenki', error);
+    }
+
+    if (!data) {
+        logger.warn('Nie znaleziono piosenki do odpublikowania', {
+            organizerId,
+            songId,
+        });
+        throw createNotFoundError('Piosenka nie została znaleziona', { songId });
+    }
+
+    logger.info('Pomyślnie odpublikowano piosenkę', {
+        organizerId,
+        songId,
+    });
+
+    return mapToSongDto(data);
+};
+
+/**
  * Parametry dla funkcji pobierającej publiczną piosenkę
  */
 export type GetPublicSongParams = {

@@ -13,6 +13,7 @@ import {
     getPublicSongByPublicId,
     type SongPatchCommand,
     publishSong,
+    unpublishSong,
 } from './songs.service.ts';
 import type { GetSongsFilters } from './songs.service.ts';
 
@@ -429,6 +430,32 @@ export const handlePublishSong = async (
     return jsonResponse({ data: song }, { status: 200 });
 };
 
+/**
+ * Handler dla POST /songs/{id}/unpublish
+ * Odpublikowanie piosenki przez uwierzytelnionego organizatora
+ */
+export const handleUnpublishSong = async (
+    request: Request,
+    supabase: RequestSupabaseClient,
+    user: AuthenticatedUser,
+    rawSongId: string,
+): Promise<Response> => {
+    const songId = parseSongId(rawSongId);
+
+    logger.info('Rozpoczęto odpublikowanie piosenki', {
+        userId: user.id,
+        songId,
+    });
+
+    const song = await unpublishSong({
+        supabase,
+        organizerId: user.id,
+        songId,
+    });
+
+    return jsonResponse({ data: song }, { status: 200 });
+};
+
 export const songsRouter = async (
     request: Request,
     supabase: RequestSupabaseClient,
@@ -457,6 +484,21 @@ export const songsRouter = async (
         if (request.method === 'POST') {
             const songId = songPublishMatch[1];
             return await handlePublishSong(request, supabase, user, songId);
+        }
+
+        return new Response(null, {
+            status: 405,
+            headers: {
+                Allow: 'POST',
+            },
+        });
+    }
+
+    const songUnpublishMatch = path.match(/\/songs\/([^/]+)\/unpublish$/);
+    if (songUnpublishMatch) {
+        if (request.method === 'POST') {
+            const songId = songUnpublishMatch[1];
+            return await handleUnpublishSong(request, supabase, user, songId);
         }
 
         return new Response(null, {
