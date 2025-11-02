@@ -43,7 +43,7 @@ export class BiesiadaRepertoireSongListPageComponent implements OnInit, OnDestro
     ngOnInit(): void {
         // Get repertoire ID from route params
         const repertoireId = this.route.snapshot.paramMap.get('id');
-        
+
         if (!repertoireId) {
             // If no ID, navigate back to repertoires list
             this.navigateBack();
@@ -71,7 +71,7 @@ export class BiesiadaRepertoireSongListPageComponent implements OnInit, OnDestro
      */
     onSongSelected(songId: string): void {
         const repertoireId = this.vm().repertoireId;
-        
+
         if (!repertoireId) {
             return;
         }
@@ -84,7 +84,7 @@ export class BiesiadaRepertoireSongListPageComponent implements OnInit, OnDestro
      */
     onRetry(): void {
         const repertoireId = this.route.snapshot.paramMap.get('id');
-        
+
         if (repertoireId) {
             this.service.fetchRepertoireSongs(repertoireId);
         }
@@ -96,7 +96,7 @@ export class BiesiadaRepertoireSongListPageComponent implements OnInit, OnDestro
     showQrCode(): void {
         const share = this.vm().share;
         const repertoireName = this.vm().repertoireName;
-        
+
         if (!share) {
             return;
         }
@@ -109,7 +109,7 @@ export class BiesiadaRepertoireSongListPageComponent implements OnInit, OnDestro
 
         this.dialog.open(ShareDialogComponent, {
             data: dialogData,
-            width: '400px',
+            width: '600px',
             maxWidth: '90vw',
         });
     }

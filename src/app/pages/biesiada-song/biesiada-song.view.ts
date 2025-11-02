@@ -193,7 +193,7 @@ export class BiesiadaSongViewComponent implements OnInit, OnDestroy {
 
         this.dialog.open(ShareDialogComponent, {
             data: dialogData,
-            width: '400px',
+            width: '600px',
             maxWidth: '90vw',
         });
     }
