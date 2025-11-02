@@ -15,6 +15,7 @@
         [content]="content()"
         [navigation]="navigation() ?? { previous: null, next: null, back: null }"
         [isLoading]="isLoading"
+        [showChords]="true"
         [showQrButton]="true"
         (qrButtonClicked)="handleQrButtonClick()">
     </stbo-song-viewer>

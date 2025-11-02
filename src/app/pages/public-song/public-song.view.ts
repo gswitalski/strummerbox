@@ -5,18 +5,19 @@ import {
     WritableSignal,
     inject,
     signal,
+    computed,
 } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Title, Meta } from '@angular/platform-browser';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { PublicSongService } from './services/public-song.service';
 import { stripChords } from './utils/chord-stripper';
-import { SongContentViewComponent } from './components/song-content/song-content-view.component';
+import { SongViewerComponent } from '../../shared/components/song-viewer/song-viewer.component';
 import { ErrorDisplayComponent } from '../../shared/components/error-display/error-display.component';
 import type { PublicSongState } from './public-song.types';
 import type { PublicSongDto } from '../../../../packages/contracts/types';
+import type { SongNavigation } from '../../shared/components/song-viewer/song-viewer.types';
 
 /**
  * Główny komponent widoku publicznej piosenki (smart component).
@@ -31,8 +32,7 @@ import type { PublicSongDto } from '../../../../packages/contracts/types';
     selector: 'stbo-public-song-view',
     standalone: true,
     imports: [
-        MatProgressSpinnerModule,
-        SongContentViewComponent,
+        SongViewerComponent,
         ErrorDisplayComponent,
     ],
     templateUrl: './public-song.view.html',
@@ -76,6 +76,31 @@ export class PublicSongViewComponent implements OnInit {
         const currentState = this.state();
         return currentState.status === 'error' ? currentState.error : null;
     }
+
+    /**
+     * Computed signal - nawigacja dla SongViewerComponent (pusta, bez przycisków)
+     */
+    public readonly navigation = computed<SongNavigation>(() => {
+        return {
+            previous: null,
+            next: null,
+            back: null,
+        };
+    });
+
+    /**
+     * Computed signal - tytuł piosenki
+     */
+    public readonly title = computed<string>(() => {
+        return this.loadedSong?.title ?? '';
+    });
+
+    /**
+     * Computed signal - treść piosenki bez akordów
+     */
+    public readonly content = computed<string>(() => {
+        return this.loadedSong?.content ?? '';
+    });
 
     ngOnInit(): void {
         // Pobierz publicId z parametrów trasy

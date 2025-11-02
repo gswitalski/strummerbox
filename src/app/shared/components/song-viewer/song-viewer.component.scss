@@ -49,8 +49,79 @@
     width: 100%;
 }
 
+// Wspólny kontener dla obu widoków (z akordami i bez)
+.song-lyrics-container {
+    background-color: var(--mat-sys-surface-container);
+    padding: 1rem;
+    border-radius: 8px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 1.125rem;
+    line-height: 1.6;
+    color: var(--mat-sys-on-surface);
+
+    // Mobile optimization
+    @media (max-width: 767px) {
+        font-size: 1rem;
+        padding: 0.75rem;
+    }
+
+    // Desktop enhancement
+    @media (min-width: 1024px) {
+        font-size: 1.25rem;
+        padding: 1.5rem;
+    }
+}
+
 .song-content {
     display: block;
+    
+    // Override ChordProPreviewComponent styles dla spójności
+    ::ng-deep .chord-pro-preview {
+        gap: 0.5rem;
+        
+        &__content {
+            font-size: inherit;
+            font-family: inherit;
+            line-height: inherit;
+            gap: 0.5rem;
+        }
+        
+        &__chords {
+            color: var(--mat-sys-primary);
+            font-weight: 600;
+            line-height: 1.4;
+        }
+        
+        &__lyrics {
+            line-height: inherit;
+        }
+        
+        &__directive {
+            font-style: italic;
+            color: var(--mat-sys-on-surface-variant);
+            line-height: inherit;
+        }
+        
+        &__comment {
+            color: var(--mat-sys-primary);
+            opacity: 0.85;
+            line-height: inherit;
+        }
+        
+        &__spacer {
+            height: 1rem;
+        }
+    }
+}
+
+.song-lyrics-plain {
+    margin: 0;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    color: inherit;
 }
 
 // Nawigacja

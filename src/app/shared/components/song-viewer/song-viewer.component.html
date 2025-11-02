@@ -24,10 +24,18 @@
 
         <!-- Treść piosenki -->
         <div class="song-content-wrapper">
-            <stbo-chord-pro-preview
-                [content]="content()"
-                class="song-content">
-            </stbo-chord-pro-preview>
+            <div class="song-lyrics-container">
+                @if (showChords()) {
+                    <!-- Renderowanie z akordami -->
+                    <stbo-chord-pro-preview
+                        [content]="content()"
+                        class="song-content">
+                    </stbo-chord-pro-preview>
+                } @else {
+                    <!-- Renderowanie tylko tekstu (bez akordów) -->
+                    <pre class="song-lyrics-plain">{{ content() }}</pre>
+                }
+            </div>
         </div>
 
         <!-- Kontrolki nawigacyjne -->

@@ -55,6 +55,13 @@ export class SongViewerComponent {
     public readonly navigation = input.required<SongNavigation>();
 
     /**
+     * Określa, czy pokazywać akordy (true) czy tylko tekst (false)
+     * Gdy true - używa ChordProPreviewComponent do renderowania z akordami
+     * Gdy false - używa prostego <pre> tylko z tekstem
+     */
+    public readonly showChords = input<boolean>(true);
+
+    /**
      * Określa, czy przycisk FAB do pokazywania QR kodu powinien być widoczny
      */
     public readonly showQrButton = input<boolean>(false);

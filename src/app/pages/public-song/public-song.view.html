@@ -1,23 +1,21 @@
-<div class="public-song-view">
-    @if (isLoading) {
-        <div class="public-song-view__loading">
-            <mat-spinner diameter="60"></mat-spinner>
-            <p class="public-song-view__loading-text">Ładowanie piosenki...</p>
-        </div>
-    }
-
-    @if (isLoaded && loadedSong) {
-        <stbo-song-content-view
-            [title]="loadedSong.title"
-            [content]="loadedSong.content">
-        </stbo-song-content-view>
-    }
-
-    @if (isError && errorData) {
+<!-- Komunikat błędu -->
+@if (isError && errorData) {
+    <div class="error-container">
         <stbo-error-display
             [code]="errorData.code"
             [message]="errorData.message">
         </stbo-error-display>
-    }
-</div>
+    </div>
+}
 
+<!-- Treść piosenki -->
+@if (!isError) {
+    <stbo-song-viewer
+        [title]="title()"
+        [content]="content()"
+        [navigation]="navigation()"
+        [isLoading]="isLoading"
+        [showChords]="false"
+        [showQrButton]="false">
+    </stbo-song-viewer>
+}
