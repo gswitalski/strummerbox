@@ -1,5 +1,5 @@
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
-import { CommonModule, NgClass } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import {
     ChangeDetectionStrategy,
     Component,
@@ -13,6 +13,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSortModule, Sort } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -21,14 +22,7 @@ import type {
     SongListSortDirection,
     SongListSortField,
 } from '../../services/song-list.service';
-
-export interface SongSummaryVM {
-    id: string;
-    title: string;
-    createdAt: string;
-    updatedAt: string;
-    isPublished: boolean;
-}
+import type { SongListViewModel } from '../../song-list.types';
 
 @Component({
     selector: 'stbo-song-list',
@@ -39,9 +33,9 @@ export interface SongSummaryVM {
         MatCardModule,
         MatIconModule,
         MatProgressSpinnerModule,
+        MatSlideToggleModule,
         MatSortModule,
         MatTableModule,
-        NgClass,
     ],
     templateUrl: './song-list.component.html',
     styleUrl: './song-list.component.scss',
@@ -51,7 +45,7 @@ export class SongListComponent {
     private readonly breakpointObserver = inject(BreakpointObserver);
 
     @Input({ required: true })
-    public songs: SongSummaryVM[] = [];
+    public songs: SongListViewModel[] = [];
 
     @Input()
     public isLoading = false;
@@ -74,6 +68,9 @@ export class SongListComponent {
     @Output()
     public readonly sortChange = new EventEmitter<Sort>();
 
+    @Output()
+    public readonly statusChange = new EventEmitter<{ songId: string; isPublished: boolean }>();
+
     private readonly displayModeSignal: Signal<'table' | 'cards'> = this.createDisplayModeSignal();
 
     public readonly displayMode = this.displayModeSignal;
@@ -89,7 +86,7 @@ export class SongListComponent {
         );
     }
 
-    public trackBySongId(_index: number, item: SongSummaryVM): string {
+    public trackBySongId(_index: number, item: SongListViewModel): string {
         return item.id;
     }
 
@@ -107,5 +104,9 @@ export class SongListComponent {
 
     public handleShareSong(songId: string): void {
         this.shareSong.emit(songId);
+    }
+
+    public handleStatusChange(songId: string, isPublished: boolean): void {
+        this.statusChange.emit({ songId, isPublished });
     }
 }

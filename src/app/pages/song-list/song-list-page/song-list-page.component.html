@@ -57,6 +57,7 @@
                 (deleteSong)="onDeleteSong($event)"
                 (shareSong)="onShareSong($event)"
                 (sortChange)="onSortChange($event)"
+                (statusChange)="onToggleSongStatus($event.songId, $event.isPublished)"
             ></stbo-song-list>
 
             @if (isLoading()) {

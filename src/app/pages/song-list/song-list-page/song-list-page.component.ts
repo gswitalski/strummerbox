@@ -25,12 +25,10 @@ import type {
     SongListSortField,
 } from '../services/song-list.service';
 import { SongListService } from '../services/song-list.service';
-import {
-    SongListComponent,
-    type SongSummaryVM,
-} from '../components/song-list/song-list.component';
+import { SongListComponent } from '../components/song-list/song-list.component';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
 import type { SongSummaryDto } from '../../../../../packages/contracts/types';
+import type { SongListViewModel } from '../song-list.types';
 import type { Sort } from '@angular/material/sort';
 import { CommonModule } from '@angular/common';
 import { ShareService } from '../../../core/services/share.service';
@@ -38,7 +36,7 @@ import { ShareDialogComponent } from '../../../shared/components/share-dialog/sh
 import type { ShareDialogData } from '../../../shared/models/share-dialog.model';
 
 interface SongListState {
-    songs: SongSummaryVM[];
+    songs: SongListViewModel[];
     totalCount: number;
     currentPage: number;
     pageSize: number;
@@ -134,7 +132,7 @@ export class SongListPageComponent {
         () => this.viewState().totalCount
     );
 
-    public readonly songs: Signal<SongSummaryVM[]> = computed(
+    public readonly songs: Signal<SongListViewModel[]> = computed(
         () => this.viewState().songs
     );
 
@@ -251,6 +249,58 @@ export class SongListPageComponent {
         });
     }
 
+    /**
+     * Handles song status toggle (publish/unpublish).
+     * Updates the isTogglingStatus flag, calls the appropriate API method,
+     * and updates the song in the state with the new data.
+     */
+    public async onToggleSongStatus(songId: string, isPublished: boolean): Promise<void> {
+        // Set isTogglingStatus to true for the specific song
+        this.updateSongTogglingStatus(songId, true);
+
+        try {
+            // Call the appropriate API method
+            const updatedSong = isPublished
+                ? await this.songListService.unpublishSong(songId)
+                : await this.songListService.publishSong(songId);
+
+            // Update the song in the state with new data
+            this.state.update((current) => ({
+                ...current,
+                songs: current.songs.map((song) =>
+                    song.id === songId
+                        ? {
+                              ...song,
+                              publishedAt: updatedSong.publishedAt,
+                              isPublished: updatedSong.publishedAt !== null,
+                              isTogglingStatus: false,
+                          }
+                        : song
+                ),
+            }));
+
+            // Show success message
+            const message = isPublished
+                ? 'Piosenka została cofnięta do szkicu.'
+                : 'Piosenka została opublikowana.';
+            this.snackBar.open(message, undefined, {
+                duration: 3000,
+            });
+        } catch (error) {
+            console.error('SongListPageComponent: toggle status error', error);
+
+            // Revert the toggle and show error message
+            this.updateSongTogglingStatus(songId, false);
+            this.snackBar.open(
+                'Nie udało się zaktualizować statusu piosenki. Spróbuj ponownie.',
+                undefined,
+                {
+                    duration: 5000,
+                }
+            );
+        }
+    }
+
     public retryLoad(): void {
         this.refreshState.update((value) => value + 1);
     }
@@ -325,12 +375,29 @@ export class SongListPageComponent {
             }));
         }
     }
+
+    /**
+     * Updates the isTogglingStatus flag for a specific song.
+     */
+    private updateSongTogglingStatus(songId: string, isToggling: boolean): void {
+        this.state.update((current) => ({
+            ...current,
+            songs: current.songs.map((song) =>
+                song.id === songId
+                    ? { ...song, isTogglingStatus: isToggling }
+                    : song
+            ),
+        }));
+    }
 }
 
-const mapSongDtoToViewModel = (dto: SongSummaryDto): SongSummaryVM => ({
+const mapSongDtoToViewModel = (dto: SongSummaryDto): SongListViewModel => ({
     id: dto.id,
+    publicId: dto.publicId,
     title: dto.title,
+    publishedAt: dto.publishedAt,
     createdAt: new Date(dto.createdAt).toLocaleDateString('pl-PL'),
     updatedAt: new Date(dto.updatedAt).toLocaleDateString('pl-PL'),
     isPublished: dto.publishedAt !== null,
+    isTogglingStatus: false,
 });

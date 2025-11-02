@@ -11,6 +11,7 @@ import { firstValueFrom } from 'rxjs';
 
 import type {
     SongDeleteResponseDto,
+    SongDto,
     SongListResponseDto,
 } from '../../../../../packages/contracts/types';
 import { environment } from '../../../../environments/environment';
@@ -87,6 +88,56 @@ export class SongListService {
         } finally {
             this.isDeletingState.set(false);
         }
+    }
+
+    /**
+     * Publishes a song by calling the POST /songs/{id}/publish endpoint.
+     * @param songId - The ID of the song to publish
+     * @returns Promise with updated song data including publishedAt timestamp
+     * @throws Error if no active session or API call fails
+     */
+    public async publishSong(songId: string): Promise<SongDto> {
+        const session = await this.getSession();
+        const url = `${this.baseUrl}/${songId}/publish`;
+
+        const response = await firstValueFrom(
+            this.http.post<{ data: SongDto }>(
+                url,
+                {},
+                {
+                    headers: {
+                        Authorization: `Bearer ${session.access_token}`,
+                    },
+                }
+            )
+        );
+
+        return response.data;
+    }
+
+    /**
+     * Unpublishes a song by calling the POST /songs/{id}/unpublish endpoint.
+     * @param songId - The ID of the song to unpublish
+     * @returns Promise with updated song data with publishedAt set to null
+     * @throws Error if no active session or API call fails
+     */
+    public async unpublishSong(songId: string): Promise<SongDto> {
+        const session = await this.getSession();
+        const url = `${this.baseUrl}/${songId}/unpublish`;
+
+        const response = await firstValueFrom(
+            this.http.post<{ data: SongDto }>(
+                url,
+                {},
+                {
+                    headers: {
+                        Authorization: `Bearer ${session.access_token}`,
+                    },
+                }
+            )
+        );
+
+        return response.data;
     }
 
     private async getSession(): Promise<SupabaseSession> {

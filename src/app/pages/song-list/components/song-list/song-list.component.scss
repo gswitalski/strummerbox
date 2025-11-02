@@ -13,6 +13,28 @@
 
 table {
     width: 100%;
+    table-layout: fixed;
+
+    // Fixed column widths to prevent layout shift
+    th:nth-child(1), td:nth-child(1) { // Tytuł
+        width: auto;
+    }
+
+    th:nth-child(2), td:nth-child(2) { // Utworzono
+        width: 140px;
+    }
+
+    th:nth-child(3), td:nth-child(3) { // Zaktualizowano
+        width: 140px;
+    }
+
+    th:nth-child(4), td:nth-child(4) { // Status
+        width: 220px;
+    }
+
+    th:nth-child(5), td:nth-child(5) { // Akcje
+        width: 160px;
+    }
 }
 
 .song-list__status {
@@ -23,6 +45,21 @@ table {
 
     &--published {
         color: var(--mat-sys-primary);
+    }
+}
+
+.song-list__status-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-width: 170px; // Ensure consistent width for both "Szkic" and "Opublikowana"
+
+    mat-slide-toggle {
+        flex-shrink: 0;
+    }
+
+    mat-progress-spinner {
+        flex-shrink: 0;
     }
 }
 
