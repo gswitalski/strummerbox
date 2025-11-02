@@ -1,168 +1,179 @@
-# Plan implementacji widoku: Tryb Biesiada - Piosenka
+# Plan implementacji widoku: Tryb Biesiada - Widok Piosenki
 
 ## 1. Przegląd
 
-Widok "Tryb Biesiada - Piosenka" jest kluczowym elementem interfejsu dla zalogowanego organizatora podczas prowadzenia wydarzenia muzycznego. Jego głównym celem jest wyświetlenie tekstu piosenki wraz z akordami w sposób czytelny i uproszczony, zoptymalizowany pod kątem urządzeń mobilnych. Widok ten umożliwia również płynną nawigację do poprzedniej i następnej piosenki w ramach repertuaru oraz szybkie udostępnienie go uczestnikom za pomocą kodu QR. Interfejs jest pozbawiony funkcji edycyjnych, koncentrując się wyłącznie na prezentacji treści i ułatwieniu prowadzenia biesiady.
+Celem jest stworzenie widoku dla zalogowanego Organizatora w "Trybie Biesiada", który wyświetla pełną treść piosenki wraz z akordami. Widok ten, zoptymalizowany pod kątem urządzeń mobilnych, ma na celu ułatwienie prowadzenia śpiewu podczas spotkań. Umożliwi on płynną nawigację między utworami w ramach repertuaru oraz szybkie udostępnianie go uczestnikom za pomocą kodu QR.
+
+Implementacja zakłada refaktoryzację istniejącego widoku publicznej piosenki (`PublicRepertoireSongView`) w celu wydzielenia reużywalnego, prezentacyjnego komponentu `SongViewerComponent`, który będzie obsługiwał wyświetlanie treści zarówno dla anonimowego Biesiadnika, jak i zalogowanego Organizatora.
 
 ## 2. Routing widoku
 
-Widok będzie dostępny pod chronioną ścieżką, wymagającą uwierzytelnienia organizatora. Parametry w ścieżce (`:repertoireId`, `:songId`) są kluczowe do identyfikacji wyświetlanej piosenki w kontekście konkretnego repertuaru.
+Widok będzie dostępny pod chronioną ścieżką, wymagającą uwierzytelnienia.
 
 -   **Ścieżka:** `/biesiada/repertoires/:repertoireId/songs/:songId`
--   **Ochrona:** Dostęp chroniony przez `AuthGuard`, przeznaczony tylko для zalogowanych użytkowników.
+-   **Ochrona:** Dostęp chroniony przez `AuthGuard`.
+-   **Parametry:**
+    -   `repertoireId`: UUID repertuaru.
+    -   `songId`: UUID piosenki.
 
 ## 3. Struktura komponentów
 
-Struktura opiera się na komponencie stronicowym (`page`), który zarządza stanem i logiką, oraz komponentach prezentacyjnych odpowiedzialnych za poszczególne części interfejsu.
+Struktura opiera się na podziale na komponenty "smart" (odpowiedzialne za logikę) i "presentational" (odpowiedzialne za UI).
 
 ```
-BiesiadaSongPageComponent (komponent routowalny)
-│
-├── MatToolbarComponent (nagłówek)
-│   ├── Przycisk "Wstecz" (nawigacja do listy piosenek)
-│   └── Tytuł piosenki
-│
-├── BiesiadaSongViewComponent (prezentacja danych)
-│   ├── SongContentRendererComponent (renderowanie tekstu z akordami)
-│   └── Przyciski nawigacyjne "Poprzednia" / "Następna"
-│
-├── MatFab (przycisk do pokazania kodu QR)
-│
-└── (Warunkowo) MatSpinner / Komponent błędu
+- BiesiadaSongView (Smart Component)
+  - SongViewerComponent (Presentational Component)
+    - mat-toolbar (Nagłówek z tytułem i przyciskiem powrotu)
+    - stbo-song-content (Renderowanie treści piosenki z ChordPro)
+    - mat-fab (Pływający przycisk do pokazywania kodu QR)
+    - mat-icon-button (Przyciski nawigacyjne: "wstecz", "poprzedni", "następny")
 ```
 
 ## 4. Szczegóły komponentów
 
-### `BiesiadaSongPageComponent`
--   **Opis komponentu:** Główny, routowalny komponent widoku. Odpowiedzialny za pobranie `repertoireId` i `songId` z `ActivatedRoute`, komunikację z serwisem w celu załadowania danych piosenki oraz zarządzanie stanem widoku (ładowanie, błąd, załadowano).
--   **Główne elementy:** `mat-toolbar`, `stbo-biesiada-song-view`, `mat-fab-button`, `mat-spinner`.
--   **Obsługiwane zdarzenia:**
-    -   `navigateBack`: Wywoływane z `BiesiadaSongViewComponent`, nawiguje do listy piosenek repertuaru.
-    -   `navigatePrevious`, `navigateNext`: Wywoływane z `BiesiadaSongViewComponent`, nawiguje do odpowiedniej piosenki.
-    -   `showQrCode`: Wywoływane z `BiesiadaSongViewComponent`, otwiera dialog udostępniania.
--   **Typy:** `BiesiadaSongPageViewModel`.
--   **Propsy:** Brak (komponent routowalny).
+### Nowy Komponent: `BiesiadaSongView`
 
-### `BiesiadaSongViewComponent`
--   **Opis komponentu:** Komponent prezentacyjny, który przyjmuje dane piosenki i stan widoku. Odpowiada za wyświetlenie wszystkich informacji oraz delegowanie interakcji użytkownika do komponentu nadrzędnego.
--   **Główne elementy:** `mat-toolbar` z tytułem, `stbo-song-content-renderer` do wyświetlenia treści, `mat-button` dla nawigacji, `mat-fab-button` dla kodu QR.
--   **Obsługiwane zdarzenia:**
-    -   `(navigateBack)`: Emitowane po kliknięciu przycisku "wstecz".
-    -   `(navigatePrevious)`: Emitowane po kliknięciu przycisku "Poprzednia".
-    -   `(navigateNext)`: Emitowane po kliknięciu przycisku "Następna".
-    -   `(showQrCode)`: Emitowane po kliknięciu przycisku FAB.
--   **Typy:** `BiesiadaRepertoireSongDetailDto`.
--   **Propsy (Inputs):**
-    -   `@Input() songData: BiesiadaRepertoireSongDetailDto | null`
-    -   `@Input() isLoading: boolean`
+-   **Lokalizacja:** `src/app/pages/biesiada-song/biesiada-song.view.ts`
+-   **Typ:** Smart Component (standalone)
+-   **Opis:** Główny komponent widoku, odpowiedzialny za pobieranie danych z API na podstawie parametrów z URL, zarządzanie stanem (ładowanie, błąd, dane) oraz obsługę akcji użytkownika, takich jak wyświetlenie dialogu z kodem QR.
+-   **Główne elementy:**
+    -   Będzie renderować komponent `SongViewerComponent`, przekazując mu odpowiednio przetworzone dane.
+    -   Zawiera logikę do obsługi `MatDialog` dla `ShareDialogComponent`.
+-   **Obsługiwane interakcje:**
+    -   Po inicjalizacji: pobiera `repertoireId` i `songId` z `ActivatedRoute` i wywołuje serwis w celu pobrania danych piosenki.
+    -   Obsługa kliknięcia przycisku QR: Otwiera `ShareDialogComponent` z danymi do udostępniania (`publicUrl`, `qrPayload`).
+-   **Typy:**
+    -   DTO: `BiesiadaRepertoireSongDetailDto`
+    -   ViewModel: `BiesiadaSongViewModel`
 
-### `SongContentRendererComponent`
--   **Opis komponentu:** Reużywalny komponent odpowiedzialny za parsowanie i renderowanie tekstu piosenki w formacie ChordPro. Akordy `[C]` są automatycznie umieszczane nad odpowiednimi fragmentami tekstu.
--   **Główne elementy:** Kontener (`div`) z dynamicznie generowanymi elementami `span` dla tekstu i akordów.
--   **Obsługiwane zdarzenia:** Brak.
--   **Typy:** `string`.
+### Nowy Komponent: `SongViewerComponent` (Współdzielony)
+
+-   **Lokalizacja:** `src/app/shared/components/song-viewer/song-viewer.component.ts`
+-   **Typ:** Presentational Component (standalone)
+-   **Opis:** Reużywalny komponent odpowiedzialny wyłącznie za wyświetlanie interfejsu piosenki. Jego wygląd i funkcjonalność są w pełni konfigurowalne za pomocą propsów. Będzie używany zarówno przez `BiesiadaSongView`, jak i zrefaktoryzowany `PublicRepertoireSongView`.
+-   **Główne elementy:**
+    -   `mat-toolbar`: Wyświetla tytuł i przycisk powrotu.
+    -   `div.song-content-wrapper`: Kontener na komponent `stbo-song-content`.
+    -   `stbo-song-content`: Komponent renderujący tekst piosenki z formatu ChordPro.
+    -   `div.navigation-controls`: Kontener na przyciski nawigacyjne "poprzednia" i "następna".
+    -   `mat-fab-button`: Opcjonalny przycisk do pokazywania kodu QR.
 -   **Propsy (Inputs):**
-    -   `@Input() content: string | null | undefined`
+    -   `title: string`: Tytuł piosenki.
+    -   `content: string`: Treść piosenki.
+    -   `navigation: SongNavigation`: Obiekt z linkami nawigacyjnymi.
+    -   `showQrButton: boolean`: Determinuje widoczność przycisku FAB.
+    -   `isLoading: boolean`: Włącza/wyłącza wyświetlanie wskaźnika ładowania.
+-   **Zdarzenia (Outputs):**
+    -   `qrButtonClicked: EventEmitter<void>`: Emitowane po kliknięciu przycisku udostępniania.
+
+### Refaktoryzacja: `PublicRepertoireSongView`
+
+-   **Lokalizacja:** `src/app/pages/public-repertoire-song/public-repertoire-song.view.ts`
+-   **Opis:** Komponent zostanie uproszczony. Jego głównym zadaniem będzie pobranie danych publicznej piosenki, usunięcie z niej akordów, a następnie przekazanie przygotowanych danych do reużywalnego komponentu `SongViewerComponent`. Wprowadzony zostanie także przycisk powrotu do listy piosenek dla spójności z widokiem Biesiada.
 
 ## 5. Typy
 
-Do implementacji widoku potrzebne będą istniejące typy DTO z pakietu `@strummerbox/contracts` oraz dedykowany ViewModel do zarządzania stanem.
+Wprowadzone zostaną nowe typy i modele widoku, aby zapewnić silne typowanie i oddzielić logikę od prezentacji.
 
--   **DTO (z API):** `BiesiadaRepertoireSongDetailDto` - główny obiekt danych zawierający wszystkie informacje o piosence, jej kolejności i metadanych do udostępniania.
+```typescript
+// src/app/shared/components/song-viewer/song-viewer.types.ts
 
--   **ViewModel (do stworzenia):**
-    ```typescript
-    // Plik: src/app/pages/biesiada/songs/models/biesiada-song-page.types.ts
-    import { BiesiadaRepertoireSongDetailDto } from '@strummerbox/contracts';
+// Opisuje pojedynczy link nawigacyjny
+export interface SongNavLink {
+  title: string;
+  link: any[]; // Router link array
+}
 
-    export type BiesiadaSongState = 'loading' | 'loaded' | 'error';
+// Definiuje kompletny zestaw linków nawigacyjnych dla komponentu
+export interface SongNavigation {
+  previous: SongNavLink | null;
+  next: SongNavLink | null;
+  back: any[] | null; // Router link array for the back button
+}
 
-    export interface BiesiadaSongPageViewModel {
-        state: BiesiadaSongState;
-        data: BiesiadaRepertoireSongDetailDto | null;
-        error: string | null;
-    }
-    ```
+// src/app/pages/biesiada-song/biesiada-song.types.ts
+
+// ViewModel używany przez BiesiadaSongView do przechowywania stanu
+export interface BiesiadaSongViewModel {
+  title: string;
+  content: string;
+  navigation: SongNavigation;
+  share: {
+    publicUrl: string;
+    qrPayload: string;
+  };
+}
+```
 
 ## 6. Zarządzanie stanem
 
-Stan będzie zarządzany lokalnie w ramach komponentu z użyciem dedykowanego serwisu i sygnałów (Angular Signals), zgodnie z najnowszymi praktykami Angulara.
+Stan będzie zarządzany lokalnie w komponencie `BiesiadaSongView` przy użyciu sygnałów Angulara, zgodnie z najlepszymi praktykami.
 
--   **`BiesiadaSongPageService`:** Serwis `providedIn: 'root'` lub w komponencie, który będzie zarządzał stanem `BiesiadaSongPageViewModel`.
--   **Sygnał stanu:** Serwis będzie eksponował publiczny, niemodyfikowalny sygnał:
-    `public readonly viewModel = computed<BiesiadaSongPageViewModel>(() => this.state());`
--   **Logika:** Serwis będzie posiadał metodę `loadSong(repertoireId: string, songId: string)`, która wykonuje żądanie API, a następnie aktualizuje wewnętrzny, zapisywalny sygnał `state` w zależności od wyniku operacji (sukces, błąd).
--   **Komponent:** `BiesiadaSongPageComponent` wstrzyknie serwis, odczyta `repertoireId` i `songId` z `ActivatedRoute`, a następnie wywoła metodę `loadSong`. Widok będzie renderowany na podstawie wartości sygnału `viewModel`.
+-   **Główny sygnał stanu:**
+    ```typescript
+    state = signal<{
+      data: BiesiadaSongViewModel | null;
+      isLoading: boolean;
+      error: Error | null;
+    }>({ data: null, isLoading: true, error: null });
+    ```
+-   **Pobieranie danych:** Sygnały `repertoireId` i `songId` będą pochodzić z `ActivatedRoute.paramMap`. Zmiana któregokolwiek z nich (np. podczas nawigacji "next/previous") wywoła `effect`, który uruchomi proces pobierania danych z API.
+-   **Logika:**
+    1.  Komponent jest inicjalizowany, `isLoading` ma wartość `true`.
+    2.  `effect` pobiera parametry z URL i wywołuje metodę w serwisie.
+    3.  W przypadku sukcesu: odpowiedź z API jest mapowana na `BiesiadaSongViewModel`, `isLoading` zmienia się na `false`, a dane są zapisywane w sygnale `state`.
+    4.  W przypadku błędu: `error` jest zapisywany w sygnale `state`, a `isLoading` zmienia się na `false`.
 
 ## 7. Integracja API
 
-Integracja z backendem będzie realizowana poprzez serwis, który hermetyzuje logikę wywołań HTTP.
+Integracja z backendem będzie realizowana poprzez dedykowany serwis.
 
--   **Endpoint:** `GET /api/me/biesiada/repertoires/:repertoireId/songs/:songId`
--   **Serwis danych:** Dedykowana metoda w `BiesiadaDataService` (lub podobnym).
+-   **Serwis:** `BiesiadaService` (`src/app/core/services/biesiada.service.ts`)
+-   **Metoda:**
     ```typescript
-    getBiesiadaSong(repertoireId: string, songId: string): Observable<BiesiadaRepertoireSongDetailDto> {
-        const url = `/api/me/biesiada/repertoires/${repertoireId}/songs/${songId}`;
-        return this.httpClient.get<BiesiadaRepertoireSongDetailDto>(url);
-    }
+    getSongDetails(repertoireId: string, songId: string): Observable<BiesiadaRepertoireSongDetailDto>
     ```
--   **Typ odpowiedzi:** `BiesiadaRepertoireSongDetailDto`
--   **Obsługa w `BiesiadaSongPageService`:** Serwis subskrybuje do `Observable` i aktualizuje sygnał stanu.
+-   **Endpoint:** `GET /api/me/biesiada/repertoires/{repertoireId}/songs/{songId}`
+-   **Typ odpowiedzi (DTO):** `BiesiadaRepertoireSongDetailDto`
+-   **Mapowanie:** W `BiesiadaSongView`, otrzymane DTO zostanie zmapowane na `BiesiadaSongViewModel`, np. `order.previous` zostanie przekształcone na `navigation.previous` z odpowiednio sformatowanym linkiem dla `routerLink`.
 
 ## 8. Interakcje użytkownika
 
--   **Nawigacja wstecz:** Kliknięcie ikony strzałki w `mat-toolbar` powoduje wywołanie `router.navigate` do widoku listy piosenek danego repertuaru (`/biesiada/repertoires/:repertoireId`).
--   **Nawigacja "Poprzednia"/"Następna":**
-    -   Kliknięcie przycisku "Poprzednia" lub "Następna" powoduje nawigację do nowej ścieżki, podmieniając `songId` w URL na `songId` z obiektu `previous` lub `next` w danych piosenki.
-    -   Przyciski są nieaktywne (`disabled`), jeśli `data.order.previous` lub `data.order.next` ma wartość `null`.
--   **Udostępnianie (QR):**
-    -   Kliknięcie przycisku `mat-fab` powoduje otwarcie `ShareDialogComponent` (przez `MatDialog`).
-    -   Do dialogu przekazywane są dane z `data.share` (`publicUrl`, `qrPayload`).
+-   **Nawigacja do widoku:** Użytkownik wchodzi na ścieżkę. Wyświetlany jest wskaźnik ładowania, a następnie treść piosenki.
+-   **Kliknięcie "Następna":** Aplikacja nawiguje do URL następnej piosenki. Komponent reaguje na zmianę parametru `:songId` i pobiera nowe dane.
+-   **Kliknięcie "Poprzednia":** Analogicznie do "Następna".
+-   **Kliknięcie "Powrót":** Aplikacja nawiguje do listy piosenek danego repertuaru (`/biesiada/repertoires/:repertoireId`).
+-   **Kliknięcie przycisku "Pokaż QR":** Wywołuje metodę w `BiesiadaSongView`, która otwiera `ShareDialogComponent`, przekazując mu dane z `state.data.share`.
 
 ## 9. Warunki i walidacja
 
-Walidacja po stronie frontendu jest minimalna, ponieważ opiera się na obsłudze odpowiedzi z API.
-
--   **Parametry routingu:** Komponent musi poprawnie odczytać `repertoireId` i `songId` z `ActivatedRoute`.
--   **Istnienie nawigacji:** Stan `disabled` przycisków "Poprzednia" i "Następna" jest dynamicznie powiązany z istnieniem obiektów `data.order.previous` i `data.order.next`.
+-   **Przyciski nawigacyjne:** W `SongViewerComponent` przyciski "Poprzednia" i "Następna" będą nieaktywne (`disabled`) lub ukryte (`*ngIf`), jeśli odpowiednie obiekty w `navigation.previous` lub `navigation.next` mają wartość `null`.
+-   **Przycisk QR:** Przycisk FAB będzie widoczny tylko wtedy, gdy props `showQrButton` będzie ustawiony na `true`.
 
 ## 10. Obsługa błędów
 
--   **404 Not Found:** Jeśli API zwróci status 404, `BiesiadaSongPageService` ustawi stan na `error` z komunikatem, np. "Nie znaleziono piosenki w tym repertuarze". Komponent wyświetli ten komunikat.
--   **401 Unauthorized / 403 Forbidden:** Błędy te powinny być globalnie przechwytywane przez `HttpInterceptor`, który przekieruje użytkownika na stronę logowania.
--   **5xx / Błędy sieciowe:** Serwis ustawi stan na `error` z ogólnym komunikatem, np. "Wystąpił błąd serwera. Spróbuj ponownie później". Można dodać przycisk "Spróbuj ponownie", który ponownie wywoła metodę `loadSong`.
--   **Stan ładowania:** Podczas oczekiwania na odpowiedź z API, na ekranie będzie wyświetlany `mat-spinner`.
+-   **Błąd 404 (Not Found):** Jeśli API zwróci 404, komponent wyświetli komunikat o błędzie, np. "Nie znaleziono piosenki w tym repertuarze" za pomocą dedykowanego komponentu `EmptyStateComponent` lub podobnego.
+-   **Błąd 401/403 (Unauthorized/Forbidden):** Błędy te będą przechwytywane globalnie przez `HttpInterceptor`, który przekieruje użytkownika na stronę logowania.
+-   **Błędy 5xx (Server Error):** Komponent wyświetli generyczny komunikat o błędzie, np. "Wystąpił nieoczekiwany błąd. Spróbuj ponownie później."
+-   **Stan błędu:** Obiekt błędu zostanie zapisany w sygnale `state`, co pozwoli na warunkowe renderowanie odpowiedniego komunikatu w szablonie HTML.
 
 ## 11. Kroki implementacji
 
-1.  **Stworzenie struktury plików:**
-    -   Utworzenie katalogu: `src/app/pages/biesiada/songs/`
-    -   Utworzenie plików dla komponentu `BiesiadaSongPageComponent`: `.ts`, `.html`, `.scss`.
-    -   Utworzenie pliku z typami: `models/biesiada-song-page.types.ts`.
-    -   Utworzenie serwisu stanu: `services/biesiada-song-page.service.ts`.
-2.  **Routing:**
-    -   Dodanie nowej ścieżki `/biesiada/repertoires/:repertoireId/songs/:songId` do modułu routingu, wskazując na `BiesiadaSongPageComponent`.
-3.  **Implementacja serwisu (`BiesiadaSongPageService`):**
-    -   Zdefiniowanie `BiesiadaSongPageViewModel` i sygnałów stanu.
-    -   Implementacja metody `loadSong` z logiką wywołania API (poprzez wstrzyknięty serwis danych) i aktualizacją sygnału.
-4.  **Implementacja `BiesiadaSongPageComponent`:**
-    -   Wstrzyknięcie `ActivatedRoute` i `BiesiadaSongPageService`.
-    -   W `ngOnInit` (lub resolverze), odczytanie parametrów z URL i wywołanie `service.loadSong()`.
-    -   Stworzenie szablonu HTML z użyciem `@switch` do obsługi stanów `loading`, `loaded`, `error`.
-    -   Przekazanie danych do `BiesiadaSongViewComponent`.
-    -   Implementacja logiki dla zdarzeń nawigacji i otwierania dialogu.
-5.  **Implementacja `BiesiadaSongViewComponent`:**
-    -   Zdefiniowanie `@Input()` dla danych piosenki.
-    -   Zdefiniowanie `@Output()` dla interakcji użytkownika.
-    -   Stworzenie szablonu HTML z `mat-toolbar`, `mat-fab-button` i przyciskami nawigacyjnymi.
-    -   Wykorzystanie komponentu `stbo-song-content-renderer` do wyświetlenia treści.
-6.  **Implementacja `SongContentRendererComponent` (jeśli nie istnieje):**
-    -   Zdefiniowanie `@Input() content`.
-    -   Implementacja logiki do parsowania formatu ChordPro i renderowania HTML.
-    -   Dodanie stylów SCSS do poprawnego pozycjonowania akordów nad tekstem.
-7.  **Dialog udostępniania:**
-    -   Upewnienie się, że `ShareDialogComponent` istnieje i może przyjąć dane (`publicUrl`, `qrPayload`).
-    -   Podłączenie otwierania dialogu pod przycisk FAB.
-8.  **Stylowanie i testowanie:**
-    -   Dostosowanie stylów dla optymalnej czytelności na urządzeniach mobilnych.
-    -   Manualne przetestowanie wszystkich interakcji, nawigacji oraz obsługi błędów.
+1.  **Stworzenie typów:** Zdefiniowanie interfejsów `SongNavLink`, `SongNavigation` oraz `BiesiadaSongViewModel` w dedykowanych plikach `*.types.ts`.
+2.  **Stworzenie `BiesiadaService`:** Implementacja serwisu z metodą `getSongDetails` do komunikacji z API.
+3.  **Stworzenie `SongViewerComponent`:**
+    -   Wygenerowanie nowego, współdzielonego komponentu.
+    -   Implementacja szablonu HTML z `mat-toolbar`, `stbo-song-content` i przyciskami.
+    -   Zdefiniowanie wejść (`@Input`) i wyjść (`@Output`) komponentu.
+    -   Dodanie logiki do warunkowego wyświetlania/deaktywowania elementów na podstawie propsów.
+4.  **Refaktoryzacja `PublicRepertoireSongView`:**
+    -   Aktualizacja szablonu, aby używał `<stbo-song-viewer>`.
+    -   Dostosowanie logiki komponentu, aby mapowała dane publicznej piosenki na propsy dla `SongViewerComponent`.
+    -   Dodanie przycisku powrotu do logiki nawigacji.
+5.  **Stworzenie `BiesiadaSongView`:**
+    -   Wygenerowanie nowego komponentu i zdefiniowanie dla niego routingu.
+    -   Implementacja logiki pobierania danych z `BiesiadaService` przy użyciu sygnałów i `effect`.
+    -   Stworzenie metody mapującej DTO na ViewModel.
+    -   Implementacja szablonu używającego `<stbo-song-viewer>` i przekazującego dane z sygnału `state`.
+    -   Dodanie obsługi otwierania `ShareDialogComponent`.
+6.  **Testowanie:** Weryfikacja obu widoków (publicznego i biesiada) pod kątem poprawnego działania, nawigacji, obsługi błędów i spójności UI.
