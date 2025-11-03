@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { SongCreateCommand, SongDetailDto, SongListResponseDto, PublicSongDto } from '../../../packages/contracts/types.ts';
+import type { SongCreateCommand, SongDetailDto, SongListResponseDto, PublicSongDto, SongDeleteResponseDto } from '../../../packages/contracts/types.ts';
 import { jsonResponse } from '../_shared/http.ts';
 import { createValidationError } from '../_shared/errors.ts';
 import { logger } from '../_shared/logger.ts';
@@ -14,6 +14,7 @@ import {
     type SongPatchCommand,
     publishSong,
     unpublishSong,
+    deleteSong,
 } from './songs.service.ts';
 import type { GetSongsFilters } from './songs.service.ts';
 
@@ -456,6 +457,37 @@ export const handleUnpublishSong = async (
     return jsonResponse({ data: song }, { status: 200 });
 };
 
+/**
+ * Handler dla DELETE /songs/{id}
+ * Usunięcie piosenki z biblioteki uwierzytelnionego organizatora
+ */
+export const handleDeleteSong = async (
+    request: Request,
+    supabase: RequestSupabaseClient,
+    user: AuthenticatedUser,
+    rawSongId: string,
+): Promise<Response> => {
+    const songId = parseSongId(rawSongId);
+
+    logger.info('Rozpoczęto usuwanie piosenki', {
+        userId: user.id,
+        songId,
+    });
+
+    const deletedSongId = await deleteSong({
+        supabase,
+        organizerId: user.id,
+        songId,
+    });
+
+    const responseBody: SongDeleteResponseDto = {
+        id: deletedSongId,
+        deleted: true,
+    };
+
+    return jsonResponse({ data: responseBody }, { status: 200 });
+};
+
 export const songsRouter = async (
     request: Request,
     supabase: RequestSupabaseClient,
@@ -522,10 +554,14 @@ export const songsRouter = async (
             return await handleGetSong(request, supabase, user, songId);
         }
 
+        if (request.method === 'DELETE') {
+            return await handleDeleteSong(request, supabase, user, songId);
+        }
+
         return new Response(null, {
             status: 405,
             headers: {
-                Allow: 'GET, PATCH',
+                Allow: 'GET, PATCH, DELETE',
             },
         });
     }

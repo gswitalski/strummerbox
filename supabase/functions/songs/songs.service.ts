@@ -554,3 +554,53 @@ export const getPublicSongByPublicId = async ({
     };
 };
 
+/**
+ * Parametry dla funkcji usuwania piosenki
+ */
+export type DeleteSongParams = {
+    supabase: RequestSupabaseClient;
+    organizerId: string;
+    songId: string;
+};
+
+/**
+ * Usuwa piosenkę z biblioteki organizatora.
+ * Operacja kaskadowo usuwa również powiązania w tabeli repertoire_songs.
+ * Rzuca NotFoundError jeśli piosenka nie istnieje lub nie należy do organizatora.
+ */
+export const deleteSong = async ({
+    supabase,
+    organizerId,
+    songId,
+}: DeleteSongParams): Promise<string> => {
+    const { error, count } = await supabase
+        .from('songs')
+        .delete({ count: 'exact' })
+        .eq('id', songId)
+        .eq('organizer_id', organizerId);
+
+    if (error) {
+        logger.error('Nie udało się usunąć piosenki', {
+            organizerId,
+            songId,
+            error,
+        });
+        throw createInternalError('Nie udało się usunąć piosenki', error);
+    }
+
+    if (count === 0) {
+        logger.warn('Piosenka nie została znaleziona lub nie należy do organizatora', {
+            organizerId,
+            songId,
+        });
+        throw createNotFoundError('Piosenka nie została znaleziona', { songId });
+    }
+
+    logger.info('Pomyślnie usunięto piosenkę', {
+        organizerId,
+        songId,
+    });
+
+    return songId;
+};
+
