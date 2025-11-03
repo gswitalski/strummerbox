@@ -23,5 +23,11 @@ export interface SongListViewModel {
      * When true, the toggle should be disabled and a spinner should be visible.
      */
     isTogglingStatus: boolean;
+
+    /**
+     * Flag to control loading indicator during delete check operation.
+     * When true, the delete button should be disabled and a spinner should be visible.
+     */
+    isCheckingBeforeDelete: boolean;
 }
 

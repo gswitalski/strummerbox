@@ -34,6 +34,7 @@ import { CommonModule } from '@angular/common';
 import { ShareService } from '../../../core/services/share.service';
 import { ShareDialogComponent } from '../../../shared/components/share-dialog/share-dialog.component';
 import type { ShareDialogData } from '../../../shared/models/share-dialog.model';
+import { ConfirmationDialogComponent, type ConfirmationDialogData } from '../../../shared/components/confirmation-dialog/confirmation-dialog.component';
 
 interface SongListState {
     songs: SongListViewModel[];
@@ -192,22 +193,93 @@ export class SongListPageComponent {
     }
 
     public async onDeleteSong(songId: string): Promise<void> {
+        const song = this.viewState().songs.find(s => s.id === songId);
+        if (!song) {
+            return;
+        }
+
+        // Ustaw flagę ładowania dla konkretnej piosenki
+        this.updateSongCheckingBeforeDeleteStatus(songId, true);
+
         try {
-            await this.songListService.deleteSong(songId);
-            this.refreshState.update((value) => value + 1);
-            this.snackBar.open('Piosenka została usunięta.', undefined, {
-                duration: 3000,
+            // Pobierz szczegóły piosenki z informacją o użyciu w repertuarach
+            const songDetails = await this.songListService.getSongDetails(songId, true);
+
+            // Wyłącz flagę ładowania przed otwarciem dialogu
+            this.updateSongCheckingBeforeDeleteStatus(songId, false);
+
+            // Przygotuj wiadomość dla dialogu
+            const repertoireCount = songDetails.repertoires?.length ?? 0;
+            let message = `Czy na pewno chcesz usunąć piosenkę "${song.title}"?`;
+            
+            if (repertoireCount > 0) {
+                message += `<br><br><b>Uwaga: Piosenka jest częścią ${repertoireCount} ${this.getRepertoireCountLabel(repertoireCount)} i zostanie z ${repertoireCount === 1 ? 'niego' : 'nich'} usunięta.</b>`;
+            }
+            
+            message += '<br><br>Tej akcji nie można cofnąć.';
+
+            // Otwórz dialog potwierdzający
+            const dialogData: ConfirmationDialogData = {
+                title: 'Potwierdzenie usunięcia',
+                message: message,
+                confirmButtonText: 'Usuń',
+                cancelButtonText: 'Anuluj',
+            };
+
+            const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
+                width: '500px',
+                maxWidth: '90vw',
+                data: dialogData,
             });
+
+            const confirmed = await dialogRef.afterClosed().toPromise();
+
+            if (confirmed) {
+                await this.deleteSong(songId, song.title);
+            }
         } catch (error) {
-            console.error('SongListPageComponent: delete error', error);
+            console.error('SongListPageComponent: error fetching song details', error);
+            
+            // Wyłącz flagę ładowania w przypadku błędu
+            this.updateSongCheckingBeforeDeleteStatus(songId, false);
+            
             this.snackBar.open(
-                'Nie udało się usunąć piosenki. Spróbuj ponownie później.',
+                'Wystąpił błąd podczas sprawdzania piosenki. Spróbuj ponownie.',
                 undefined,
                 {
                     duration: 5000,
                 }
             );
         }
+    }
+
+    private async deleteSong(songId: string, songTitle: string): Promise<void> {
+        try {
+            await this.songListService.deleteSong(songId);
+            this.refreshState.update((value) => value + 1);
+            this.snackBar.open(`Pomyślnie usunięto piosenkę "${songTitle}".`, undefined, {
+                duration: 3000,
+            });
+        } catch (error) {
+            console.error('SongListPageComponent: delete error', error);
+            this.snackBar.open(
+                'Nie udało się usunąć piosenki. Spróbuj ponownie.',
+                undefined,
+                {
+                    duration: 5000,
+                }
+            );
+        }
+    }
+
+    private getRepertoireCountLabel(count: number): string {
+        if (count === 1) {
+            return 'repertuaru';
+        }
+        if (count > 1 && count < 5) {
+            return 'repertuarów';
+        }
+        return 'repertuarów';
     }
 
     public onEditSong(songId: string): void {
@@ -392,6 +464,20 @@ export class SongListPageComponent {
             ),
         }));
     }
+
+    /**
+     * Updates the isCheckingBeforeDelete flag for a specific song.
+     */
+    private updateSongCheckingBeforeDeleteStatus(songId: string, isChecking: boolean): void {
+        this.state.update((current) => ({
+            ...current,
+            songs: current.songs.map((song) =>
+                song.id === songId
+                    ? { ...song, isCheckingBeforeDelete: isChecking }
+                    : song
+            ),
+        }));
+    }
 }
 
 const mapSongDtoToViewModel = (dto: SongSummaryDto): SongListViewModel => ({
@@ -403,4 +489,5 @@ const mapSongDtoToViewModel = (dto: SongSummaryDto): SongListViewModel => ({
     updatedAt: new Date(dto.updatedAt).toLocaleDateString('pl-PL'),
     isPublished: dto.publishedAt !== null,
     isTogglingStatus: false,
+    isCheckingBeforeDelete: false,
 });

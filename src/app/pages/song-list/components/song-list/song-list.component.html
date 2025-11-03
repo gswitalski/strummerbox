@@ -67,15 +67,25 @@
                         >
                             <mat-icon>share</mat-icon>
                         </button>
-                        <button
-                            mat-icon-button
-                            type="button"
-                            color="warn"
-                            (click)="handleDeleteSong(song.id)"
-                            [attr.aria-label]="'Usuń piosenkę ' + song.title"
-                        >
-                            <mat-icon>delete</mat-icon>
-                        </button>
+                        <div class="song-list__delete-action">
+                            <button
+                                mat-icon-button
+                                type="button"
+                                color="warn"
+                                [disabled]="song.isCheckingBeforeDelete"
+                                (click)="handleDeleteSong(song.id)"
+                                [attr.aria-label]="'Usuń piosenkę ' + song.title"
+                            >
+                                <mat-icon>delete</mat-icon>
+                            </button>
+                            @if (song.isCheckingBeforeDelete) {
+                                <mat-progress-spinner
+                                    mode="indeterminate"
+                                    diameter="20"
+                                    aria-label="Sprawdzanie piosenki"
+                                ></mat-progress-spinner>
+                            }
+                        </div>
                     </div>
                 </td>
             </ng-container>
@@ -138,16 +148,26 @@
                         <mat-icon>share</mat-icon>
                         Udostępnij
                     </button>
-                    <button
-                        mat-button
-                        color="warn"
-                        type="button"
-                        (click)="handleDeleteSong(song.id)"
-                        [attr.aria-label]="'Usuń piosenkę ' + song.title"
-                    >
-                        <mat-icon>delete</mat-icon>
-                        Usuń
-                    </button>
+                    <div class="song-list__delete-action-card">
+                        <button
+                            mat-button
+                            color="warn"
+                            type="button"
+                            [disabled]="song.isCheckingBeforeDelete"
+                            (click)="handleDeleteSong(song.id)"
+                            [attr.aria-label]="'Usuń piosenkę ' + song.title"
+                        >
+                            <mat-icon>delete</mat-icon>
+                            Usuń
+                        </button>
+                        @if (song.isCheckingBeforeDelete) {
+                            <mat-progress-spinner
+                                mode="indeterminate"
+                                diameter="20"
+                                aria-label="Sprawdzanie piosenki"
+                            ></mat-progress-spinner>
+                        }
+                    </div>
                 </mat-card-actions>
             </mat-card>
         }

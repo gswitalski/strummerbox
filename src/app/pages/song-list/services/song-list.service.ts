@@ -11,6 +11,7 @@ import { firstValueFrom } from 'rxjs';
 
 import type {
     SongDeleteResponseDto,
+    SongDetailDto,
     SongDto,
     SongListResponseDto,
 } from '../../../../../packages/contracts/types';
@@ -53,6 +54,25 @@ export class SongListService {
 
         return await firstValueFrom(
             this.http.get<{ data: SongListResponseDto }>(this.baseUrl, {
+                params: httpParams,
+                headers: {
+                    Authorization: `Bearer ${session.access_token}`,
+                },
+            })
+        ).then((response) => response.data);
+    }
+
+    public async getSongDetails(songId: string, includeUsage: boolean): Promise<SongDetailDto> {
+        const session = await this.getSession();
+        const url = `${this.baseUrl}/${songId}`;
+        
+        let httpParams = new HttpParams();
+        if (includeUsage) {
+            httpParams = httpParams.set('includeUsage', 'true');
+        }
+
+        return await firstValueFrom(
+            this.http.get<{ data: SongDetailDto }>(url, {
                 params: httpParams,
                 headers: {
                     Authorization: `Bearer ${session.access_token}`,

@@ -70,6 +70,32 @@ table {
     gap: 0.25rem;
 }
 
+.song-list__delete-action {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+
+    mat-progress-spinner {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+    }
+}
+
+.song-list__delete-action-card {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    mat-progress-spinner {
+        flex-shrink: 0;
+    }
+}
+
 .song-list__cards {
     display: grid;
     gap: 1rem;
