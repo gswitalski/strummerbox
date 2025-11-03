@@ -18,37 +18,36 @@ Najpierw przejrzyj następujące informacje:
 
 3. Nazwa widoku do implementacji
 <view_name>
-6. Lista Piosenek (Song List View) - roszerzenie widoku o oopcję zmiany statusu piosenki
+6. Lista Piosenek (Song List View) - roszerzenie widoku o obsługę usuwania piosenki
 </view_name>
 
 4. User Stories:
 <user_stories>
--   ID: US-005
--   Title: Przeglądanie listy piosenek
--   Description: Jako Organizator, chcę widzieć listę wszystkich moich piosenek, aby móc nimi zarządzać.
+-   ID: US-007
+-   Title: Usuwanie piosenki
+-   Description: Jako Organizator, chcę móc usunąć piosenkę z mojej bazy.
 -   Acceptance Criteria:
-    -   W panelu zarządzania znajduje się sekcja z listą wszystkich dodanych przeze mnie piosenek.
-    -   Dla każdej piosenki na liście widoczne są opcje edycji i usunięcia.
-    -   Dla każdej piosenki na liście dostępna jest opcja zmiany statusu z 'szkic' na 'opublikowana' i odwrotnie.
-    -   Jeśli nie dodałem żadnej piosenki, widzę komunikat "pustego stanu" z zachętą do działania.
+    -   Po kliknięciu opcji "usuń", system prosi o potwierdzenie tej akcji.
+    -   Jeśli piosenka jest częścią jakiegokolwiek repertuaru, komunikat potwierdzający zawiera dodatkowe ostrzeżenie.
+    -   Po potwierdzeniu, piosenka znika z mojej listy piosenek i ze wszystkich repertuarów, w których była.
 </user_stories>
 
 5. Endpoint Description:
 <endpoint_description>
-#### POST /songs/{id}/publish
-- **Method:** POST
-- **Path:** `/songs/{id}/publish`
-- **Description:** Mark song as published (sets `published_at = now()`).
+#### DELETE /songs/{id}
+- **Method:** DELETE
+- **Path:** `/songs/{id}`
+- **Description:** Permanently remove a song and cascade from repertoires.
 - **Request JSON:** _none_
-- **Response JSON:** song resource with `publishedAt` populated.
+- **Response JSON:**
+```json
+{
+  "id": "58b8a0d0-5bf4-4d8a-82de-a2ad8c37b8a5",
+  "deleted": true
+}
+```
 - **Success:** `200 OK`
 - **Errors:** `401 Unauthorized`, `403 Forbidden`, `404 Not Found`.
-
-#### POST /songs/{id}/unpublish
-- **Method:** POST
-- **Path:** `/songs/{id}/unpublish`
-- **Description:** Revoke publication (`published_at = null`).
-- **Success/Error codes:** same as publish.
 
 </endpoint_description>
 
