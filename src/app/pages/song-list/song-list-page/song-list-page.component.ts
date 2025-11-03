@@ -356,7 +356,10 @@ export class SongListPageComponent {
                 sortDirection: config.sort.direction,
             });
 
-            this.state.set({
+            // Używamy update() zamiast set() aby zachować płynność przejścia
+            // i uniknąć białego migotania podczas sortowania
+            this.state.update((current) => ({
+                ...current,
                 songs: result.items.map(mapSongDtoToViewModel),
                 totalCount: result.total,
                 currentPage: config.page,
@@ -365,7 +368,7 @@ export class SongListPageComponent {
                 sort: config.sort,
                 isLoading: false,
                 error: null,
-            });
+            }));
         } catch (error) {
             console.error('SongListPageComponent: load error', error);
             this.state.update((current) => ({

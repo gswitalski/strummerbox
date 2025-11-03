@@ -67,7 +67,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: rgba(255, 255, 255, 0.6);
+    // Usunięto białe tło aby uniknąć migotania podczas sortowania
+    // background-color: rgba(255, 255, 255, 0.6);
     pointer-events: none;
 }
 

@@ -3,13 +3,14 @@
     overflow-x: auto;
 }
 
-.repertoire-list__table-wrapper.is-loading::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background-color: rgba(255, 255, 255, 0.6);
-    pointer-events: none;
-}
+// Usunięto pseudo-element z białym tłem aby uniknąć migotania podczas sortowania
+// .repertoire-list__table-wrapper.is-loading::after {
+//     content: '';
+//     position: absolute;
+//     inset: 0;
+//     background-color: rgba(255, 255, 255, 0.6);
+//     pointer-events: none;
+// }
 
 table {
     width: 100%;
@@ -103,7 +104,8 @@ table {
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: rgba(255, 255, 255, 0.6);
+    // Usunięto białe tło aby uniknąć migotania podczas sortowania
+    // background-color: rgba(255, 255, 255, 0.6);
     pointer-events: none;
 }
 

@@ -17,7 +17,7 @@ alwaysApply: false
 - Use TypeScript decorators with explicit visibility modifiers (public, private)
 - Leverage Angular CLI for schematics and code generation
 - Implement proper lazy loading with loadComponent and loadChildren
-- always use 'stbo' prefix for comoonents selector
+- always use 'stbo' prefix for comoponents selector
 
 #### ANGULAR_MATERIAL
 
@@ -45,3 +45,11 @@ alwaysApply: false
 - Use @ngrx/router-store to connect the router to the store
 - Leverage @ngrx/entity-data for simplified entity management
 - Implement the concatLatestFrom operator for effects that need state with actions
+
+#### LOADING_STATES_AND_SORTING
+
+- Use `state.update()` instead of `state.set()` when updating data after loading to prevent white flashing
+- Never use white semi-transparent backgrounds `rgba(255, 255, 255, 0.6)` in loading overlays
+- Use `opacity: 0.5` on data containers during loading, not white overlay backgrounds
+- Avoid `::after` pseudo-elements with white backgrounds on loading containers
+- Keep previous data visible while loading new data to ensure smooth transitions

@@ -365,7 +365,10 @@ export class RepertoireListPageComponent {
                 throw new Error('Invalid response structure: missing items array');
             }
 
-            this.state.set({
+            // Używamy update() zamiast set() aby zachować płynność przejścia
+            // i uniknąć białego migotania podczas sortowania
+            this.state.update((current) => ({
+                ...current,
                 repertoires: result.items.map(mapRepertoireDtoToViewModel),
                 totalCount: result.total ?? 0,
                 currentPage: config.page,
@@ -374,7 +377,7 @@ export class RepertoireListPageComponent {
                 sort: config.sort,
                 isLoading: false,
                 error: null,
-            });
+            }));
         } catch (error) {
             console.error('RepertoireListPageComponent: load error', error);
             this.state.update((current) => ({
