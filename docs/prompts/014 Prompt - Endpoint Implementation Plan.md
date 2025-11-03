@@ -4,12 +4,20 @@ Zanim zaczniemy, zapoznaj się z poniższymi informacjami:
 
 1. Route API specification:
 <route_api_specification>
-
-#### POST /songs/{id}/unpublish
-- **Method:** POST
-- **Path:** `/songs/{id}/unpublish`
-- **Description:** Revoke publication (`published_at = null`).
-- **Success/Error codes:** same as publish.
+#### DELETE /songs/{id}
+- **Method:** DELETE
+- **Path:** `/songs/{id}`
+- **Description:** Permanently remove a song and cascade from repertoires.
+- **Request JSON:** _none_
+- **Response JSON:**
+```json
+{
+  "id": "58b8a0d0-5bf4-4d8a-82de-a2ad8c37b8a5",
+  "deleted": true
+}
+```
+- **Success:** `200 OK`
+- **Errors:** `401 Unauthorized`, `403 Forbidden`, `404 Not Found`.
 
 2. Related database resources:
 <related_db_resources>
