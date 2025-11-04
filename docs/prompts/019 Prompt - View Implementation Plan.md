@@ -18,31 +18,35 @@ Najpierw przejrzyj następujące informacje:
 
 3. Nazwa widoku do implementacji
 <view_name>
-6. Lista Piosenek (Song List View) - roszerzenie widoku o obsługę usuwania piosenki
+8. Lista Repertuarów (Repertoire List View) - roszerzenie widoku o obsługę usuwania re[pertuaru]
 </view_name>
 
 4. User Stories:
 <user_stories>
--   ID: US-007
--   Title: Usuwanie piosenki
--   Description: Jako Organizator, chcę móc usunąć piosenkę z mojej bazy.
+-   ID: US-011
+-   Title: Usuwanie repertuaru
+-   Description: Jako Organizator, chcę móc trwale usunąć cały repertuar.
 -   Acceptance Criteria:
-    -   Po kliknięciu opcji "usuń", system prosi o potwierdzenie tej akcji.
-    -   Jeśli piosenka jest częścią jakiegokolwiek repertuaru, komunikat potwierdzający zawiera dodatkowe ostrzeżenie.
-    -   Po potwierdzeniu, piosenka znika z mojej listy piosenek i ze wszystkich repertuarów, w których była.
+    -   Na liście repertuarów, przy każdym elemencie znajduje się opcja "Usuń".
+    -   Po kliknięciu opcji "Usuń", system wyświetla okno modalne z prośbą o potwierdzenie akcji, wykorzystując do tego reużywalny komponent `ConfirmationDialogComponent`.
+    -   Okno zawiera czytelne ostrzeżenie, np. "Czy na pewno chcesz usunąć repertuar '[Nazwa Repertuaru]'? Tej operacji nie można cofnąć."
+    -   Po potwierdzeniu, repertuar zostaje trwale usunięty i znika z listy.
+    -   Usunięcie repertuaru nie usuwa piosenek wchodzących w jego skład z głównej biblioteki piosenek.
+    -   W trakcie operacji usuwania wyświetlany jest wskaźnik ładowania.
+
 </user_stories>
 
 5. Endpoint Description:
 <endpoint_description>
-#### DELETE /songs/{id}
+#### DELETE /repertoires/{id}
 - **Method:** DELETE
-- **Path:** `/songs/{id}`
-- **Description:** Permanently remove a song and cascade from repertoires.
+- **Path:** `/repertoires/{id}`
+- **Description:** Permanently remove a repertoire. Associated entries in `repertoire_songs` are removed via database cascade, but the songs themselves are unaffected.
 - **Request JSON:** _none_
 - **Response JSON:**
 ```json
 {
-  "id": "58b8a0d0-5bf4-4d8a-82de-a2ad8c37b8a5",
+  "id": "5f7a8f35-1cde-4f62-991e-0e020df3ac42",
   "deleted": true
 }
 ```
