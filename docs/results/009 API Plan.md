@@ -273,6 +273,21 @@
 - **Success:** `200 OK`
 - **Errors:** `400 Bad Request`, `401 Unauthorized`, `403 Forbidden`, `404 Not Found`, `409 Conflict` (duplicate name).
 
+#### DELETE /repertoires/{id}
+- **Method:** DELETE
+- **Path:** `/repertoires/{id}`
+- **Description:** Permanently remove a repertoire. Associated entries in `repertoire_songs` are removed via database cascade, but the songs themselves are unaffected.
+- **Request JSON:** _none_
+- **Response JSON:**
+```json
+{
+  "id": "5f7a8f35-1cde-4f62-991e-0e020df3ac42",
+  "deleted": true
+}
+```
+- **Success:** `200 OK`
+- **Errors:** `401 Unauthorized`, `403 Forbidden`, `404 Not Found`.
+
 #### POST /repertoires/{id}/songs
 - **Method:** POST
 - **Path:** `/repertoires/{id}/songs`
@@ -369,32 +384,6 @@
   "publicId": "8729a118-3b9b-4ce4-b268-36c9d6a6a46c",
   "publicUrl": "https://app.strummerbox.com/public/repertoires/8729a118-3b9b-4ce4-b268-36c9d6a6a46c",
   "qrPayload": "https://app.strummerbox.com/public/repertoires/8729a118-3b9b-4ce4-b268-36c9d6a6a46c"
-}
-```
-- **Success:** `200 OK`
-- **Errors:** `401 Unauthorized`, `403 Forbidden`, `404 Not Found`.
-
-### 2.4 Repertoire Songs (Organizer detail helpers)
-
-#### GET /repertoires/{id}/songs
-- **Method:** GET
-- **Path:** `/repertoires/{id}/songs`
-- **Description:** Return ordered songs with optional chord content.
-- **Query Parameters:**
-  - `includeContent` (`true|false`, default `false`)
-- **Response JSON:**
-```json
-{
-  "repertoireId": "5f7a8f35-1cde-4f62-991e-0e020df3ac42",
-  "songs": [
-    {
-      "repertoireSongId": "24a1a901-5ff8-4f79-a8bd-9d9b1b2c9919",
-      "songId": "58b8a0d0-5bf4-4d8a-82de-a2ad8c37b8a5",
-      "title": "Knockin' on Heaven's Door",
-      "position": 1,
-      "content": "[G]Mama..."
-    }
-  ]
 }
 ```
 - **Success:** `200 OK`

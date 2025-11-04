@@ -265,6 +265,15 @@ export type RepertoireRemoveSongResponseDto = {
 };
 
 /**
+ * Repertoire deletion confirmation response.
+ * Used in: DELETE /repertoires/{id}
+ */
+export type RepertoireDeleteResponseDto = {
+    id: RepertoireRow['id'];
+    deleted: true;
+};
+
+/**
  * Sharing metadata for a repertoire, including public URL and QR payload.
  * Used in: GET /share/repertoires/{id}
  */

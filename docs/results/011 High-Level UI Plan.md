@@ -118,10 +118,14 @@ Zarządzanie stanem aplikacji będzie realizowane za pomocą serwisów Angulara 
 *   **Ścieżka:** `/management/repertoires`
 *   **Główny cel:** Umożliwienie Organizatorowi przeglądania i zarządzania swoimi repertuarami.
 *   **Kluczowe informacje:** Lista repertuarów z nazwą, liczbą piosenek. Przycisk "Stwórz nowy repertuar". Opcje dla każdego repertuaru: "Edytuj", "Usuń", "Udostępnij".
-*   **Kluczowe komponenty:** Podobne do Listy Piosenek.
+*   **Kluczowe komponenty:** Podobne do Listy Piosenek, w tym `ConfirmationDialogComponent`.
 *   **UX, dostępność, bezpieczeństwo:**
-    *   **UX:** Kliknięcie przycisku "Stwórz nowy repertuar" otwiera okno modalne (zgodnie z nowym widokiem "Tworzenie Repertuaru").
-    *   **Bezpieczeństwo:** Podobne do Listy Piosenek.
+    *   **UX:**
+        *   Obsługa pustego stanu (gdy brak repertuarów) za pomocą `EmptyStateComponent`.
+        *   Kliknięcie przycisku "Stwórz nowy repertuar" otwiera okno modalne do wpisania nazwy, a po zatwierdzeniu przekierowuje do widoku edycji.
+        *   Kliknięcie przycisku "Usuń" przy wybranym repertuarze otwiera okno modalne (`ConfirmationDialogComponent`) z prośbą o potwierdzenie. Po zatwierdzeniu przez użytkownika, repertuar jest usuwany, a lista zostaje odświeżona. Wskaźnik ładowania (`MatSpinner`) jest widoczny podczas komunikacji z API.
+    *   **Dostępność:** Nagłówki tabeli (`<th>`), opisy przycisków ikonowych (`aria-label`).
+    *   **Bezpieczeństwo:** Dostęp chroniony przez `CanActivate` guard.
 
 ---
 
