@@ -34,13 +34,13 @@ Zapoznaj się z następującymi materiałami:
 
 <aktualne_zachowanie>
 
-Podczas sortowania tabeli z piosenkami widac białe mrugnięcie ana ekranie, tak jakby na ułamek sekndy obszar tabeli robił sie cały biały a potem wracał do normy
+NA ekranie dsahboardu wciśniecie przycisku "stwórz nowy repertuar" przekierowuje do nieistniejącej ścieżki
 
 </aktualne_zachowanie>
 
 <oczekiwane_zachowanie>
 
-bez białego migotania
+wywołuje sie okno dialogowe do założenia repertuaru (to samo które się pojawia pdczas dodawania repertuaru na liście repertuarów) po którym  użytkownik przechodzi do widoku edycji nowoutworzonego repertuaru
 
 </oczekiwane_zachowanie>
 
