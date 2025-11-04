@@ -2,17 +2,15 @@ Jesteś doświadczonym architektem oprogramowania, którego zadaniem jest stworz
 
 Zanim zaczniemy, zapoznaj się z poniższymi informacjami:
 
-1. Route API specification:
-<route_api_specification>
-#### DELETE /songs/{id}
+#### DELETE /repertoires/{id}
 - **Method:** DELETE
-- **Path:** `/songs/{id}`
-- **Description:** Permanently remove a song and cascade from repertoires.
+- **Path:** `/repertoires/{id}`
+- **Description:** Permanently remove a repertoire. Associated entries in `repertoire_songs` are removed via database cascade, but the songs themselves are unaffected.
 - **Request JSON:** _none_
 - **Response JSON:**
 ```json
 {
-  "id": "58b8a0d0-5bf4-4d8a-82de-a2ad8c37b8a5",
+  "id": "5f7a8f35-1cde-4f62-991e-0e020df3ac42",
   "deleted": true
 }
 ```
