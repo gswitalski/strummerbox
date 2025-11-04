@@ -29,11 +29,9 @@ export class RepertoireListService {
     private readonly supabase = inject(SupabaseService);
     private readonly baseUrl = `${environment.supabase.url}/functions/v1/repertoires` as const;
 
-    private readonly isDeletingState: WritableSignal<boolean> = signal(false);
-    private readonly deleteErrorState: WritableSignal<string | null> = signal(null);
+    private readonly deletingRepertoireIdState: WritableSignal<string | null> = signal(null);
 
-    public readonly isDeleting: Signal<boolean> = computed(() => this.isDeletingState());
-    public readonly deleteError: Signal<string | null> = computed(() => this.deleteErrorState());
+    public readonly deletingRepertoireId: Signal<string | null> = computed(() => this.deletingRepertoireIdState());
 
     /**
      * Pobiera paginowaną listę repertuarów z API
@@ -70,12 +68,7 @@ export class RepertoireListService {
      * Usuwa repertuar na podstawie ID
      */
     public async deleteRepertoire(repertoireId: string): Promise<void> {
-        if (this.isDeletingState()) {
-            throw new Error('Usuwanie jest już w toku.');
-        }
-
-        this.isDeletingState.set(true);
-        this.deleteErrorState.set(null);
+        this.deletingRepertoireIdState.set(repertoireId);
 
         try {
             const session = await this.getSession();
@@ -89,10 +82,9 @@ export class RepertoireListService {
                 })
             );
         } catch (error) {
-            this.deleteErrorState.set('Nie udało się usunąć repertuaru. Spróbuj ponownie.');
             throw error;
         } finally {
-            this.isDeletingState.set(false);
+            this.deletingRepertoireIdState.set(null);
         }
     }
 

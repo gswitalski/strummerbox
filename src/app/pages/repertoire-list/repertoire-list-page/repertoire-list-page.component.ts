@@ -37,6 +37,8 @@ import { RepertoireCreateDialogComponent } from '../components/repertoire-create
 import { ShareService } from '../../../core/services/share.service';
 import { ShareDialogComponent } from '../../../shared/components/share-dialog/share-dialog.component';
 import type { ShareDialogData } from '../../../shared/models/share-dialog.model';
+import { ConfirmationDialogComponent } from '../../../shared/components/confirmation-dialog/confirmation-dialog.component';
+import type { ConfirmationDialogData } from '../../../shared/components/confirmation-dialog/confirmation-dialog.component';
 
 const DEFAULT_PAGE_SIZE = 20;
 const PAGE_SIZE_OPTIONS = [10, 20, 50];
@@ -123,9 +125,13 @@ export class RepertoireListPageComponent {
         () => this.viewState().totalCount
     );
 
-    public readonly repertoires: Signal<RepertoireSummaryVM[]> = computed(
-        () => this.viewState().repertoires
-    );
+    public readonly repertoires: Signal<RepertoireSummaryVM[]> = computed(() => {
+        const deletingId = this.repertoireListService.deletingRepertoireId();
+        return this.viewState().repertoires.map((repertoire) => ({
+            ...repertoire,
+            isDeletingRepertoire: deletingId === repertoire.id,
+        }));
+    });
 
     public readonly searchTerm: Signal<string> = this.searchInputState.asReadonly();
 
@@ -183,21 +189,63 @@ export class RepertoireListPageComponent {
     }
 
     public async onDeleteRepertoire(repertoireId: string): Promise<void> {
+        // Znajdź repertuar w liście, aby uzyskać jego nazwę
+        const repertoire = this.viewState().repertoires.find(r => r.id === repertoireId);
+        const repertoireName = repertoire?.name ?? 'ten repertuar';
+
+        // Otwórz dialog potwierdzenia
+        const dialogData: ConfirmationDialogData = {
+            title: 'Usuń repertuar',
+            message: `Czy na pewno chcesz usunąć repertuar "${repertoireName}"? Tej operacji nie można cofnąć.`,
+            confirmButtonText: 'Usuń',
+            cancelButtonText: 'Anuluj',
+        };
+
+        const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
+            width: '500px',
+            maxWidth: '90vw',
+            data: dialogData,
+        });
+
+        // Poczekaj na zamknięcie dialogu
+        const confirmed = await dialogRef.afterClosed().toPromise();
+
+        // Jeśli użytkownik anulował, przerwij
+        if (!confirmed) {
+            return;
+        }
+
+        // Wykonaj usuwanie
         try {
             await this.repertoireListService.deleteRepertoire(repertoireId);
             this.refreshState.update((value) => value + 1);
             this.snackBar.open('Repertuar został usunięty.', undefined, {
                 duration: 3000,
             });
-        } catch (error) {
+        } catch (error: unknown) {
             console.error('RepertoireListPageComponent: delete error', error);
-            this.snackBar.open(
-                'Nie udało się usunąć repertuaru. Spróbuj ponownie później.',
-                undefined,
-                {
-                    duration: 5000,
+            
+            // Obsługa różnych typów błędów
+            let errorMessage = 'Nie udało się usunąć repertuaru. Spróbuj ponownie później.';
+            
+            if (error && typeof error === 'object' && 'status' in error) {
+                const httpError = error as { status: number };
+                
+                if (httpError.status === 404) {
+                    // Repertuar już nie istnieje - usuń go z lokalnej listy
+                    errorMessage = 'Ten repertuar został już usunięty.';
+                    this.refreshState.update((value) => value + 1);
+                } else if (httpError.status === 401 || httpError.status === 403) {
+                    // Błędy autoryzacji są obsługiwane przez interceptor
+                    errorMessage = 'Brak uprawnień do usunięcia repertuaru.';
+                } else if (httpError.status >= 500) {
+                    errorMessage = 'Wystąpił nieoczekiwany błąd. Spróbuj ponownie.';
                 }
-            );
+            }
+            
+            this.snackBar.open(errorMessage, undefined, {
+                duration: 5000,
+            });
         }
     }
 
@@ -369,7 +417,7 @@ export class RepertoireListPageComponent {
             // i uniknąć białego migotania podczas sortowania
             this.state.update((current) => ({
                 ...current,
-                repertoires: result.items.map(mapRepertoireDtoToViewModel),
+                repertoires: result.items.map((dto) => mapRepertoireDtoToViewModel(dto)),
                 totalCount: result.total ?? 0,
                 currentPage: config.page,
                 pageSize: config.pageSize,

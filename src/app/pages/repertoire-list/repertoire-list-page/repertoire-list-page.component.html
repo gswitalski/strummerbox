@@ -50,7 +50,7 @@
     @if (hasResults()) {
         <section class="repertoire-list-page__list-wrapper" [class.repertoire-list-page__list-wrapper--loading]="isLoading()">
             <stbo-repertoire-list
-                [repertoires]="viewState().repertoires"
+                [repertoires]="repertoires()"
                 [isLoading]="isLoading()"
                 [currentSort]="viewState().sort"
                 (editRepertoire)="onEditRepertoire($event)"

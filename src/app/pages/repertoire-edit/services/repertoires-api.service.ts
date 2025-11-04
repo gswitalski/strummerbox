@@ -11,6 +11,7 @@ import type {
     RepertoireRemoveSongResponseDto,
     RepertoireReorderCommand,
     RepertoireReorderResponseDto,
+    RepertoireDeleteResponseDto,
 } from '../../../../../packages/contracts/types';
 import { environment } from '../../../../environments/environment';
 import { SupabaseService } from '../../../core/services/supabase.service';
@@ -204,6 +205,34 @@ export class RepertoiresApiService {
                 return response.data as RepertoireReorderResponseDto;
             }
             return response as RepertoireReorderResponseDto;
+        }
+
+        throw new Error('Invalid API response structure');
+    }
+
+    /**
+     * Usuwa repertuar
+     */
+    public async delete(id: string): Promise<RepertoireDeleteResponseDto> {
+        const session = await this.getSession();
+
+        const response = await firstValueFrom(
+            this.http.delete<RepertoireDeleteResponseDto | { data: RepertoireDeleteResponseDto }>(
+                `${this.baseUrl}/${id}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${session.access_token}`,
+                    },
+                }
+            )
+        );
+
+        // API może zwracać dane bezpośrednio lub w { data: ... }
+        if (response && typeof response === 'object') {
+            if ('data' in response && response.data) {
+                return response.data as RepertoireDeleteResponseDto;
+            }
+            return response as RepertoireDeleteResponseDto;
         }
 
         throw new Error('Invalid API response structure');

@@ -21,6 +21,11 @@ export interface RepertoireSummaryVM {
      * When true, the toggle should be disabled and a spinner should be visible.
      */
     isTogglingStatus: boolean;
+    /**
+     * Flag to control loading indicator during delete operation.
+     * When true, the delete button should be replaced with a spinner.
+     */
+    isDeletingRepertoire: boolean;
 }
 
 /**
@@ -54,7 +59,10 @@ export interface RepertoireListState {
 /**
  * Funkcja mapująca DTO z API na ViewModel
  */
-export const mapRepertoireDtoToViewModel = (dto: RepertoireSummaryDto): RepertoireSummaryVM => ({
+export const mapRepertoireDtoToViewModel = (
+    dto: RepertoireSummaryDto,
+    deletingRepertoireId: string | null = null
+): RepertoireSummaryVM => ({
     id: dto.id,
     name: dto.name,
     songCount: dto.songCount ?? 0,
@@ -62,5 +70,6 @@ export const mapRepertoireDtoToViewModel = (dto: RepertoireSummaryDto): Repertoi
     updatedAt: new Date(dto.updatedAt).toLocaleDateString('pl-PL'),
     isPublished: dto.publishedAt !== null,
     isTogglingStatus: false,
+    isDeletingRepertoire: deletingRepertoireId === dto.id,
 });
 

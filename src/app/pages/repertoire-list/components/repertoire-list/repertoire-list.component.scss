@@ -72,6 +72,26 @@ table {
     display: inline-flex;
     align-items: center;
     gap: 0.25rem;
+
+    mat-progress-spinner {
+        flex-shrink: 0;
+    }
+}
+
+.repertoire-list__delete-loading {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    color: var(--mat-sys-on-surface-variant);
+
+    mat-progress-spinner {
+        flex-shrink: 0;
+    }
+
+    span {
+        font-size: 0.875rem;
+    }
 }
 
 .repertoire-list__cards {

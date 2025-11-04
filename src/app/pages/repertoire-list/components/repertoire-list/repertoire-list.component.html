@@ -72,15 +72,23 @@
                         >
                             <mat-icon>share</mat-icon>
                         </button>
-                        <button
-                            mat-icon-button
-                            type="button"
-                            color="warn"
-                            (click)="handleDeleteRepertoire(repertoire.id)"
-                            [attr.aria-label]="'Usuń repertuar ' + repertoire.name"
-                        >
-                            <mat-icon>delete</mat-icon>
-                        </button>
+                        @if (repertoire.isDeletingRepertoire) {
+                            <mat-progress-spinner
+                                mode="indeterminate"
+                                diameter="24"
+                                aria-label="Trwa usuwanie repertuaru"
+                            ></mat-progress-spinner>
+                        } @else {
+                            <button
+                                mat-icon-button
+                                type="button"
+                                color="warn"
+                                (click)="handleDeleteRepertoire(repertoire.id)"
+                                [attr.aria-label]="'Usuń repertuar ' + repertoire.name"
+                            >
+                                <mat-icon>delete</mat-icon>
+                            </button>
+                        }
                     </div>
                 </td>
             </ng-container>
@@ -147,16 +155,27 @@
                         <mat-icon>share</mat-icon>
                         Udostępnij
                     </button>
-                    <button
-                        mat-button
-                        color="warn"
-                        type="button"
-                        (click)="handleDeleteRepertoire(repertoire.id)"
-                        [attr.aria-label]="'Usuń repertuar ' + repertoire.name"
-                    >
-                        <mat-icon>delete</mat-icon>
-                        Usuń
-                    </button>
+                    @if (repertoire.isDeletingRepertoire) {
+                        <div class="repertoire-list__delete-loading">
+                            <mat-progress-spinner
+                                mode="indeterminate"
+                                diameter="24"
+                                aria-label="Trwa usuwanie repertuaru"
+                            ></mat-progress-spinner>
+                            <span>Usuwanie...</span>
+                        </div>
+                    } @else {
+                        <button
+                            mat-button
+                            color="warn"
+                            type="button"
+                            (click)="handleDeleteRepertoire(repertoire.id)"
+                            [attr.aria-label]="'Usuń repertuar ' + repertoire.name"
+                        >
+                            <mat-icon>delete</mat-icon>
+                            Usuń
+                        </button>
+                    }
                 </mat-card-actions>
             </mat-card>
         }
