@@ -35,7 +35,7 @@ const MAX_SONGS_TO_ADD = 100;
  * Schema Zod dla komendy utworzenia repertuaru.
  * Waliduje:
  * - name: wymagany string 1-160 znaków
- * - description: opcjonalny string
+ * - description: opcjonalny string (może być null, undefined lub pominięty, max 500 znaków)
  * - songIds: opcjonalna tablica UUID (max 100 elementów)
  */
 const POST_COMMAND_SCHEMA = z
@@ -48,7 +48,8 @@ const POST_COMMAND_SCHEMA = z
         description: z
             .string()
             .trim()
-            .optional(),
+            .max(500, 'Opis może mieć maksymalnie 500 znaków')
+            .nullish(),
         songIds: z
             .array(z.string().uuid('Nieprawidłowy identyfikator piosenki'))
             .max(MAX_SONGS_PER_REQUEST, `Można dodać maksymalnie ${MAX_SONGS_PER_REQUEST} piosenek jednocześnie`)
@@ -139,7 +140,7 @@ const GET_BY_ID_QUERY_SCHEMA = z.object({
  * Schema Zod dla komendy aktualizacji repertuaru (PATCH).
  * Waliduje:
  * - name: opcjonalny string 1-160 znaków
- * - description: opcjonalny string
+ * - description: opcjonalny string (może być null aby usunąć opis, max 500 znaków)
  * Co najmniej jedno pole musi być podane.
  */
 const PATCH_COMMAND_SCHEMA = z
@@ -153,7 +154,8 @@ const PATCH_COMMAND_SCHEMA = z
         description: z
             .string()
             .trim()
-            .optional(),
+            .max(500, 'Opis może mieć maksymalnie 500 znaków')
+            .nullish(),
     })
     .strict()
     .refine(

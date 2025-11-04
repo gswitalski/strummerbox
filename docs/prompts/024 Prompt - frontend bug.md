@@ -34,7 +34,7 @@ Zapoznaj się z następującymi materiałami:
 
 <aktualne_zachowanie>
 
-NA ekranie dsahboardu wciśniecie przycisku "stwórz nowy repertuar" przekierowuje do nieistniejącej ścieżki
+Okno dialogowe tworzenia repertuaru
 
 </aktualne_zachowanie>
 

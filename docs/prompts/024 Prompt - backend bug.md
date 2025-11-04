@@ -34,26 +34,35 @@ Zapoznaj się z następującymi materiałami:
 </aktualna_implementacja>
 
 <aktualne_zachowanie>
-http://127.0.0.1:54321/functions/v1/public/repertoires/5a73b695-ccb3-4fb9-845f-7abbec1ae249
+POST http://127.0.0.1:54321/functions/v1/repertoires
 
-zwraca 410
-
+body:
 {
-    "error": {
-        "code": "resource_gone",
-        "message": "Repertuar nie jest już dostępny",
-        "details": {
-            "reason": "unpublished"
-        }
-    }
+  "name": "aaaaa",
+  "description": null
 }
 
-mimo, że repertuar ma date publikacji czyli jest opublikowany
+{
+  "error": {
+    "code": "validation_error",
+    "message": "Nieprawidłowe dane wejściowe",
+    "details": {
+      "_errors": [],
+      "description": {
+        "_errors": [
+          "Expected string, received null"
+        ]
+      }
+    }
+  }
+}
+
+endpoint odrzuca prawidłowe dane
 
 </aktualne_zachowanie>
 
 <oczekiwane_zachowanie>
-endpoint zraca dane reperturaru z kodem 200
+endpoint przyjmjue descrition=null, bo opis jest opcjonalny
 </oczekiwane_zachowanie>
 
 
