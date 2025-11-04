@@ -8,6 +8,7 @@ import type {
     RepertoireAddSongsResponseDto,
     RepertoireRemoveSongResponseDto,
     RepertoireReorderResponseDto,
+    RepertoireDeleteResponseDto,
 } from '../../../packages/contracts/types.ts';
 import { createConflictError, createInternalError, createNotFoundError, createValidationError } from '../_shared/errors.ts';
 import type { RequestSupabaseClient } from '../_shared/supabase-client.ts';
@@ -1565,5 +1566,79 @@ export const unpublishRepertoire = async ({
     });
 
     return fullRepertoire;
+};
+
+// ============================================================================
+// Delete Repertoire Service
+// ============================================================================
+
+export type DeleteRepertoireParams = {
+    supabase: RequestSupabaseClient;
+    repertoireId: string;
+    organizerId: string;
+};
+
+/**
+ * Usuwa repertuar na podstawie ID.
+ * Operacja ta automatycznie usuwa wszystkie powiązane wpisy z tabeli repertoire_songs
+ * dzięki kaskadowemu usuwaniu (ON DELETE CASCADE).
+ *
+ * Proces:
+ * 1. Wykonuje DELETE na tabeli repertoires z warunkiem organizer_id
+ * 2. Weryfikuje czy operacja usunęła wiersz (autoryzacja na poziomie serwisu)
+ * 3. Zwraca potwierdzenie usunięcia
+ *
+ * @throws {ApplicationError} 404 - repertuar nie istnieje lub nie należy do użytkownika
+ * @throws {ApplicationError} 500 - błąd bazy danych
+ */
+export const deleteRepertoire = async ({
+    supabase,
+    repertoireId,
+    organizerId,
+}: DeleteRepertoireParams): Promise<{ id: string }> => {
+    logger.info('Rozpoczęcie usuwania repertuaru w serwisie', {
+        organizerId,
+        repertoireId,
+    });
+
+    // ========================================================================
+    // Wykonanie DELETE w bazie danych
+    // ========================================================================
+
+    const { data, error } = await supabase
+        .from('repertoires')
+        .delete()
+        .eq('id', repertoireId)
+        .eq('organizer_id', organizerId)
+        .select('id')
+        .maybeSingle();
+
+    if (error) {
+        logger.error('Błąd podczas usuwania repertuaru', {
+            organizerId,
+            repertoireId,
+            error,
+        });
+        throw createInternalError('Nie udało się usunąć repertuaru', error);
+    }
+
+    // ========================================================================
+    // Weryfikacja czy DELETE usunął wiersz
+    // ========================================================================
+
+    if (!data) {
+        logger.warn('Repertuar nie istnieje lub nie należy do użytkownika', {
+            organizerId,
+            repertoireId,
+        });
+        throw createNotFoundError('Repertuar nie został znaleziony');
+    }
+
+    logger.info('Repertuar usunięty pomyślnie', {
+        organizerId,
+        repertoireId,
+    });
+
+    return { id: data.id };
 };
 

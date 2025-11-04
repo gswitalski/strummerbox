@@ -1,11 +1,11 @@
 import { z } from 'zod';
-import type { RepertoireAddSongsCommand, RepertoireAddSongsResponseDto, RepertoireCreateCommand, RepertoireDto, RepertoireListResponseDto, RepertoireRemoveSongResponseDto, RepertoireReorderCommand, RepertoireReorderResponseDto, RepertoireUpdateCommand } from '../../../packages/contracts/types.ts';
+import type { RepertoireAddSongsCommand, RepertoireAddSongsResponseDto, RepertoireCreateCommand, RepertoireDeleteResponseDto, RepertoireDto, RepertoireListResponseDto, RepertoireRemoveSongResponseDto, RepertoireReorderCommand, RepertoireReorderResponseDto, RepertoireUpdateCommand } from '../../../packages/contracts/types.ts';
 import { jsonResponse } from '../_shared/http.ts';
 import { createValidationError } from '../_shared/errors.ts';
 import { logger } from '../_shared/logger.ts';
 import type { AuthenticatedUser } from '../_shared/auth.ts';
 import type { RequestSupabaseClient } from '../_shared/supabase-client.ts';
-import { addSongsToRepertoire, createRepertoire, getRepertoireById, listRepertoires, publishRepertoire, removeSongFromRepertoire, reorderSongsInRepertoire, unpublishRepertoire, updateRepertoire } from './repertoires.service.ts';
+import { addSongsToRepertoire, createRepertoire, deleteRepertoire, getRepertoireById, listRepertoires, publishRepertoire, removeSongFromRepertoire, reorderSongsInRepertoire, unpublishRepertoire, updateRepertoire } from './repertoires.service.ts';
 
 // ============================================================================
 // Validation Schemas
@@ -868,6 +868,63 @@ export const handleUnpublishRepertoire = async (
     return jsonResponse<RepertoireDto>(unpublishedRepertoire, { status: 200 });
 };
 
+/**
+ * Handler dla DELETE /repertoires/{id} - usunięcie repertuaru.
+ *
+ * Przepływ:
+ * 1. Uwierzytelnienie użytkownika (requireAuth w router)
+ * 2. Walidacja parametru path `id` (musi być UUID)
+ * 3. Wywołanie serwisu deleteRepertoire
+ * 4. Zwrócenie odpowiedzi 200 OK z RepertoireDeleteResponseDto
+ *
+ * @throws {ApplicationError} 400 - błąd walidacji (nieprawidłowy UUID)
+ * @throws {ApplicationError} 404 - repertuar nie istnieje lub nie należy do użytkownika
+ * @throws {ApplicationError} 500 - błąd serwera
+ */
+export const handleDeleteRepertoire = async (
+    request: Request,
+    supabase: RequestSupabaseClient,
+    user: AuthenticatedUser,
+    repertoireId: string,
+): Promise<Response> => {
+    logger.info('Rozpoczęcie usuwania repertuaru', {
+        organizerId: user.id,
+        repertoireId,
+    });
+
+    // Walidacja parametru path (UUID)
+    const pathResult = GET_BY_ID_PATH_SCHEMA.safeParse({ id: repertoireId });
+
+    if (!pathResult.success) {
+        logger.warn('Błędy walidacji parametru path dla DELETE /repertoires/{id}', {
+            issues: pathResult.error.issues,
+        });
+
+        throw createValidationError('Nieprawidłowy identyfikator repertuaru', pathResult.error.format());
+    }
+
+    const validatedId = pathResult.data.id;
+
+    // Wywołanie serwisu
+    const result = await deleteRepertoire({
+        supabase,
+        repertoireId: validatedId,
+        organizerId: user.id,
+    });
+
+    logger.info('Repertuar usunięty pomyślnie', {
+        organizerId: user.id,
+        repertoireId: result.id,
+    });
+
+    const response: RepertoireDeleteResponseDto = {
+        id: result.id,
+        deleted: true,
+    };
+
+    return jsonResponse<RepertoireDeleteResponseDto>(response, { status: 200 });
+};
+
 // ============================================================================
 // Router
 // ============================================================================
@@ -879,6 +936,7 @@ export const handleUnpublishRepertoire = async (
  * - POST /repertoires - utworzenie nowego repertuaru
  * - GET /repertoires/{id} - pobranie szczegółów repertuaru
  * - PATCH /repertoires/{id} - częściowa aktualizacja repertuaru
+ * - DELETE /repertoires/{id} - usunięcie repertuaru
  * - POST /repertoires/{id}/publish - publikacja repertuaru
  * - POST /repertoires/{id}/unpublish - odpublikowanie repertuaru
  * - POST /repertoires/{id}/songs - dodawanie piosenek do repertuaru
@@ -962,6 +1020,8 @@ export const repertoiresRouter = async (
     }
 
     // GET /repertoires/{id} - pobranie szczegółów repertuaru (musi być przed GET /repertoires)
+    // PATCH /repertoires/{id} - częściowa aktualizacja repertuaru
+    // DELETE /repertoires/{id} - usunięcie repertuaru
     const repertoireIdMatch = path.match(/^\/repertoires\/([^/]+)$/);
 
     if (repertoireIdMatch) {
@@ -973,6 +1033,10 @@ export const repertoiresRouter = async (
 
         if (request.method === 'PATCH') {
             return await handleUpdateRepertoire(request, supabase, user, repertoireId);
+        }
+
+        if (request.method === 'DELETE') {
+            return await handleDeleteRepertoire(request, supabase, user, repertoireId);
         }
     }
 
