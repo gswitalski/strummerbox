@@ -6,7 +6,19 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:debug": "playwright test --debug",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:chromium": "playwright test --project=chromium",
+    "test:e2e:firefox": "playwright test --project=firefox",
+    "test:e2e:webkit": "playwright test --project=webkit",
+    "test:e2e:mobile": "playwright test --project=\"Mobile Chrome\" --project=\"Mobile Safari\"",
+    "test:e2e:report": "playwright show-report",
     "lint:fix": "ng lint --fix",
     "lint": "ng lint"
   },
@@ -29,19 +41,25 @@
     "zone.js": "~0.15.0"
   },
   "devDependencies": {
+    "@analogjs/vite-plugin-angular": "^2.0.1",
     "@angular-devkit/build-angular": "^19.1.8",
     "@angular/cli": "^19.1.8",
     "@angular/compiler-cli": "^19.1.0",
+    "@playwright/test": "^1.56.1",
     "@types/jasmine": "~5.1.0",
+    "@vitest/coverage-v8": "^4.0.7",
+    "@vitest/ui": "^4.0.7",
     "angular-eslint": "20.4.0",
     "eslint": "^9.37.0",
     "jasmine-core": "~5.5.0",
+    "jsdom": "^27.1.0",
     "karma": "~6.4.0",
     "karma-chrome-launcher": "~3.2.0",
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
     "typescript": "~5.7.2",
-    "typescript-eslint": "8.46.0"
+    "typescript-eslint": "8.46.0",
+    "vitest": "^4.0.7"
   }
 }

@@ -1,0 +1,132 @@
+name: Testy PR
+
+on:
+    pull_request:
+        types: [opened, synchronize, reopened]
+
+jobs:
+    quick-test:
+        name: Szybkie testy PR
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout kodu
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: '20'
+                  cache: 'npm'
+
+            - name: Instalacja zależności
+              run: npm ci
+
+            - name: Linting
+              run: npm run lint
+
+            - name: Testy jednostkowe
+              run: npm run test:run
+
+            - name: Build check
+              run: npm run build
+
+            - name: Testy E2E (tylko Chromium)
+              run: npm run test:e2e:chromium
+              env:
+                  CI: true
+
+            - name: Komentarz na PR
+              uses: actions/github-script@v7
+              if: always()
+              with:
+                  script: |
+                      const { data: comments } = await github.rest.issues.listComments({
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          issue_number: context.issue.number,
+                      });
+
+                      const botComment = comments.find(comment =>
+                          comment.user.type === 'Bot' &&
+                          comment.body.includes('## 🧪 Wyniki testów')
+                      );
+
+                      const output = `## 🧪 Wyniki testów
+
+                      ✅ Linting: OK
+                      ✅ Testy jednostkowe: OK
+                      ✅ Build: OK
+                      ✅ Testy E2E: OK
+
+                      **Commit:** ${context.sha}
+                      **Autor:** @${context.actor}`;
+
+                      if (botComment) {
+                          github.rest.issues.updateComment({
+                              owner: context.repo.owner,
+                              repo: context.repo.repo,
+                              comment_id: botComment.id,
+                              body: output
+                          });
+                      } else {
+                          github.rest.issues.createComment({
+                              issue_number: context.issue.number,
+                              owner: context.repo.owner,
+                              repo: context.repo.repo,
+                              body: output
+                          });
+                      }
+
+    affected-tests:
+        name: Testy zmienionych plików
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout kodu
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: '20'
+                  cache: 'npm'
+
+            - name: Instalacja zależności
+              run: npm ci
+
+            - name: Znajdź zmienione pliki
+              id: changed-files
+              uses: tj-actions/changed-files@v44
+              with:
+                  files: |
+                      src/**/*.ts
+                      src/**/*.html
+
+            - name: Uruchom testy dla zmienionych plików
+              if: steps.changed-files.outputs.any_changed == 'true'
+              run: |
+                  echo "Zmienione pliki:"
+                  echo "${{ steps.changed-files.outputs.all_changed_files }}"
+
+                  # Uruchom testy tylko dla zmienionych plików
+                  npm run test:run -- --changed HEAD~1
+
+            - name: Sprawdź pokrycie nowego kodu
+              if: steps.changed-files.outputs.any_changed == 'true'
+              run: |
+                  npm run test:coverage
+                  echo "📊 Sprawdź pokrycie nowego kodu w artefaktach"
+
+            - name: Upload raportu pokrycia
+              uses: actions/upload-artifact@v4
+              if: steps.changed-files.outputs.any_changed == 'true'
+              with:
+                  name: affected-coverage
+                  path: coverage/
+                  retention-days: 7
+

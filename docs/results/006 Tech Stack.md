@@ -12,6 +12,11 @@
 -   Jest rozwiązaniem **open source**, które można hostować na własnej infrastrukturze lub korzystać z jego platformy chmurowej.
 -   Posiada wbudowany i łatwy w konfiguracji system **autentykacji użytkowników**.
 
+### Testowanie - Nowoczesny stack zapewniający wysoką jakość kodu:
+-   **Vitest** - błyskawiczny framework do testów jednostkowych frontendu, 5-10x szybszy niż Karma, z wbudowanym HMR (Hot Module Replacement) dla testów.
+-   **Playwright** - nowoczesny framework do testów E2E z natywnym wsparciem dla wielu przeglądarek (Chrome, Firefox, Safari), auto-waiting oraz wbudowanym visual regression testing.
+-   **Deno Test** - wbudowany test runner dla Supabase Edge Functions z natywną obsługą TypeScript i zerową konfiguracją.
+
 ### CI/CD i Hosting:
--   **Github Actions** do tworzenia zautomatyzowanych pipeline’ów CI/CD, które będą budować i testować aplikację.
+-   **Github Actions** do tworzenia zautomatyzowanych pipeline'ów CI/CD, które będą budować i testować aplikację.
 -   **DigitalOcean** do hostowania aplikacji, zapewniając elastyczność i skalowalność infrastruktury.

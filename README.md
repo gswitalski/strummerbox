@@ -31,6 +31,11 @@ The application offers two main interfaces:
     -   **BaaS (Backend-as-a-Service)**: SDK for backend functionalities.
     -   **Authentication**: Built-in user authentication system.
 
+### Testing
+-   **Vitest**: Lightning-fast unit testing framework for frontend with HMR support and native TypeScript compatibility.
+-   **Playwright**: Modern end-to-end testing framework with multi-browser support, auto-waiting, and built-in visual regression testing.
+-   **Deno Test**: Built-in test runner for Supabase Edge Functions with native TypeScript support and zero configuration.
+
 ### CI/CD & Hosting
 -   **GitHub Actions**: For automating CI/CD pipelines to build and test the application.
 -   **DigitalOcean**: For flexible and scalable application hosting.
@@ -96,10 +101,33 @@ supabase functions serve share --env-file .env
 
 In the project directory, you can run the following scripts:
 
+### Development
+
 -   `npm start`: Runs the app in development mode with live reload.
 -   `npm run build`: Builds the app for production to the `dist/` folder.
--   `npm test`: Runs the unit tests via Karma.
 -   `npm run watch`: Builds the app in watch mode for development.
+
+### Testing
+
+#### Unit Tests (Vitest)
+
+-   `npm run test`: Runs unit tests in watch mode.
+-   `npm run test:ui`: Opens interactive UI for running and debugging tests.
+-   `npm run test:run`: Runs all tests once (CI mode).
+-   `npm run test:coverage`: Generates code coverage report.
+
+#### E2E Tests (Playwright)
+
+-   `npm run test:e2e`: Runs E2E tests in all browsers.
+-   `npm run test:e2e:ui`: Opens Playwright UI for interactive testing.
+-   `npm run test:e2e:debug`: Runs tests in debug mode with Playwright Inspector.
+-   `npm run test:e2e:chromium`: Runs tests only in Chromium.
+-   `npm run test:e2e:firefox`: Runs tests only in Firefox.
+-   `npm run test:e2e:webkit`: Runs tests only in WebKit (Safari).
+-   `npm run test:e2e:mobile`: Runs tests on mobile devices (Pixel 5, iPhone 12).
+-   `npm run test:e2e:report`: Shows HTML report from last test run.
+
+For detailed testing documentation, see [Testing Quick Start](./docs/testing-quick-start.md).
 
 ## Project Scope
 
