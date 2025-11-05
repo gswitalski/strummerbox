@@ -5,14 +5,35 @@
 #### VITEST
 
 - Leverage the `vi` object for test doubles - Use `vi.fn()` for function mocks, `vi.spyOn()` to monitor existing functions, and `vi.stubGlobal()` for global mocks. Prefer spies over mocks when you only need to verify interactions without changing behavior.
-- Master `vi.mock()` factory patterns - Place mock factory functions at the top level of your test file, return typed mock implementations, and use `mockImplementation()` or `mockReturnValue()` for dynamic control during tests. Remember the factory runs before imports are processed.
 - Create setup files for reusable configuration - Define global mocks, custom matchers, and environment setup in dedicated files referenced in your `vitest.config.ts`. This keeps your test files clean while ensuring consistent test environments.
-- Use inline snapshots for readable assertions - Replace complex equality checks with `expect(value).toMatchInlineSnapshot()` to capture expected output directly in your test file, making changes more visible in code reviews.
 - Monitor coverage with purpose and only when asked - Configure coverage thresholds in `vitest.config.ts` to ensure critical code paths are tested, but focus on meaningful tests rather than arbitrary coverage percentages.
 - Make watch mode part of your workflow - Run `vitest --watch` during development for instant feedback as you modify code, filtering tests with `-t` to focus on specific areas under development.
 - Explore UI mode for complex test suites - Use `vitest --ui` to visually navigate large test suites, inspect test results, and debug failures more efficiently during development.
-- Handle optional dependencies with smart mocking - Use conditional mocking to test code with optional dependencies by implementing `vi.mock()` with the factory pattern for modules that might not be available in all environments.
-- Configure jsdom for DOM testing - Set `environment: 'jsdom'` in your configuration for frontend component tests and combine with testing-library utilities for realistic user interaction simulation.
+- Configure jsdom for DOM testing - Set `environment: 'jsdom'` in your configuration for frontend component tests to enable realistic DOM manipulation and querying.
 - Structure tests for maintainability - Group related tests with descriptive `describe` blocks, use explicit assertion messages, and follow the Arrange-Act-Assert pattern to make tests self-documenting.
-- Leverage TypeScript type checking in tests - Enable strict typing in your tests to catch type errors early, use `expectTypeOf()` for type-level assertions, and ensure mocks preserve the original type signatures.
+- Leverage TypeScript type checking in tests - Enable strict typing in your tests to catch type errors early, and ensure mocks preserve the original type signatures for better type safety.
+
+#### ANGULAR + VITEST
+
+**Inicjalizacja środowiska testowego:**
+- **Zawsze importuj Zone.js na początku plików testowych** - Dodaj `import 'zone.js'` i `import 'zone.js/testing'` jako pierwsze importy w każdym pliku testowym komponentów Angular. Pomimo globalnej konfiguracji w `test-setup.ts`, niektóre konfiguracje Vitest (np. `singleFork: true`) mogą wymagać lokalnych importów.
+- **Inicjalizuj TestBed w beforeAll() dla izolowanych testów** - Gdy testujesz pojedyncze pliki lub napotykasz błąd "Need to call TestBed.initTestEnvironment() first", dodaj ręczną inicjalizację w `beforeAll()` z `TestBed.resetTestEnvironment()` i `TestBed.initTestEnvironment(BrowserDynamicTestingModule, platformBrowserDynamicTesting())`.
+- **Resetuj TestBed tylko gdy potrzebne** - Unikaj nadużywania `TestBed.resetTestingModule()` w `afterEach()`, ponieważ może to powodować problemy z inicjalizacją w kolejnych testach. Pozwól globalnej konfiguracji zarządzać cyklem życia.
+
+**Testowanie komponentów z Angular Material:**
+- **Zawsze importuj NoopAnimationsModule** - Dla komponentów wykorzystujących Angular Material dodaj `NoopAnimationsModule` do importów w `TestBed.configureTestingModule()`. Zapobiega to błędom związanym z animacjami w środowisku testowym.
+- **Mockuj MatDialogRef i MAT_DIALOG_DATA dla dialogów** - Używaj `{ provide: MatDialogRef, useValue: { close: vi.fn() } }` i `{ provide: MAT_DIALOG_DATA, useValue: testData }` jako providerów. Pamiętaj o typowaniu mocków dla lepszej kontroli typu.
+
+**Struktura testów Angular:**
+- **Utwórz funkcję pomocniczą dla setupu komponentu** - Zamiast powielać konfigurację TestBed w każdym teście, stwórz funkcję pomocniczą `setupComponent()` lub `setupComponentWithData()`, która zwraca fixture, compiled HTML i mocki. Zwiększa to czytelność i redukuje duplikację kodu.
+- **Używaj ComponentFixture.detectChanges() po interakcjach** - Po symulacji interakcji użytkownika (np. kliknięcia przycisku) zawsze wywołuj `fixture.detectChanges()` przed asercjami, aby zapewnić aktualizację widoku.
+- **Preferuj selektory oparte na rolach i atrybutach Material** - Używaj selektorów takich jak `[mat-dialog-title]`, `mat-dialog-content` zamiast ogólnych selektorów CSS. Są bardziej odporne na zmiany struktury.
+
+**Testowanie standalone komponentów:**
+- **Importuj komponenty bezpośrednio w imports** - Dla standalone komponentów Angular 14+ używaj `imports: [MyStandaloneComponent]` zamiast `declarations`. Vitest i TestBed obsługują to natywnie.
+- **Pamiętaj o zależnościach komponentu** - Jeśli standalone komponent importuje inne moduły (np. `CommonModule`, `MatButtonModule`), upewnij się, że są one dostępne w konfiguracji testowej lub w importach samego komponentu.
+
+**Debugowanie problemów:**
+- **Sprawdź konfigurację pool w vitest.config.ts** - Jeśli napotykasz problemy z inicjalizacją TestBed, wypróbuj różne opcje: `pool: 'forks'` z `singleFork: true`, `pool: 'threads'` lub brak opcji pool. Angular TestBed może być wrażliwy na sposób izolacji testów.
+- **Użyj verbose logging** - Przy trudnych do zdiagnozowania błędach uruchom testy z `--reporter=verbose` aby zobaczyć pełny stack trace i kolejność wykonywania hooków.
 
