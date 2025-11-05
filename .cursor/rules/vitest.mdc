@@ -33,7 +33,112 @@
 - **Importuj komponenty bezpośrednio w imports** - Dla standalone komponentów Angular 14+ używaj `imports: [MyStandaloneComponent]` zamiast `declarations`. Vitest i TestBed obsługują to natywnie.
 - **Pamiętaj o zależnościach komponentu** - Jeśli standalone komponent importuje inne moduły (np. `CommonModule`, `MatButtonModule`), upewnij się, że są one dostępne w konfiguracji testowej lub w importach samego komponentu.
 
+**Testowanie serwisów Angular:**
+- **Zawsze inicjalizuj TestBed z beforeAll()** - Dla testów serwisów, które napotykają błąd "Need to call TestBed.initTestEnvironment() first", dodaj w `beforeAll()`: `TestBed.resetTestEnvironment()` oraz `TestBed.initTestEnvironment(BrowserDynamicTestingModule, platformBrowserDynamicTesting())`. Jest to wymagane w izolowanych testach serwisów.
+- **Używaj async/await z firstValueFrom dla Observable** - Nie używaj `subscribe()` z callbackami w testach, ponieważ test może zakończyć się przed wykonaniem asercji. Zamiast tego konwertuj Observable na Promise: `const result = await firstValueFrom(service.method())`. Importuj `firstValueFrom` z `rxjs`.
+- **Mockuj wszystkie zależności serwisu** - Twórz mocki dla wszystkich zależności (np. `HttpClient`, `SupabaseService`) używając `vi.fn()`. Przekazuj je przez providers w `TestBed.configureTestingModule()`. Resetuj mocki w `beforeEach()` używając `vi.clearAllMocks()`.
+- **Używaj mockResolvedValue/mockReturnValue** - Dla asynchronicznych metod mockowych używaj `vi.fn().mockResolvedValue(value)`. Dla synchronicznych używaj `vi.fn().mockReturnValue(value)`. Dla Observable używaj `of()` z RxJS: `mockHttpClient.get.mockReturnValue(of(data))`.
+- **Testuj zarówno ścieżki sukcesu jak i błędów** - Dla każdej metody serwisu testuj: (1) poprawne działanie, (2) obsługę błędów HTTP (`throwError(() => new HttpErrorResponse({...}))`), (3) przypadki brzegowe (brak sesji, puste odpowiedzi, null/undefined).
+- **Weryfikuj wywołania mocków** - Sprawdzaj czy metody zostały wywołane z poprawnymi argumentami: `expect(mockService.method).toHaveBeenCalledWith(expectedArg)`. Sprawdzaj liczbę wywołań: `expect(mockService.method).toHaveBeenCalledTimes(1)`.
+- **Kompiluj TestBed z await** - Używaj `await TestBed.configureTestingModule({...}).compileComponents()` w `beforeEach()`, nawet dla serwisów bez komponentów. To zapewnia pełną inicjalizację.
+
+**Obsługa błędów w testach asynchronicznych:**
+- **Użyj try-catch dla bardziej kontrolowanych asercji** - Gdy testujesz rzucanie błędów przez Observable, użyj try-catch zamiast tylko `rejects.toThrow()`, aby móc wykonać więcej asercji:
+```typescript
+try {
+    await firstValueFrom(service.method());
+    throw new Error('Test powinien rzucić błąd');
+} catch (error: any) {
+    expect(error.message).toBe('Expected error');
+    expect(mockDependency.method).not.toHaveBeenCalled();
+}
+```
+- **Testuj propagację błędów HTTP** - Sprawdzaj czy błędy HTTP są poprawnie propagowane: `await expect(() => firstValueFrom(service.method())).rejects.toMatchObject({ status: 500 })`.
+
 **Debugowanie problemów:**
 - **Sprawdź konfigurację pool w vitest.config.ts** - Jeśli napotykasz problemy z inicjalizacją TestBed, wypróbuj różne opcje: `pool: 'forks'` z `singleFork: true`, `pool: 'threads'` lub brak opcji pool. Angular TestBed może być wrażliwy na sposób izolacji testów.
 - **Użyj verbose logging** - Przy trudnych do zdiagnozowania błędach uruchom testy z `--reporter=verbose` aby zobaczyć pełny stack trace i kolejność wykonywania hooków.
+- **Jeśli testy przechodzą ale asercje się nie wykonują** - To oznaka asynchroniczności. Testy kończą się przed wykonaniem callbacków. Rozwiązanie: użyj `async/await` z `firstValueFrom()` zamiast `subscribe()`.
+- **Sprawdź pokrycie kodu aby znaleźć niepokryte ścieżki** - Uruchom `npm run test:coverage -- nazwa-serwisu` aby zobaczyć które linie nie są pokryte testami. Dodaj testy dla alternatywnych ścieżek (np. odpowiedź bez zagnieżdżenia w pole `data`).
+
+**Przykład kompletnego testu serwisu:**
+```typescript
+import 'zone.js';
+import 'zone.js/testing';
+import { TestBed } from '@angular/core/testing';
+import { BrowserDynamicTestingModule, platformBrowserDynamicTesting } from '@angular/platform-browser-dynamic/testing';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { describe, it, expect, vi, beforeEach, beforeAll } from 'vitest';
+import { of, throwError, firstValueFrom } from 'rxjs';
+import { MyService } from './my.service';
+import { DependencyService } from './dependency.service';
+
+describe('MyService', () => {
+    let service: MyService;
+    let mockHttpClient: any;
+    let mockDependency: any;
+
+    // Inicjalizacja środowiska testowego Angular
+    beforeAll(() => {
+        TestBed.resetTestEnvironment();
+        TestBed.initTestEnvironment(BrowserDynamicTestingModule, platformBrowserDynamicTesting());
+    });
+
+    beforeEach(async () => {
+        // Przygotowanie mocków
+        mockHttpClient = { get: vi.fn() };
+        mockDependency = { getData: vi.fn() };
+
+        // Konfiguracja TestBed
+        await TestBed.configureTestingModule({
+            providers: [
+                MyService,
+                { provide: HttpClient, useValue: mockHttpClient },
+                { provide: DependencyService, useValue: mockDependency },
+            ],
+        }).compileComponents();
+
+        service = TestBed.inject(MyService);
+        vi.clearAllMocks();
+    });
+
+    describe('fetchData()', () => {
+        it('powinien pobrać dane z API', async () => {
+            // Arrange
+            const mockData = { id: 1, name: 'Test' };
+            mockHttpClient.get.mockReturnValue(of(mockData));
+
+            // Act
+            const result = await firstValueFrom(service.fetchData());
+
+            // Assert
+            expect(result).toEqual(mockData);
+            expect(mockHttpClient.get).toHaveBeenCalledWith('/api/data');
+        });
+
+        it('powinien propagować błąd HTTP', async () => {
+            // Arrange
+            const httpError = new HttpErrorResponse({ status: 500 });
+            mockHttpClient.get.mockReturnValue(throwError(() => httpError));
+
+            // Act & Assert
+            await expect(() => firstValueFrom(service.fetchData())).rejects.toMatchObject({ status: 500 });
+        });
+
+        it('powinien rzucić błąd przy braku zależności', async () => {
+            // Arrange
+            mockDependency.getData.mockReturnValue(null);
+
+            // Act & Assert
+            try {
+                await firstValueFrom(service.fetchData());
+                throw new Error('Test powinien rzucić błąd');
+            } catch (error: any) {
+                expect(error.message).toBe('Brak danych z zależności');
+                expect(mockHttpClient.get).not.toHaveBeenCalled();
+            }
+        });
+    });
+});
+```
 
