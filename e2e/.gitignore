@@ -1,0 +1,19 @@
+# Konfiguracja środowiskowa
+config/.env.local
+config/.env.staging
+
+# Raporty testów
+playwright-report/
+test-results/
+
+# Trace files
+trace.zip
+
+# Screenshoty i wideo z testów
+screenshots/
+videos/
+
+# Cache Playwright
+.cache/
+
+

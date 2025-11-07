@@ -1,402 +1,233 @@
-# Testy E2E - StrummerBox
+# Testy E2E dla StrummerBox
 
-## Struktura katalogów
+Dokumentacja testów End-to-End z wykorzystaniem Playwright.
 
-```
-e2e/
-├── fixtures/           # Dane testowe (użytkownicy, piosenki, repertuary)
-├── pages/             # Page Object Models (POM)
-├── utils/             # Pomocnicze funkcje
-└── *.spec.ts          # Pliki testowe
-```
+## 📋 Spis treści
 
-## Page Object Model (POM)
+- [Wymagania](#wymagania)
+- [Instalacja](#instalacja)
+- [Uruchomienie testów](#uruchomienie-testów)
+- [Struktura projektu](#struktura-projektu)
+- [Pierwszy test](#pierwszy-test)
 
-Każda strona powinna mieć swój POM w katalogu `pages/`:
+## 🔧 Wymagania
 
-### Przykład POM
+Przed uruchomieniem testów upewnij się, że masz zainstalowane:
 
-```typescript
-// pages/songs.page.ts
-import { Page, Locator } from '@playwright/test';
+- **Node.js** w wersji 18 lub nowszej
+- **npm** lub **yarn**
+- **Aplikacja Angular** musi być uruchomiona na `http://localhost:4200`
 
-export class SongsPage {
-    readonly page: Page;
-    readonly addButton: Locator;
-    readonly searchInput: Locator;
-    readonly songsList: Locator;
+## 📦 Instalacja
 
-    constructor(page: Page) {
-        this.page = page;
-        this.addButton = page.getByRole('button', { name: 'Dodaj piosenkę' });
-        this.searchInput = page.getByPlaceholder('Szukaj...');
-        this.songsList = page.getByTestId('songs-list');
-    }
-
-    async goto() {
-        await this.page.goto('/songs');
-        await this.page.waitForLoadState('networkidle');
-    }
-
-    async searchSong(query: string) {
-        await this.searchInput.fill(query);
-        await this.page.waitForLoadState('networkidle');
-    }
-
-    async addNewSong() {
-        await this.addButton.click();
-        await this.page.waitForURL(/.*\/songs\/new/);
-    }
-
-    async getSongByTitle(title: string) {
-        return this.songsList.getByText(title);
-    }
-}
-```
-
-## Fixtures
-
-Przechowuj dane testowe w katalogu `fixtures/`:
-
-```typescript
-// fixtures/test-data.ts
-export const testUsers = {
-    validUser: {
-        email: 'test@example.com',
-        password: 'TestPassword123!',
-    },
-    adminUser: {
-        email: 'admin@example.com',
-        password: 'AdminPassword123!',
-    },
-};
-
-export const testSongs = {
-    rock: {
-        title: 'Rock Song',
-        artist: 'Rock Band',
-        lyrics: '[C]Some [G]lyrics [Am]here',
-    },
-    pop: {
-        title: 'Pop Song',
-        artist: 'Pop Artist',
-        lyrics: '[D]Pop [A]song [Bm]lyrics',
-    },
-};
-```
-
-## Pomocnicze funkcje
-
-Utwórz reużywalne funkcje w `utils/test-helpers.ts`:
-
-```typescript
-// utils/test-helpers.ts
-import { Page } from '@playwright/test';
-
-export async function login(page: Page, email: string, password: string) {
-    await page.goto('/login');
-    await page.getByLabel('Email').fill(email);
-    await page.getByLabel('Hasło').fill(password);
-    await page.getByRole('button', { name: 'Zaloguj' }).click();
-    await page.waitForURL('/dashboard');
-}
-
-export async function clearStorage(page: Page) {
-    await page.evaluate(() => {
-        localStorage.clear();
-        sessionStorage.clear();
-    });
-    await page.context().clearCookies();
-}
-
-export async function waitForApiResponse(
-    page: Page,
-    urlPattern: string,
-    method: string = 'GET'
-) {
-    return page.waitForResponse(
-        (response) =>
-            response.url().includes(urlPattern) && response.request().method() === method
-    );
-}
-```
-
-## Pisanie testów
-
-### Podstawowa struktura
-
-```typescript
-import { test, expect } from '@playwright/test';
-import { MyPage } from './pages/my.page';
-
-test.describe('Moja funkcjonalność', () => {
-    test.beforeEach(async ({ page }) => {
-        // Setup przed każdym testem
-        await page.goto('/');
-    });
-
-    test('powinien wykonać akcję', async ({ page }) => {
-        // Arrange
-        const myPage = new MyPage(page);
-
-        // Act
-        await myPage.performAction();
-
-        // Assert
-        await expect(page.getByText('Sukces')).toBeVisible();
-    });
-});
-```
-
-### Testowanie autentykacji
-
-```typescript
-test.describe('Autentykacja', () => {
-    test.beforeEach(async ({ page }) => {
-        await clearStorage(page);
-    });
-
-    test('powinien zalogować użytkownika', async ({ page }) => {
-        const loginPage = new LoginPage(page);
-
-        await loginPage.goto();
-        await loginPage.login(
-            testUsers.validUser.email,
-            testUsers.validUser.password
-        );
-
-        await expect(page).toHaveURL(/.*dashboard/);
-    });
-});
-```
-
-### Testowanie formularzy
-
-```typescript
-test('powinien walidować formularz', async ({ page }) => {
-    await page.goto('/songs/new');
-
-    // Próba zapisu bez wypełnienia
-    await page.getByRole('button', { name: 'Zapisz' }).click();
-
-    // Sprawdź błędy walidacji
-    await expect(page.getByText('Tytuł jest wymagany')).toBeVisible();
-    await expect(page.getByText('Artysta jest wymagany')).toBeVisible();
-});
-```
-
-### Testowanie interakcji
-
-```typescript
-test('powinien dodać piosenkę do ulubionych', async ({ page }) => {
-    await page.goto('/songs');
-
-    const firstSong = page.locator('[data-testid="song-item"]').first();
-    const favoriteButton = firstSong.getByRole('button', { name: 'Ulubione' });
-
-    // Kliknij przycisk
-    await favoriteButton.click();
-
-    // Sprawdź czy zmienił stan
-    await expect(favoriteButton).toHaveAttribute('aria-pressed', 'true');
-});
-```
-
-## Best Practices
-
-### 1. Używaj data-testid dla kluczowych elementów
-
-```html
-<!-- W komponencie Angular -->
-<div data-testid="songs-list">
-    <div data-testid="song-item" *ngFor="let song of songs">
-        {{ song.title }}
-    </div>
-</div>
-```
-
-```typescript
-// W teście
-const songsList = page.getByTestId('songs-list');
-const songItems = page.getByTestId('song-item');
-```
-
-### 2. Czekaj na API response
-
-```typescript
-// Czekaj na odpowiedź API przed asercją
-const responsePromise = page.waitForResponse('/api/songs');
-await page.getByRole('button', { name: 'Zapisz' }).click();
-const response = await responsePromise;
-
-expect(response.status()).toBe(200);
-```
-
-### 3. Grupuj powiązane testy
-
-```typescript
-test.describe('Zarządzanie piosenkami', () => {
-    test.describe('Tworzenie', () => {
-        test('powinien utworzyć nową piosenkę', async ({ page }) => {
-            // ...
-        });
-
-        test('powinien walidować tytuł', async ({ page }) => {
-            // ...
-        });
-    });
-
-    test.describe('Edycja', () => {
-        test('powinien edytować piosenkę', async ({ page }) => {
-            // ...
-        });
-    });
-});
-```
-
-### 4. Używaj beforeEach dla wspólnego setupu
-
-```typescript
-test.describe('Dashboard', () => {
-    test.beforeEach(async ({ page }) => {
-        // Login dla wszystkich testów w tym describe
-        await login(page, testUsers.validUser.email, testUsers.validUser.password);
-        await page.goto('/dashboard');
-    });
-
-    test('powinien wyświetlić statystyki', async ({ page }) => {
-        // Test zaczyna się już po zalogowaniu
-    });
-});
-```
-
-### 5. Czyść stan między testami
-
-```typescript
-test.afterEach(async ({ page }) => {
-    await clearStorage(page);
-});
-```
-
-## Selektory - priorytet
-
-1. **Role** (najbardziej semantyczny)
-
-```typescript
-page.getByRole('button', { name: 'Zapisz' });
-page.getByRole('heading', { name: 'Tytuł' });
-```
-
-2. **Label** (dla formularzy)
-
-```typescript
-page.getByLabel('Email');
-page.getByLabel('Hasło');
-```
-
-3. **Text** (dla treści)
-
-```typescript
-page.getByText('Witaj!');
-page.getByText('Brak piosenek');
-```
-
-4. **Test ID** (dla unikalnych elementów)
-
-```typescript
-page.getByTestId('song-item');
-page.getByTestId('repertoire-card');
-```
-
-5. **CSS Selectors** (ostateczność)
-
-```typescript
-page.locator('.my-class'); // Unikaj jeśli możliwe
-```
-
-## Debugging
-
-### 1. Playwright Inspector
+### 1. Instalacja zależności projektu
 
 ```bash
-npm run test:e2e:debug
+npm install
 ```
 
-### 2. Headed mode
+### 2. Instalacja przeglądarek dla Playwright
+
+Playwright wymaga pobrania przeglądarek, które będą używane do testów:
+
+```bash
+npx playwright install
+```
+
+Jeśli chcesz zainstalować tylko Chromium (zalecane dla szybszych testów):
+
+```bash
+npx playwright install chromium
+```
+
+### 3. Konfiguracja środowiska (opcjonalnie)
+
+Skopiuj przykładowy plik konfiguracji:
+
+```bash
+cp e2e/config/.env.example e2e/config/.env.local
+```
+
+Edytuj plik `.env.local` i dostosuj zmienne środowiskowe (np. `BASE_URL`).
+
+## 🚀 Uruchomienie testów
+
+### Krok 1: Uruchom aplikację Angular
+
+W pierwszym terminalu uruchom serwer deweloperski:
+
+```bash
+npm run start
+```
+
+Poczekaj, aż aplikacja będzie dostępna pod adresem `http://localhost:4200`.
+
+### Krok 2: Uruchom testy E2E
+
+W drugim terminalu uruchom testy:
+
+#### Standardowe uruchomienie (headless mode)
+
+```bash
+npm run test:e2e
+```
+
+Ten tryb uruchamia wszystkie testy w tle, bez wyświetlania okna przeglądarki. Jest najszybszy i zalecany dla CI/CD.
+
+#### Tryb UI (interaktywny)
+
+```bash
+npm run test:e2e:ui
+```
+
+Uruchamia interaktywny interfejs Playwright, który pozwala:
+- Wybierać, które testy uruchomić
+- Oglądać testy w czasie rzeczywistym
+- Analizować wyniki
+- Debugować testy
+
+**To jest ZALECANY tryb dla pierwszego uruchomienia!**
+
+#### Tryb z widoczną przeglądarką (headed mode)
 
 ```bash
 npm run test:e2e:headed
 ```
 
-### 3. Slow motion
+Uruchamia testy z widocznym oknem przeglądarki. Przydatne do obserwowania, co dokładnie robi test.
 
-```typescript
-test.use({ launchOptions: { slowMo: 1000 } });
-```
-
-### 4. Screenshot
-
-```typescript
-await page.screenshot({ path: 'screenshot.png' });
-```
-
-### 5. Pause
-
-```typescript
-await page.pause(); // Otwiera Playwright Inspector
-```
-
-## Uruchamianie testów
+#### Tryb debugowania
 
 ```bash
-# Wszystkie testy
-npm run test:e2e
-
-# Z UI
-npm run test:e2e:ui
-
-# Debug mode
 npm run test:e2e:debug
-
-# Konkretna przeglądarka
-npm run test:e2e:chromium
-npm run test:e2e:firefox
-npm run test:e2e:webkit
-
-# Mobile
-npm run test:e2e:mobile
-
-# Konkretny plik
-npx playwright test auth.spec.ts
-
-# Z tagiem
-npx playwright test --grep @smoke
 ```
 
-## Tagowanie testów
+Uruchamia testy w trybie debugowania krok po kroku.
 
-```typescript
-test('@smoke powinien załadować stronę główną', async ({ page }) => {
-    await page.goto('/');
-});
-
-test('@critical powinien umożliwić login', async ({ page }) => {
-    // ...
-});
-```
-
-Uruchom tylko smoke tests:
+#### Uruchomienie tylko testów typu @smoke
 
 ```bash
 npx playwright test --grep @smoke
 ```
 
-## CI/CD
+### Krok 3: Podgląd raportu
 
-Testy E2E są automatycznie uruchamiane na GitHub Actions:
+Po zakończeniu testów, wygenerowany zostanie raport HTML. Aby go otworzyć:
 
--   **Push do main/develop:** Pełna bateria testów (wszystkie przeglądarki)
--   **Pull Request:** Tylko Chromium (szybsze feedback)
+```bash
+npm run test:e2e:report
+```
 
-Zobacz `.github/workflows/test.yml` dla szczegółów konfiguracji.
+## 📁 Struktura projektu
 
+```
+e2e/
+├── specs/                    # Pliki testowe
+│   └── login-page.spec.ts   # Pierwszy test: wyświetlanie strony logowania
+├── poms/                     # Page Object Models
+│   └── LoginPage.ts         # POM dla strony logowania
+├── helpers/                  # Funkcje pomocnicze (do dodania w przyszłości)
+├── fixtures/                 # Statyczne dane testowe (do dodania w przyszłości)
+├── config/                   # Konfiguracja środowisk
+│   └── .env.example         # Przykładowy plik konfiguracji
+├── playwright.config.ts      # Główna konfiguracja Playwright
+└── README.md                 # Ten plik
+```
+
+## 🧪 Pierwsze testy
+
+### Opis testów
+
+Zaimplementowane testy weryfikują **stronę logowania**. To najprostsze możliwe testy e2e, które:
+
+- ✅ Sprawdzają, czy aplikacja jest uruchomiona i dostępna
+- ✅ Weryfikują, czy strona logowania się ładuje
+- ✅ Sprawdzają obecność wszystkich kluczowych elementów UI
+- ✅ Testują walidację formularza (przycisk wyłączony/włączony)
+- ✅ Są oznaczone tagiem `@smoke` jako testy krytycznej funkcjonalności
+
+**Liczba testów:** 3
+
+### Lokalizacja
+
+Plik: `e2e/specs/login-page.spec.ts`
+
+### Co testy weryfikują?
+
+**Test #1: Wyświetlanie formularza logowania**
+1. Czy strona `/login` jest dostępna
+2. Czy pole email jest widoczne
+3. Czy pole hasła jest widoczne
+4. Czy przycisk logowania jest widoczny
+5. Czy przycisk jest wyłączony dla pustego formularza (walidacja UX)
+6. Czy link do rejestracji jest widoczny
+
+**Test #2: Poprawność URL**
+1. Czy routing Angular działa
+2. Czy URL zawiera `/login`
+
+**Test #3: Walidacja formularza**
+1. Czy przycisk jest wyłączony dla pustego formularza
+2. Czy przycisk pozostaje wyłączony gdy wypełniony jest tylko email
+3. Czy przycisk włącza się po wypełnieniu email i hasła
+
+### Zgodność ze strategią E2E
+
+Test został zaimplementowany zgodnie z dokumentem strategii:
+
+- ✅ Wykorzystuje wzorzec **Page Object Model** (`LoginPage.ts`)
+- ✅ Używa **Role Locators** (`getByRole`) jako priorytetowych selektorów
+- ✅ Wspiera **data-testid** dla specyficznych elementów
+- ✅ Jest oznaczony tagiem **@smoke**
+- ✅ Ma czytelną nazwę opisującą weryfikowane zachowanie
+- ✅ Zawiera komentarze po polsku
+
+## 🔍 Rozwiązywanie problemów
+
+### Problem: "Test timeout of 30000ms exceeded"
+
+**Przyczyna:** Aplikacja nie jest uruchomiona lub ładuje się za wolno.
+
+**Rozwiązanie:** 
+1. Upewnij się, że `npm run start` działa i aplikacja jest dostępna na `http://localhost:4200`
+2. Zwiększ timeout w `playwright.config.ts` (parametr `timeout`)
+
+### Problem: "Error: page.goto: net::ERR_CONNECTION_REFUSED"
+
+**Przyczyna:** Aplikacja nie jest uruchomiona.
+
+**Rozwiązanie:** Uruchom `npm run start` w osobnym terminalu przed uruchomieniem testów.
+
+### Problem: Brak zainstalowanych przeglądarek
+
+**Przyczyna:** Nie uruchomiono `npx playwright install`.
+
+**Rozwiązanie:** 
+```bash
+npx playwright install chromium
+```
+
+### Problem: Test nie znajduje elementów na stronie
+
+**Przyczyna:** Elementy w aplikacji nie mają odpowiednich atrybutów `data-testid`.
+
+**Rozwiązanie:** 
+1. Sprawdź, czy komponenty w aplikacji mają atrybuty `data-testid`
+2. Dodaj brakujące atrybuty zgodnie z Page Object Model
+3. Tymczasowo możesz użyć selektorów tekstowych lub CSS
+
+## 📚 Kolejne kroki
+
+Po pomyślnym uruchomieniu pierwszego testu, możesz:
+
+1. **Dodać test logowania** - test faktycznego procesu uwierzytelniania
+2. **Zaimplementować helper do seedowania danych** - w katalogu `helpers/`
+3. **Dodać testy CRUD** - dla piosenek i repertuarów
+4. **Rozbudować Page Object Models** - dla kolejnych stron aplikacji
+5. **Skonfigurować CI/CD** - automatyczne uruchamianie testów w GitHub Actions
+
+## 📖 Przydatne linki
+
+- [Dokumentacja Playwright](https://playwright.dev/)
+- [Best Practices dla Playwright](https://playwright.dev/docs/best-practices)
+- [Debugging w Playwright](https://playwright.dev/docs/debug)
