@@ -1,0 +1,91 @@
+name: Test & Build
+
+on:
+  # Uruchamianie po każdym push do main
+  push:
+    branches:
+      - main
+
+  # Możliwość manualnego uruchomienia
+  workflow_dispatch:
+
+# Uprawnienia dla workflow
+permissions:
+  contents: read
+
+jobs:
+  unit-tests:
+    name: Testy jednostkowe
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [22.x]
+
+    steps:
+      # Checkout kodu
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      # Setup Node.js
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      # Instalacja zależności
+      - name: Instalacja zależności
+        run: npm ci
+
+      # Uruchomienie testów jednostkowych (Vitest)
+      - name: Uruchomienie testów jednostkowych
+        run: npm run test:run
+
+  build:
+    name: Build produkcyjny
+    runs-on: ubuntu-latest
+    needs: unit-tests
+
+    strategy:
+      matrix:
+        node-version: [22.x]
+
+    steps:
+      # Checkout kodu
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      # Setup Node.js
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      # Instalacja zależności
+      - name: Instalacja zależności
+        run: npm ci
+
+      # Build produkcyjny
+      - name: Build produkcyjny
+        run: npm run build
+
+      # Sprawdzenie czy build się udał
+      - name: Weryfikacja buildu
+        run: |
+          if [ ! -d "dist/strummerbox" ]; then
+            echo "❌ Błąd: Folder dist/strummerbox nie istnieje!"
+            exit 1
+          fi
+          echo "✅ Build zakończony pomyślnie"
+
+      # Opcjonalnie: upload artefaktów buildu
+      - name: Upload build artifacts
+        if: success()
+        uses: actions/upload-artifact@v5
+        with:
+          name: build-artifacts
+          path: dist/strummerbox
+          retention-days: 7
+

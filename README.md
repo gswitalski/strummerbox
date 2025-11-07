@@ -1,13 +1,16 @@
 # StrummerBox
 
+![Test & Build](https://github.com/YOUR_USERNAME/strummerbox/actions/workflows/ci.yml/badge.svg)
+
 ## Table of Contents
 1. [Project Description](#project-description)
 2. [Tech Stack](#tech-stack)
 3. [Getting Started Locally](#getting-started-locally)
 4. [Available Scripts](#available-scripts)
-5. [Project Scope](#project-scope)
-6. [Project Status](#project-status)
-7. [License](#license)
+5. [CI/CD Pipeline](#cicd-pipeline)
+6. [Project Scope](#project-scope)
+7. [Project Status](#project-status)
+8. [License](#license)
 
 ## Project Description
 
@@ -128,6 +131,33 @@ In the project directory, you can run the following scripts:
 -   `npm run test:e2e:report`: Shows HTML report from last test run.
 
 For detailed testing documentation, see [Testing Quick Start](./docs/testing-quick-start.md).
+
+## CI/CD Pipeline
+
+The project uses GitHub Actions for continuous integration and deployment. The pipeline consists of two jobs:
+
+1. **Unit Tests** - Runs all unit tests using Vitest
+2. **Build** - Creates a production build (only if tests pass)
+
+Pipeline automatically:
+
+-   ✅ Runs unit tests (Vitest) on every push to `main`
+-   ✅ Builds the production version of the application (only if tests succeed)
+-   ✅ Verifies build integrity
+-   ✅ Stores build artifacts for 7 days
+
+### Manual Trigger
+
+You can manually trigger the pipeline from the GitHub Actions tab:
+1. Go to "Actions" tab in the repository
+2. Select "CI/CD Pipeline" workflow
+3. Click "Run workflow"
+
+### Pipeline Status
+
+View the pipeline status and history in the [Actions tab](https://github.com/YOUR_USERNAME/strummerbox/actions).
+
+For detailed CI/CD documentation, see [GitHub Actions CI Setup](./docs/results/github-actions-ci-setup.md).
 
 ## Project Scope
 
