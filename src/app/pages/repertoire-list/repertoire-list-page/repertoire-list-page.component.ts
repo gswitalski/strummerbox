@@ -30,7 +30,6 @@ import { mapRepertoireDtoToViewModel } from '../repertoire-list.types';
 import { RepertoireListService } from '../services/repertoire-list.service';
 import { RepertoireListComponent } from '../components/repertoire-list/repertoire-list.component';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
-import type { RepertoireSummaryDto } from '../../../../../packages/contracts/types';
 import type { Sort } from '@angular/material/sort';
 import { CommonModule } from '@angular/common';
 import { RepertoireCreateDialogComponent } from '../components/repertoire-create-dialog/repertoire-create-dialog.component';

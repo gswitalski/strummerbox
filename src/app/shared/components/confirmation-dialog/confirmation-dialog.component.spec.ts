@@ -1,6 +1,6 @@
 import 'zone.js';
 import 'zone.js/testing';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { TestBed } from '@angular/core/testing';
 import { describe, it, expect, vi, beforeAll } from 'vitest';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';

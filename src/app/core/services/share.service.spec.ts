@@ -15,8 +15,8 @@ import { environment } from '../../../environments/environment';
 
 describe('ShareService', () => {
     let service: ShareService;
-    let mockHttpClient: any;
-    let mockSupabaseService: any;
+    let mockHttpClient: { get: ReturnType<typeof vi.fn> };
+    let mockSupabaseService: { auth: { getSession: ReturnType<typeof vi.fn> } };
 
     // Inicjalizacja środowiska testowego Angular przed wszystkimi testami
     beforeAll(() => {
@@ -142,7 +142,7 @@ describe('ShareService', () => {
             try {
                 await firstValueFrom(service.getSongShareMeta(songId));
                 throw new Error('Test powinien rzucić błąd');
-            } catch (error: any) {
+            } catch (error) {
                 expect(error).toBeInstanceOf(Error);
                 expect(error.message).toBe('Brak aktywnej sesji.');
                 expect(mockSupabaseService.auth.getSession).toHaveBeenCalledOnce();
@@ -222,7 +222,7 @@ describe('ShareService', () => {
             try {
                 await firstValueFrom(service.getRepertoireShareMeta(repertoireId));
                 throw new Error('Test powinien rzucić błąd');
-            } catch (error: any) {
+            } catch (error) {
                 expect(error).toBeInstanceOf(Error);
                 expect(error.message).toBe('Brak aktywnej sesji.');
                 expect(mockSupabaseService.auth.getSession).toHaveBeenCalledOnce();

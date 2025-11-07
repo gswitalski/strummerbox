@@ -1,7 +1,4 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { DebugElement } from '@angular/core';
-import { By } from '@angular/platform-browser';
+import { describe, it, expect, vi } from 'vitest';
 
 /**
  * Przykładowy test komponentu Button

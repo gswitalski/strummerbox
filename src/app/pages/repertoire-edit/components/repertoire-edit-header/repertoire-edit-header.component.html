@@ -3,7 +3,7 @@
     <div class="header-field name-field">
         @if (editMode() !== 'name') {
             <!-- Tryb wyświetlania -->
-            <div class="display-mode" (click)="startEditName()">
+            <div class="display-mode" (click)="startEditName()" (keydown.enter)="startEditName()" (keydown.space)="startEditName()" tabindex="0" role="button">
                 <h2>{{ repertoire()?.name }}</h2>
                 <mat-icon class="edit-icon">edit</mat-icon>
             </div>
@@ -65,7 +65,7 @@
     <div class="header-field description-field">
         @if (editMode() !== 'description') {
             <!-- Tryb wyświetlania -->
-            <div class="display-mode" (click)="startEditDescription()">
+            <div class="display-mode" (click)="startEditDescription()" (keydown.enter)="startEditDescription()" (keydown.space)="startEditDescription()" tabindex="0" role="button">
                 @if (repertoire()?.description && repertoire()!.description!.trim().length > 0) {
                     <p>{{ repertoire()?.description }}</p>
                 } @else {

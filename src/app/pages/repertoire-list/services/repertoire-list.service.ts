@@ -81,8 +81,6 @@ export class RepertoireListService {
                     },
                 })
             );
-        } catch (error) {
-            throw error;
         } finally {
             this.deletingRepertoireIdState.set(null);
         }
