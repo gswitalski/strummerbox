@@ -1,6 +1,6 @@
 Jesteś specjalistą GitHub Actions w scacku 
 
-Utwórz scenariusz "pull-request.yml" na podstaeie 
+Utwórz scenariusz "pull-request.yml" na podstawie
 
 Workflow:
 Scenariusz "pull-request.yml" powinien działać następująco:
