@@ -9,7 +9,6 @@ import {
 
 import type {
     RepertoireDto,
-    SongSummaryDto,
     RepertoireAddSongsResponseDto,
 } from '../../../../../packages/contracts/types';
 import type {

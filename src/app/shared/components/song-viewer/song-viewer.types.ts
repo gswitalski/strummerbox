@@ -8,7 +8,7 @@
  */
 export interface SongNavLink {
     title: string;
-    link: any[]; // Router link array
+    link: unknown[]; // Router link array
 }
 
 /**
@@ -17,6 +17,6 @@ export interface SongNavLink {
 export interface SongNavigation {
     previous: SongNavLink | null;
     next: SongNavLink | null;
-    back: any[] | null; // Router link array for the back button
+    back: unknown[] | null; // Router link array for the back button
 }
 

@@ -19,8 +19,8 @@ import type {
 
 describe('BiesiadaService', () => {
     let service: BiesiadaService;
-    let mockHttpClient: any;
-    let mockSupabaseService: any;
+    let mockHttpClient: { get: ReturnType<typeof vi.fn> };
+    let mockSupabaseService: { auth: { getSession: ReturnType<typeof vi.fn> } };
 
     // Inicjalizacja środowiska testowego Angular przed wszystkimi testami
     beforeAll(() => {
@@ -175,7 +175,7 @@ describe('BiesiadaService', () => {
             try {
                 await firstValueFrom(service.getRepertoires());
                 throw new Error('Test powinien rzucić błąd');
-            } catch (error: any) {
+            } catch (error) {
                 expect(error).toBeInstanceOf(Error);
                 expect(error.message).toBe('Brak aktywnej sesji.');
                 // Sprawdzenie, że HttpClient nie został wywołany
@@ -249,7 +249,7 @@ describe('BiesiadaService', () => {
             try {
                 await firstValueFrom(service.getRepertoireSongs(repertoireId));
                 throw new Error('Test powinien rzucić błąd');
-            } catch (error: any) {
+            } catch (error) {
                 expect(error).toBeInstanceOf(Error);
                 expect(error.message).toBe('Brak aktywnej sesji.');
                 expect(mockHttpClient.get).not.toHaveBeenCalled();
@@ -339,7 +339,7 @@ describe('BiesiadaService', () => {
             try {
                 await firstValueFrom(service.getSongDetails(repertoireId, songId));
                 throw new Error('Test powinien rzucić błąd');
-            } catch (error: any) {
+            } catch (error) {
                 expect(error).toBeInstanceOf(Error);
                 expect(error.message).toBe('Brak aktywnej sesji.');
                 expect(mockHttpClient.get).not.toHaveBeenCalled();
@@ -398,7 +398,7 @@ describe('BiesiadaService', () => {
             try {
                 await firstValueFrom(service.getRepertoireSongs(''));
                 throw new Error('Test powinien rzucić błąd');
-            } catch (error: any) {
+            } catch (error) {
                 // Sprawdzenie, czy błąd HTTP został obsłużony
                 expect(mockHttpClient.get).toHaveBeenCalledWith(
                     expect.stringContaining('/repertoires//songs'),
@@ -419,7 +419,7 @@ describe('BiesiadaService', () => {
             try {
                 await firstValueFrom(service.getRepertoires());
                 throw new Error('Test powinien rzucić błąd');
-            } catch (error: any) {
+            } catch (error) {
                 // Logika getSession powinna rzucić błąd gdy error || !session
                 expect(error.message).toBe('Brak aktywnej sesji.');
             }
