@@ -34,35 +34,15 @@ Zapoznaj się z następującymi materiałami:
 </aktualna_implementacja>
 
 <aktualne_zachowanie>
-POST http://127.0.0.1:54321/functions/v1/repertoires
 
-body:
-{
-  "name": "aaaaa",
-  "description": null
-}
-
-{
-  "error": {
-    "code": "validation_error",
-    "message": "Nieprawidłowe dane wejściowe",
-    "details": {
-      "_errors": [],
-      "description": {
-        "_errors": [
-          "Expected string, received null"
-        ]
-      }
-    }
-  }
-}
-
-endpoint odrzuca prawidłowe dane
+gdny zakładam nowego użytkownika na lokalnej instancji bazy, to po założniu ma on pole emailconfirmrdat - ustawione od razu (nie trzeba potwierdzac)
+jednak na bazie produkcyjnej to pole pozostaje null i próba zalogowania uzytkownika zaraz po założeniu skutkuje komunkiatem o braku potwierdzenia maila
+nie wiem czy to kwestioa ustawin na chmurze czy coś trzeba zmienic w funkxjach supabase
 
 </aktualne_zachowanie>
 
 <oczekiwane_zachowanie>
-endpoint przyjmjue descrition=null, bo opis jest opcjonalny
+na produkcji można się zalogowac od razu po założeniu użytkownika, tak samo jak lokalnie
 </oczekiwane_zachowanie>
 
 

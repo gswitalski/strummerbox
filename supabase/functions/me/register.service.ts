@@ -94,6 +94,22 @@ export const registerOrganizer = async (
 
     const userId = user.id;
 
+    // Automatyczne potwierdzenie emaila użytkownika dla środowiska produkcyjnego
+    // (na lokalnym środowisku email jest automatycznie potwierdzony, ale na produkcji wymaga to jawnej akcji)
+    const { error: confirmError } = await supabase.auth.admin.updateUserById(userId, {
+        email_confirm: true,
+    });
+
+    if (confirmError) {
+        logger.warn('Nie udało się automatycznie potwierdzić emaila użytkownika', {
+            userId,
+            error: confirmError,
+        });
+        // Kontynuujemy mimo błędu potwierdzenia - użytkownik będzie musiał potwierdzić email ręcznie
+    } else {
+        logger.info('Automatycznie potwierdzono email użytkownika', { userId });
+    }
+
     const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .insert({
