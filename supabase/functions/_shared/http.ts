@@ -9,10 +9,24 @@ type ErrorResponseBody = {
     };
 };
 
+const corsHeaders = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
+export const handleCorsPreFlight = (): Response => {
+    return new Response(null, {
+        status: 204,
+        headers: corsHeaders,
+    });
+};
+
 export const jsonResponse = <T>(body: T, init?: ResponseInit): Response => {
     return new Response(JSON.stringify(body), {
         headers: {
             'Content-Type': 'application/json',
+            ...corsHeaders,
             ...init?.headers,
         },
         status: init?.status ?? 200,

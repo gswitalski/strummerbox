@@ -1,4 +1,4 @@
-import { buildErrorResponse, jsonResponse } from '../_shared/http.ts';
+import { buildErrorResponse, handleCorsPreFlight, jsonResponse } from '../_shared/http.ts';
 import { isApplicationError } from '../_shared/errors.ts';
 import { logger } from '../_shared/logger.ts';
 import { publicRepertoireRouter } from './public.handlers.ts';
@@ -8,6 +8,11 @@ import { publicRepertoireRouter } from './public.handlers.ts';
  * Handles public access to published repertoires and songs
  */
 Deno.serve(async (req: Request) => {
+    // Handle CORS preflight requests
+    if (req.method === 'OPTIONS') {
+        return handleCorsPreFlight();
+    }
+
     const url = new URL(req.url);
     const pathname = url.pathname.replace(/^\/public/, '');
 

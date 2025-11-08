@@ -1,13 +1,18 @@
 import { serve } from 'https://deno.land/std@0.224.0/http/server.ts';
 import { createSupabaseClient } from '../_shared/supabase-client.ts';
 import { requireAuth } from '../_shared/auth.ts';
-import { buildErrorResponse, withErrorHandling } from '../_shared/http.ts';
+import { buildErrorResponse, handleCorsPreFlight, withErrorHandling } from '../_shared/http.ts';
 import { logger } from '../_shared/logger.ts';
 import { ApplicationError, createInternalError } from '../_shared/errors.ts';
 import { songsRouter } from './songs.handlers.ts';
 import { repertoiresRouter } from './repertoires.handlers.ts';
 
 serve(async (request) => {
+    // Handle CORS preflight requests
+    if (request.method === 'OPTIONS') {
+        return handleCorsPreFlight();
+    }
+
     const url = new URL(request.url);
     const path = url.pathname;
 
