@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from 'npm:zod';
 import type { SongShareMetaDto } from '../../../packages/contracts/types.ts';
 import { jsonResponse } from '../_shared/http.ts';
 import { createValidationError } from '../_shared/errors.ts';

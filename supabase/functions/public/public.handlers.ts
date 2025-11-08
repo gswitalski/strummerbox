@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from 'npm:zod';
 import { createValidationError } from '../_shared/errors.ts';
 import { jsonResponse } from '../_shared/http.ts';
 import { logger } from '../_shared/logger.ts';

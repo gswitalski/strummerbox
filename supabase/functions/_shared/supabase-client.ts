@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from 'npm:@supabase/supabase-js';
 import type { Database } from '../../../packages/database/database.types.ts';
 import { createInternalError } from './errors.ts';
 

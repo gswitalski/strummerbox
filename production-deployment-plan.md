@@ -123,11 +123,22 @@ Zautomatyzuj proces wdrażania, aby uruchamiał się przy każdym pushu do gał�
         ```
     -   Zostanie wygenerowany token odświeżania. Skopiuj go.
 
-2.  **Dodaj token do GitHub Secrets:**
+2.  **Dodaj sekrety do GitHub:**
     -   W swoim repozytorium GitHub przejdź do `Settings` > `Secrets and variables` > `Actions`.
-    -   Kliknij `New repository secret`.
-    -   Nazwij sekret `FIREBASE_SERVICE_ACCOUNT_STRUMMERBOX_PROD`.
-    -   Wklej skopiowany token w pole "Value".
+    -   Kliknij `New repository secret` i dodaj następujące sekrety:
+
+        -   **Token Firebase:** Służy do autoryzacji wdrożenia na Twoje konto Firebase.
+            -   **Nazwa:** `FIREBASE_SERVICE_ACCOUNT_STRUMMERBOX_PROD`
+            -   **Wartość:** Wklej token uzyskany z polecenia `firebase login:ci`.
+
+        -   **Klucze Supabase:** Są niezbędne, aby aplikacja w wersji produkcyjnej mogła połączyć się z Twoim backendem.
+            -   Przejdź do panelu swojego projektu na [Supabase](https://app.supabase.com/).
+            -   Przejdź do `Settings` > `API`.
+            -   Dodaj dwa sekrety:
+                -   **Nazwa:** `SUPABASE_URL`
+                -   **Wartość:** Wklej wartość z pola `Project URL`.
+                -   **Nazwa:** `SUPABASE_ANON_KEY`
+                -   **Wartość:** Wklej wartość z pola `Project API Keys` (klucz `anon` `public`).
 
 3.  **Utwórz/Zaktualizuj przepływ pracy (workflow) GitHub:**
     -   Utwórz nowy plik workflow w `.github/workflows/deploy.yml` lub dodaj nowe zadanie do istniejącego pliku `ci.yml`.
@@ -137,6 +148,7 @@ Zautomatyzuj proces wdrażania, aby uruchamiał się przy każdym pushu do gał�
         -   Konfigurować Node.js.
         -   Instalować zależności (`npm ci`).
         -   Uruchamiać testy (`npm run test:run`).
+        -   **Podmieniać znaczniki na prawdziwe klucze Supabase w plikach środowiskowych.**
         -   Kompilować aplikację do wersji produkcyjnej (`npm run build`).
         -   Wdrażać na Firebase Hosting przy użyciu akcji `firebase-tools` i tokenu.
 
@@ -167,6 +179,11 @@ Zautomatyzuj proces wdrażania, aby uruchamiał się przy każdym pushu do gał�
 
           - name: Run unit tests
             run: npm run test:run
+
+          - name: Replace environment variables for Production
+            run: |
+              sed -i "s|#{SUPABASE_URL}#|${{ secrets.SUPABASE_URL }}|g" src/environments/environment.prod.ts
+              sed -i "s|#{SUPABASE_ANON_KEY}#|${{ secrets.SUPABASE_ANON_KEY }}|g" src/environments/environment.prod.ts
 
           - name: Build application
             run: npm run build -- --configuration production
