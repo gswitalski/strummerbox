@@ -41,7 +41,7 @@ The application offers two main interfaces:
 
 ### CI/CD & Hosting
 -   **GitHub Actions**: For automating CI/CD pipelines to build and test the application.
--   **DigitalOcean**: For flexible and scalable application hosting.
+-   **Firebase Hosting**: For fast and secure web hosting with a global CDN.
 
 ## Getting Started Locally
 
