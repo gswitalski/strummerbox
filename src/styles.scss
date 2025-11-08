@@ -1,5 +1,8 @@
 /* You can add global styles to this file, and also import other style files */
 
+/* Import Angular Material prebuilt theme */
+@import '@angular/material/prebuilt-themes/cyan-orange.css';
+
 :root {
     /* Cyan-Orange Theme Colors (Dark Theme) */
     --stbo-primary-color: #00bcd4;

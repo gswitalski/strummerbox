@@ -34,14 +34,13 @@ Zapoznaj się z następującymi materiałami:
 
 <aktualne_zachowanie>
 
-Okno dialogowe tworzenia repertuaru
+kolorystyka całego programu jest biała - białe napisy, białe toło, nic nie widac. Cos się popsuło poostatnich zmiananch podczas przygotowania aplikacji na produkcję
 
 </aktualne_zachowanie>
 
 <oczekiwane_zachowanie>
 
-wywołuje sie okno dialogowe do założenia repertuaru (to samo które się pojawia pdczas dodawania repertuaru na liście repertuarów) po którym  użytkownik przechodzi do widoku edycji nowoutworzonego repertuaru
-
+kolorystyka zgodna z wybranym schematem angular material
 </oczekiwane_zachowanie>
 
 

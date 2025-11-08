@@ -1,5 +1,3 @@
-const env = import.meta.env;
-
 export const environment = {
     production: false,
     supabase: {
