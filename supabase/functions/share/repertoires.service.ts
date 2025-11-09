@@ -2,6 +2,7 @@ import type { RepertoireShareMetaDto } from '../../../packages/contracts/types.t
 import { createInternalError, createNotFoundError } from '../_shared/errors.ts';
 import type { RequestSupabaseClient } from '../_shared/supabase-client.ts';
 import { logger } from '../_shared/logger.ts';
+import { getAppPublicUrl } from '../_shared/config.ts';
 
 /**
  * Kolumny pobierane do generowania metadanych udostępniania repertuaru
@@ -52,13 +53,8 @@ export const getRepertoireShareMeta = async ({
         throw createNotFoundError('Repertuar nie został znaleziony', { repertoireId });
     }
 
-    // Pobranie bazowego URL aplikacji ze zmiennych środowiskowych
-    const appPublicUrl = Deno.env.get('APP_PUBLIC_URL');
-
-    if (!appPublicUrl) {
-        logger.error('Brak konfiguracji APP_PUBLIC_URL w zmiennych środowiskowych');
-        throw createInternalError('Brak konfiguracji adresu publicznego aplikacji');
-    }
+    // Pobranie bazowego URL aplikacji
+    const appPublicUrl = getAppPublicUrl();
 
     // Budowanie publicUrl i qrPayload
     const publicUrl = `${appPublicUrl}/public/repertoires/${data.public_id}`;

@@ -34,15 +34,14 @@ Zapoznaj się z następującymi materiałami:
 </aktualna_implementacja>
 
 <aktualne_zachowanie>
-
-gdny zakładam nowego użytkownika na lokalnej instancji bazy, to po założniu ma on pole emailconfirmrdat - ustawione od razu (nie trzeba potwierdzac)
-jednak na bazie produkcyjnej to pole pozostaje null i próba zalogowania uzytkownika zaraz po założeniu skutkuje komunkiatem o braku potwierdzenia maila
-nie wiem czy to kwestioa ustawin na chmurze czy coś trzeba zmienic w funkxjach supabase
+na produkcji Błąd konfiguracji serwera - brak APP_PUBLIC_URL
 
 </aktualne_zachowanie>
 
 <oczekiwane_zachowanie>
-na produkcji można się zalogowac od razu po założeniu użytkownika, tak samo jak lokalnie
+
+poprawna konfiguracja środowiska produkcyjnego
+
 </oczekiwane_zachowanie>
 
 
