@@ -62,7 +62,9 @@ jobs:
         run: npx supabase db push
 
       - name: Set Supabase Secrets
-        run: echo "APP_PUBLIC_URL=${{ secrets.APP_PUBLIC_URL }}" | npx supabase secrets set --env-file -
+        run: |
+          echo "APP_PUBLIC_URL=${{ secrets.APP_PUBLIC_URL }}" > .env.production
+          npx supabase secrets set --env-file .env.production
 
       - name: Deploy Supabase Functions
         run: npx supabase functions deploy --project-ref $SUPABASE_PROJECT_ID
