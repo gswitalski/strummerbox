@@ -8,11 +8,57 @@ import { profileRouter } from './profile.handlers.ts';
 import { registerRouter } from './register.handlers.ts';
 import { biesiadaRouter } from './biesiada.handlers.ts';
 
+let isSupabaseHealthy = false;
+
+async function ensureSupabaseHealthy() {
+    // Ten mechanizm to obejście problemu typu "race condition" w lokalnym środowisku deweloperskim,
+    // gdzie kontener funkcji może uruchomić się szybciej niż bramka API Supabase.
+    if (isSupabaseHealthy || Deno.env.get('SUPABASE_ENV') !== 'local') {
+        isSupabaseHealthy = true; // Oznacz jako sprawdzony dla środowisk innych niż lokalne lub gdy już sprawdzono.
+        return;
+    }
+
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    if (!supabaseUrl) {
+        logger.error('SUPABASE_URL is not set. Cannot perform health check.');
+        isSupabaseHealthy = true;
+        return;
+    }
+
+    logger.info('Performing initial health check for local Supabase gateway...');
+
+    for (let i = 0; i < 7; i++) {
+        try {
+            // Używamy endpointu /health bramki API jako celu sprawdzania.
+            const response = await fetch(`${supabaseUrl}/health`, { signal: AbortSignal.timeout(1500) });
+            if (response.ok) {
+                logger.info('Supabase gateway is healthy.');
+                isSupabaseHealthy = true;
+                return;
+            }
+            logger.warn(`Supabase gateway not ready (status: ${response.status}). Retrying... [Attempt ${i + 1}/7]`);
+        } catch (error) {
+            logger.warn(`Supabase gateway not reachable. Retrying... [Attempt ${i + 1}/7]`, {
+                errorMessage: error.message,
+            });
+        }
+        if (i < 6) {
+            await new Promise(resolve => setTimeout(resolve, 1500));
+        }
+    }
+
+    logger.error('Supabase gateway did not become healthy after multiple attempts.');
+    // Pozwalamy na kontynuację, aby zwrócić oryginalny błąd do klienta.
+    isSupabaseHealthy = true; // Nie sprawdzaj ponownie dla tej instancji.
+}
+
 serve(async (request) => {
     // Handle CORS preflight requests
     if (request.method === 'OPTIONS') {
         return handleCorsPreFlight();
     }
+
+    await ensureSupabaseHealthy();
 
     const url = new URL(request.url);
     const path = url.pathname;
