@@ -34,9 +34,9 @@ export class PublicRepertoireService {
                     apikey: environment.supabase.anonKey,
                     // Wyłącz cache przeglądarki - zapobiega cachowaniu odpowiedzi błędów (np. 410)
                     // gdy repertuar zostanie odpublikowany i opublikowany ponownie
-                    // 'Cache-Control': 'no-cache, no-store, must-revalidate',
-                    // 'Pragma': 'no-cache',
-                    // 'Expires': '0',
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Pragma': 'no-cache',
+                    'Expires': '0',
                 },
             })
             .pipe(
@@ -83,9 +83,9 @@ export class PublicRepertoireService {
                         apikey: environment.supabase.anonKey,
                         // Wyłącz cache przeglądarki - zapobiega cachowaniu odpowiedzi błędów (np. 410)
                         // gdy piosenka/repertuar zostanie odpublikowany i opublikowany ponownie
-                        // 'Cache-Control': 'no-cache, no-store, must-revalidate',
-                        // 'Pragma': 'no-cache',
-                        // 'Expires': '0',
+                        'Cache-Control': 'no-cache, no-store, must-revalidate',
+                        'Pragma': 'no-cache',
+                        'Expires': '0',
                     },
                 }
             )

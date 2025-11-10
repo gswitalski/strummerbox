@@ -11,7 +11,7 @@ import { biesiadaRouter } from './biesiada.handlers.ts';
 serve(async (request) => {
     // Handle CORS preflight requests
     if (request.method === 'OPTIONS') {
-        return handleCorsPreFlight(request);
+        return handleCorsPreFlight();
     }
 
     const url = new URL(request.url);
