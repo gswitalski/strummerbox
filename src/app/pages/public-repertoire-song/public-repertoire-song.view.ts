@@ -48,6 +48,12 @@ export class PublicRepertoireSongViewComponent implements OnInit, OnDestroy {
     private readonly destroy$ = new Subject<void>();
 
     /**
+     * Przechowuje repertoirePublicId z aktualnej trasy.
+     * Używane podczas ładowania do budowania nawigacji.
+     */
+    private readonly currentRepertoirePublicId: WritableSignal<string | null> = signal(null);
+
+    /**
      * Stan komponentu zarządzany za pomocą sygnałów
      */
     public readonly state: WritableSignal<PublicRepertoireSongState> = signal({
@@ -80,13 +86,22 @@ export class PublicRepertoireSongViewComponent implements OnInit, OnDestroy {
     }
 
     /**
-     * Computed signal - nawigacja dla SongViewerComponent
+     * Computed signal - nawigacja dla SongViewerComponent.
+     * Zwraca nawigację nawet podczas ładowania (z pustymi wartościami),
+     * aby komponent SongViewer nie był odmontowywany podczas przejścia między piosenkami.
      */
-    public readonly navigation = computed<SongNavigation | null>(() => {
+    public readonly navigation = computed<SongNavigation>(() => {
         const song = this.loadedSong;
-        if (!song) return null;
+        const repertoirePublicId = this.currentRepertoirePublicId();
 
-        const repertoirePublicId = this.route.snapshot.paramMap.get('repertoirePublicId');
+        // Jeśli nie mamy piosenki lub repertoirePublicId, zwróć pustą nawigację
+        if (!song || !repertoirePublicId) {
+            return {
+                previous: null,
+                next: null,
+                back: repertoirePublicId ? ['/public/repertoires', repertoirePublicId] : null,
+            };
+        }
 
         return {
             previous: song.order.previous
@@ -145,6 +160,10 @@ export class PublicRepertoireSongViewComponent implements OnInit, OnDestroy {
                             },
                         });
                     }
+
+                    // Zapisz repertoirePublicId przed ustawieniem stanu loading
+                    // aby navigation() computed signal miał dostęp do niego podczas ładowania
+                    this.currentRepertoirePublicId.set(repertoirePublicId);
 
                     // Ustaw stan ładowania
                     this.state.set({ status: 'loading' });
