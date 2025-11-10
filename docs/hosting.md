@@ -63,25 +63,36 @@ Sercem całego systemu jest w pełni zautomatyzowany potok CI/CD zdefiniowany w 
 
 #### 4.1 Przebieg Workflow
 
-Workflow jest uruchamiany automatycznie po każdym `push` do gałęzi `main`. Wykonuje on sekwencyjnie następujące zadania:
+Workflow jest uruchamiany automatycznie po każdym `push` do gałęzi `main`. Składa się z **trzech oddzielnych jobów**, wykonywanych sekwencyjnie, gdzie każdy następny czeka na pomyślne zakończenie poprzedniego:
 
-1.  **Wdrożenie Backendu (Supabase):**
+1.  **Job 1: Testy Jednostkowe (Gate Keeper)** 🧪
+    -   Instaluje zależności Node.js (`npm ci`).
+    -   Uruchamia testy jednostkowe (`npm run test:run`).
+    -   Jeśli testy nie przejdą, cały proces wdrożenia zostaje zatrzymany.
+    -   **Status:** Musi zakończyć się sukcesem, aby uruchomić kolejne joby.
+
+2.  **Job 2: Wdrożenie Backendu (Supabase)** 🚀
+    -   **Zależność:** Wymaga pomyślnego zakończenia Job 1 (testy).
     -   Instaluje Supabase CLI.
     -   Łączy się z projektem w chmurze Supabase za pomocą tokenu i ID projektu.
     -   Wypycha najnowsze migracje bazy danych (`supabase db push`).
+    -   Ustawia sekrety środowiskowe dla funkcji Edge (np. `APP_PUBLIC_URL`).
     -   Wdraża najnowszą wersję wszystkich funkcji Edge (`supabase functions deploy`).
 
-2.  **Wdrożenie Frontendu (Firebase):**
+3.  **Job 3: Wdrożenie Frontendu (Firebase)** 🌐
+    -   **Zależność:** Wymaga pomyślnego zakończenia Job 2 (backend).
     -   Instaluje zależności (`npm ci`).
-    -   Uruchamia testy jednostkowe.
     -   **Dynamicznie podmienia** klucze deweloperskie na produkcyjne w pliku `src/environments/environment.prod.ts` na podstawie sekretów z GitHub.
     -   Buduje aplikację Angular w trybie produkcyjnym (`npm run build`).
     -   Wdraża zbudowane pliki statyczne na Firebase Hosting.
 
 #### 4.2 Kluczowe Kroki i Ich Znaczenie
 
--   **Testy przed wdrożeniem:** Wdrożenie następuje tylko wtedy, gdy testy jednostkowe przejdą pomyślnie, co zapewnia stabilność.
+-   **Separacja jobów:** Każdy etap deploymentu jest odizolowany, co ułatwia debugowanie i pozwala na selektywne ponawianie tylko konkretnych kroków w przypadku błędu.
+-   **Sekwencyjna zależność:** Użycie `needs: [poprzedni-job]` gwarantuje, że frontend jest wdrażany dopiero po poprawnym wdrożeniu backendu, co zapewnia spójność środowiska produkcyjnego.
+-   **Testy jako Gate Keeper:** Wdrożenie następuje tylko wtedy, gdy testy jednostkowe przejdą pomyślnie, co zapewnia stabilność produkcji.
 -   **Podmiana zmiennych środowiskowych:** Ten krok jest kluczowy dla bezpieczeństwa i poprawnego działania. Gwarantuje, że produkcyjna wersja frontendu łączy się z produkcyjną bazą danych Supabase, a klucze API nigdy nie są zapisane w kodzie źródłowym.
+-   **Pełna automatyzacja:** Każdy `push` do gałęzi `main` automatycznie uruchamia cały proces – od testów przez backend aż do frontendu.
 
 ### 5. Konfiguracja Zmiennych Środowiskowych (GitHub Secrets)
 
