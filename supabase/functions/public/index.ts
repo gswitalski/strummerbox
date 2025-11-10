@@ -10,7 +10,7 @@ import { publicRepertoireRouter } from './public.handlers.ts';
 Deno.serve(async (req: Request) => {
     // Handle CORS preflight requests
     if (req.method === 'OPTIONS') {
-        return handleCorsPreFlight();
+        return handleCorsPreFlight(req);
     }
 
     const url = new URL(req.url);
@@ -38,6 +38,7 @@ Deno.serve(async (req: Request) => {
                 },
             },
             { status: 404 },
+            req,
         );
     } catch (error) {
         if (isApplicationError(error)) {
@@ -63,6 +64,7 @@ Deno.serve(async (req: Request) => {
                 },
             },
             { status: 500 },
+            req,
         );
     }
 });

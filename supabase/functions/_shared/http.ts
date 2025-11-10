@@ -9,24 +9,50 @@ type ErrorResponseBody = {
     };
 };
 
-const corsHeaders = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+const DEFAULT_ALLOWED_HEADERS = [
+    'authorization',
+    'apikey',
+    'content-type',
+    'x-client-info',
+    'cache-control',
+    'pragma',
+    'expires',
+    'if-none-match',
+];
+
+const buildAllowHeadersValue = (request?: Request): string => {
+    const headers = new Set<string>(DEFAULT_ALLOWED_HEADERS);
+    const requestedHeaders = request?.headers.get('Access-Control-Request-Headers');
+
+    if (requestedHeaders) {
+        requestedHeaders
+            .split(',')
+            .map((header) => header.trim())
+            .filter((header) => header.length > 0)
+            .forEach((header) => headers.add(header.toLowerCase()));
+    }
+
+    return Array.from(headers).join(', ');
 };
 
-export const handleCorsPreFlight = (): Response => {
+const buildCorsHeaders = (request?: Request): Record<string, string> => ({
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': buildAllowHeadersValue(request),
+});
+
+export const handleCorsPreFlight = (request?: Request): Response => {
     return new Response(null, {
         status: 204,
-        headers: corsHeaders,
+        headers: buildCorsHeaders(request),
     });
 };
 
-export const jsonResponse = <T>(body: T, init?: ResponseInit): Response => {
+export const jsonResponse = <T>(body: T, init?: ResponseInit, request?: Request): Response => {
     return new Response(JSON.stringify(body), {
         headers: {
             'Content-Type': 'application/json',
-            ...corsHeaders,
+            ...buildCorsHeaders(request),
             ...init?.headers,
         },
         status: init?.status ?? 200,

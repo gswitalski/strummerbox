@@ -10,7 +10,7 @@ import { repertoiresRouter } from './repertoires.handlers.ts';
 serve(async (request) => {
     // Handle CORS preflight requests
     if (request.method === 'OPTIONS') {
-        return handleCorsPreFlight();
+        return handleCorsPreFlight(request);
     }
 
     const url = new URL(request.url);
