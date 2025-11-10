@@ -9,11 +9,11 @@
 }
 
 <!-- Treść piosenki -->
-@if ((isLoaded || isLoading) && navigation()) {
+@if (isLoaded || isLoading) {
     <stbo-song-viewer
         [title]="loadedSong?.title ?? ''"
         [content]="strippedContent()"
-        [navigation]="navigation()!"
+        [navigation]="navigation()"
         [isLoading]="isLoading"
         [showChords]="false"
         [showQrButton]="false">

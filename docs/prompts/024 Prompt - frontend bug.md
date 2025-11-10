@@ -34,13 +34,17 @@ Zapoznaj się z następującymi materiałami:
 
 <aktualne_zachowanie>
 
-kolorystyka całego programu jest biała - białe napisy, białe toło, nic nie widac. Cos się popsuło poostatnich zmiananch podczas przygotowania aplikacji na produkcję
+publiczny widok piosenki w kontekście biesiady:
+ - wciskam poprzednia lub następna
+ - chwilę mam czarny ektan
+ - za moment ładuje skię piosenk (poprzednia lub następna)
 
 </aktualne_zachowanie>
 
 <oczekiwane_zachowanie>
 
-kolorystyka zgodna z wybranym schematem angular material
+w trakcie czarnego ekranu - spinner aby uzytkownik wiedział, że coś się ładuje
+
 </oczekiwane_zachowanie>
 
 
