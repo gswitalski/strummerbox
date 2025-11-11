@@ -344,6 +344,12 @@ ng build --configuration test
 ```
 Zamiast `npm run build -- --configuration test` (spacja zamiast `=` powoduje, że Angular CLI interpretuje `test` jako nazwę projektu).
 
+#### Problem: `Error: No test suite found in file .../environment.test.ts`
+**Rozwiązanie**: Vitest próbuje uruchomić plik środowiskowy jako test. Dodaj wykluczenie w `vitest.config.ts`:
+```typescript
+exclude: ['node_modules', 'dist', '.angular', 'src/environments/**']
+```
+
 #### Problem: Build się nie udaje z błędem o brakujących zmiennych środowiskowych
 **Rozwiązanie**: Sprawdź czy plik `environment.test.ts` ma poprawną strukturę (zagnieżdżony obiekt `supabase`) i czy placeholdery są dokładnie takie jak w workflow (`#{SUPABASE_URL_TEST}#`).
 

@@ -10,7 +10,7 @@ export default defineConfig({
         environment: 'jsdom',
         setupFiles: ['src/test-setup.ts'],
         include: ['src/**/*.{test,spec}.ts'],
-        exclude: ['node_modules', 'dist', '.angular'],
+        exclude: ['node_modules', 'dist', '.angular', 'src/environments/**'],
         pool: 'forks', // Użyj forków zamiast wątków dla lepszej izolacji
         poolOptions: {
             forks: {
