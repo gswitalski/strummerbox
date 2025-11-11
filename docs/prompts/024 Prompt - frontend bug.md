@@ -34,7 +34,9 @@ Zapoznaj się z następującymi materiałami:
 
 <aktualne_zachowanie>
 
-na środowisku testowym tytuł aplikacji nie wskazuje na to , że jesteśmy na środowisku testowym
+1. Lista piosenek - gdy nie ma piosenek wyświetla się odpowiedni komunikat, ale w złym klorze (ciemny na ciemnym tle)
+2. Lista repertuarów - gdy nie ma repertuarów  wyświetla się odpowiedni komunikat, ale w złym klorze (ciemny na ciemnym tle)
+
 </aktualne_zachowanie>
 
 <oczekiwane_zachowanie>
@@ -43,6 +45,8 @@ gdy aplikacja działa w srodowisku testowym do tytułu aplikacji dodany jest tek
 
 </oczekiwane_zachowanie>
 
+1. Lista piosenek - gdy nie ma piosenek wyświetla się odpowiedni komunikat w odpowiednim kolorze ze schematu angular material
+2. Lista repertuarów - gdy nie ma repertuarów wyświetla się odpowiedni komunikat w odpowiednim kolorze ze schematu angular material
 
 <implementation_rules>
 

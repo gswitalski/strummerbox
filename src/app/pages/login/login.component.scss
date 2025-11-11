@@ -37,3 +37,17 @@
     border-radius: 4px;
     padding: 12px;
 }
+
+.login-register-prompt {
+    margin: 0;
+    text-align: center;
+
+    a {
+        color: var(--mat-sys-primary);
+        text-decoration: none;
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+}
