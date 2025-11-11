@@ -96,7 +96,7 @@ jobs:
           sed -i "s|#{SUPABASE_ANON_KEY_TEST}#|${{ secrets.SUPABASE_ANON_KEY_TEST }}|g" src/environments/environment.test.ts
 
       - name: Build Angular application
-        run: ng build --configuration test
+        run: npx ng build --configuration test
 
       - name: Deploy Frontend to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0

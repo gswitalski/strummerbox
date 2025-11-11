@@ -259,7 +259,7 @@ Stworzymy nowy workflow, który będzie odpowiedzialny za automatyczne wdrażani
               sed -i "s|#{SUPABASE_ANON_KEY_TEST}#|${{ secrets.SUPABASE_ANON_KEY_TEST }}|g" src/environments/environment.test.ts
 
           - name: Build Angular application
-            run: ng build --configuration test
+            run: npx ng build --configuration test
 
           - name: Deploy Frontend to Firebase Hosting
             uses: FirebaseExtended/action-hosting-deploy@v0
@@ -276,6 +276,7 @@ Stworzymy nowy workflow, który będzie odpowiedzialny za automatyczne wdrażani
     > - Dodano `target: test` aby użyć właściwego projektu Firebase z `.firebaserc`
     > - Sekrety Supabase są tworzone w tymczasowym pliku `.env.test` (analogicznie do `.env.production`)
     > - Używany jest `npm install supabase` zamiast `supabase/setup-cli` action dla spójności z produkcją
+    > - Build używa `npx ng build` zamiast `ng build` (Angular CLI nie jest globalny w CI/CD)
 
 ### 7. Krok 6: Testowanie lokalne (opcjonalne, ale zalecane)
 
@@ -367,6 +368,13 @@ exclude: ['node_modules', 'dist', '.angular', 'src/environments/**']
 
 #### Problem: Workflow kończy się błędem podczas testów
 **Rozwiązanie**: Workflow nie będzie kontynuował jeśli testy nie przejdą. Uruchom testy lokalnie `npm run test:run` aby zidentyfikować problem.
+
+#### Problem: "ng: command not found" w GitHub Actions
+**Rozwiązanie**: Angular CLI nie jest zainstalowany globalnie w GitHub Actions. Użyj `npx ng` zamiast `ng`:
+```yaml
+- name: Build Angular application
+  run: npx ng build --configuration test
+```
 
 #### Problem: "sed: command not found" na Windows runners
 **Rozwiązanie**: Workflow używa `ubuntu-latest`, więc ten problem nie powinien wystąpić. Jeśli jednak tak się stanie, można użyć cross-platform zamiennika lub PowerShell.
