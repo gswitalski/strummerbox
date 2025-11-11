@@ -34,16 +34,12 @@ Zapoznaj się z następującymi materiałami:
 
 <aktualne_zachowanie>
 
-publiczny widok piosenki w kontekście biesiady:
- - wciskam poprzednia lub następna
- - chwilę mam czarny ektan
- - za moment ładuje skię piosenk (poprzednia lub następna)
-
+na środowisku testowym tytuł aplikacji nie wskazuje na to , że jesteśmy na środowisku testowym
 </aktualne_zachowanie>
 
 <oczekiwane_zachowanie>
 
-w trakcie czarnego ekranu - spinner aby uzytkownik wiedział, że coś się ładuje
+gdy aplikacja działa w srodowisku testowym do tytułu aplikacji dodany jest tekst "(środowisko testowe)"
 
 </oczekiwane_zachowanie>
 

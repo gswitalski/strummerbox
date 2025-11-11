@@ -1,5 +1,8 @@
-export const environment = {
+import { Environment } from './environment.interface';
+
+export const environment: Environment = {
     production: false,
+    environmentName: 'development',
     supabase: {
         url: 'http://localhost:54321',
         anonKey:
