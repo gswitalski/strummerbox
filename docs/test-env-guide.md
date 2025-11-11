@@ -136,8 +136,8 @@ Musimy poinformować aplikację Angular o nowym środowisku i przekazać jej odp
     }
     ```
 
-3. **Zaktualizuj konfigurację Firebase**
-    Otwórz plik `.firebaserc` i dodaj wpis dla środowiska testowego:
+3. **Zaktualizuj konfigurację Firebase (opcjonalne)**
+    Otwórz plik `.firebaserc` i dodaj wpis dla środowiska testowego. To ułatwi lokalne deployowanie:
     ```json
     {
       "projects": {
@@ -147,6 +147,8 @@ Musimy poinformować aplikację Angular o nowym środowisku i przekazać jej odp
       }
     }
     ```
+    
+    > **💡 Informacja**: W CI/CD używamy parametru `projectId` w workflow, więc `.firebaserc` jest tam ignorowany. Ta konfiguracja jest przydatna głównie dla lokalnego deployowania (`firebase deploy --project test`).
 
 ### 6. Krok 5: Utworzenie nowego workflow CI/CD
 
@@ -268,12 +270,11 @@ Stworzymy nowy workflow, który będzie odpowiedzialny za automatyczne wdrażani
               firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_STRUMMERBOX_TEST }}'
               channelId: live
               projectId: strummerbox-test
-              target: test
     ```
 
     > **⚠️ Kluczowe poprawki**:
     > - `projectId` używa nazwy projektu Firebase (`strummerbox-test`), a nie `SUPABASE_PROJECT_ID_TEST`
-    > - Dodano `target: test` aby użyć właściwego projektu Firebase z `.firebaserc`
+    > - Nie używamy parametru `target` - każdy projekt Firebase ma swój domyślny hosting site
     > - Sekrety Supabase są tworzone w tymczasowym pliku `.env.test` (analogicznie do `.env.production`)
     > - Używany jest `npm install supabase` zamiast `supabase/setup-cli` action dla spójności z produkcją
     > - Build używa `npx ng build` zamiast `ng build` (Angular CLI nie jest globalny w CI/CD)
@@ -354,11 +355,21 @@ exclude: ['node_modules', 'dist', '.angular', 'src/environments/**']
 #### Problem: Build się nie udaje z błędem o brakujących zmiennych środowiskowych
 **Rozwiązanie**: Sprawdź czy plik `environment.test.ts` ma poprawną strukturę (zagnieżdżony obiekt `supabase`) i czy placeholdery są dokładnie takie jak w workflow (`#{SUPABASE_URL_TEST}#`).
 
+#### Problem: "Hosting site or target test not detected in firebase.json"
+**Rozwiązanie**: Usuń parametr `target` z workflow Firebase deploy. Gdy używasz osobnych projektów Firebase dla różnych środowisk, każdy projekt ma swój domyślny hosting site. Wystarczy parametr `projectId`:
+```yaml
+- name: Deploy Frontend to Firebase Hosting
+  uses: FirebaseExtended/action-hosting-deploy@v0
+  with:
+    projectId: strummerbox-test
+    # Nie używaj: target: test
+```
+
 #### Problem: Firebase deployment kończy się błędem "Invalid project ID"
 **Rozwiązanie**: 
 - Upewnij się, że projekt Firebase został utworzony i ma nazwę `strummerbox-test`
-- Sprawdź czy `.firebaserc` zawiera wpis dla `test`
-- W workflow sprawdź czy `projectId` i `target` są ustawione poprawnie
+- Sprawdź czy sekret `FIREBASE_SERVICE_ACCOUNT_STRUMMERBOX_TEST` jest poprawnie skonfigurowany
+- W workflow sprawdź czy `projectId` jest ustawiony na `strummerbox-test`
 
 #### Problem: Supabase functions nie mogą się połączyć z bazą
 **Rozwiązanie**: 
@@ -429,7 +440,8 @@ W ramach konfiguracji środowiska testowego zostały wprowadzone następujące z
 
 #### Zmodyfikowane pliki:
 - ✅ `angular.json` - dodano konfigurację `test` w sekcjach `build` i `serve`
-- ✅ `.firebaserc` - dodano wpis dla projektu testowego
+- ✅ `.firebaserc` - (opcjonalnie) dodano wpis dla projektu testowego dla lokalnego użycia
+- ✅ `vitest.config.ts` - dodano wykluczenie plików environment z testów
 
 #### Wymagane sekrety GitHub (do skonfigurowania ręcznie):
 - `FIREBASE_SERVICE_ACCOUNT_STRUMMERBOX_TEST`
