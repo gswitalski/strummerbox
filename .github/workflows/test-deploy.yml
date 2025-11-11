@@ -1,0 +1,108 @@
+name: Deploy to Test Environment (Firebase & Supabase)
+
+on:
+  push:
+    branches:
+      - develop
+  workflow_dispatch:
+
+jobs:
+  # ==========================================
+  # JOB 1: Testy Jednostkowe (Gate Keeper)
+  # ==========================================
+  test:
+    name: 🧪 Testy Jednostkowe
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run unit tests
+        run: npm run test:run
+
+  # ==========================================
+  # JOB 2: Deploy Backendu (Supabase)
+  # ==========================================
+  deploy-backend:
+    name: 🚀 Deploy Backendu (Supabase)
+    runs-on: ubuntu-latest
+    needs: test  # Czeka na zakończenie testów
+
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD_TEST }}
+      SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID_TEST }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Supabase CLI
+        run: npm install supabase --save-dev
+
+      - name: Link Supabase project (non-interactive)
+        run: npx supabase link --project-ref $SUPABASE_PROJECT_ID
+
+      - name: Push Database Migrations
+        run: npx supabase db push
+
+      - name: Set Supabase Secrets
+        run: |
+          echo "APP_PUBLIC_URL=${{ secrets.APP_PUBLIC_URL_TEST }}" > .env.test
+          npx supabase secrets set --env-file .env.test
+
+      - name: Deploy Supabase Functions
+        run: npx supabase functions deploy --project-ref $SUPABASE_PROJECT_ID
+
+  # ==========================================
+  # JOB 3: Deploy Frontendu (Firebase)
+  # ==========================================
+  deploy-frontend:
+    name: 🌐 Deploy Frontendu (Firebase)
+    runs-on: ubuntu-latest
+    needs: deploy-backend  # Czeka na zakończenie deploy backendu
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Replace environment variables for Frontend
+        run: |
+          sed -i "s|#{SUPABASE_URL_TEST}#|${{ secrets.SUPABASE_URL_TEST }}|g" src/environments/environment.test.ts
+          sed -i "s|#{SUPABASE_ANON_KEY_TEST}#|${{ secrets.SUPABASE_ANON_KEY_TEST }}|g" src/environments/environment.test.ts
+
+      - name: Build Angular application
+        run: npx ng build --configuration test
+
+      - name: Deploy Frontend to Firebase Hosting
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_STRUMMERBOX_TEST }}'
+          channelId: live
+          projectId: strummerbox-test
+
