@@ -1,5 +1,7 @@
 {
   "projects": {
-    "default": "strummerbox-prod"
+    "default": "strummerbox-prod",
+    "production": "strummerbox-prod",
+    "test": "strummerbox-test"
   }
 }

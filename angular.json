@@ -49,6 +49,27 @@
                             ],
                             "outputHashing": "all"
                         },
+                        "test": {
+                            "budgets": [
+                                {
+                                    "type": "initial",
+                                    "maximumWarning": "500kB",
+                                    "maximumError": "1MB"
+                                },
+                                {
+                                    "type": "anyComponentStyle",
+                                    "maximumWarning": "4kB",
+                                    "maximumError": "8kB"
+                                }
+                            ],
+                            "fileReplacements": [
+                                {
+                                    "replace": "src/environments/environment.ts",
+                                    "with": "src/environments/environment.test.ts"
+                                }
+                            ],
+                            "outputHashing": "all"
+                        },
                         "development": {
                             "fileReplacements": [
                                 {
@@ -68,6 +89,9 @@
                     "configurations": {
                         "production": {
                             "buildTarget": "strummerbox:build:production"
+                        },
+                        "test": {
+                            "buildTarget": "strummerbox:build:test"
                         },
                         "development": {
                             "buildTarget": "strummerbox:build:development"
