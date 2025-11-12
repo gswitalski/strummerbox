@@ -1,153 +1,124 @@
-# Plan implementacji widoku Public Song View
+# Plan implementacji widoku: Publiczny Widok Piosenki
 
 ## 1. Przegląd
-Celem tego widoku jest wyświetlenie publicznej, uproszczonej wersji piosenki dla niezalogowanych użytkowników (Biesiadników). Widok jest minimalistyczny, zoptymalizowany pod kątem urządzeń mobilnych i skupia się na maksymalnej czytelności tekstu. Wyświetla tytuł oraz treść piosenki, z której **na poziomie frontendu usuwane są akordy** (w formacie `[C] [G] [Am]`), na podstawie danych pobranych z API. Widok ten nie zawiera żadnych dodatkowych elementów nawigacyjnych, zgodnie z User Story US-013.
+Celem tego widoku jest wyświetlanie tekstu piosenki dla anonimowego użytkownika (Biesiadnika) w sposób czytelny i zoptymalizowany dla urządzeń mobilnych. Gdy piosenka jest częścią repertuaru, widok ten umożliwia również intuicyjną nawigację do poprzedniego i następnego utworu bez konieczności powrotu do listy. Interfejs jest minimalistyczny, skupiony wyłącznie na treści piosenki i nawigacji.
 
 ## 2. Routing widoku
-Widok będzie dostępny pod publiczną ścieżką i będzie ładowany leniwie (lazy loading).
+Widok będzie dostępny pod dwiema ścieżkami, ale implementacja skupia się na tej drugiej, która zawiera kontekst repertuaru:
+-   Piosenka samodzielna: `/public/songs/:publicId`
+-   Piosenka w ramach repertuaru: `/public/repertoires/:publicId/songs/:songPublicId`
 
--   **Ścieżka URL:** `/public/songs/:publicId`
--   **Parametr:** `publicId` (string) - publiczny identyfikator piosenki.
--   **Plik z definicją trasy:** `src/app/pages/public-song/public-song.routes.ts`
--   **Główny plik routingowy:** Trasę należy zarejestrować w `src/app/app.routes.ts`.
+Dostęp do widoku nie wymaga uwierzytelnienia.
 
 ## 3. Struktura komponentów
-Struktura będzie prosta i oparta na jednym komponencie-stronie, który w zależności od stanu będzie renderował komponent potomny lub wskaźnik ładowania/błędu.
+Komponenty zostaną zaimplementowane jako `standalone` zgodnie z najnowszymi standardami Angulara. Widok będzie renderowany wewnątrz dedykowanego layoutu publicznego, który zawiera jedynie `<router-outlet>`.
 
 ```
-PublicSongViewComponent (komponent-strona)
-|
-+-- @if (stan.ładowanie) -> MatSpinnerComponent
-+-- @if (stan.błąd) -> ErrorDisplayComponent (komponent reużywalny)
-+-- @if (stan.załadowano) -> SongContentViewComponent
+PublicLayoutComponent
+└── router-outlet
+    └── PublicSongPageComponent (komponent routowalny)
+        ├── SongDisplayComponent (komponent prezentacyjny)
+        └── SongNavigationComponent (komponent prezentacyjny)
 ```
 
 ## 4. Szczegóły komponentów
+### `PublicSongPageComponent`
+-   **Opis komponentu**: Główny, "inteligentny" komponent strony. Odpowiada za pobieranie `publicId` repertuaru i piosenki z parametrów ścieżki URL, komunikację z serwisem w celu pobrania danych piosenki, zarządzanie stanem (ładowanie, błąd, dane) oraz przekazywanie danych do komponentów prezentacyjnych.
+-   **Główne elementy**: Wykorzystuje `*ngIf` (lub `@if`) do warunkowego wyświetlania stanu ładowania (`mat-spinner`), komunikatu o błędzie lub komponentów `SongDisplayComponent` i `SongNavigationComponent` po pomyślnym załadowaniu danych.
+-   **Obsługiwane interakcje**: Reaguje na zmiany parametrów w ścieżce URL, aby odświeżyć dane piosenki, co zapewnia płynną nawigację między utworami.
+-   **Obsługiwana walidacja**: Brak walidacji po stronie klienta.
+-   **Typy**: `Signal<PublicSongState>`, `PublicRepertoireSongDto`.
+-   **Propsy**: Brak (pobiera dane z `ActivatedRoute`).
 
-### PublicSongViewComponent
--   **Opis komponentu:** Jest to główny komponent strony (smart component), odpowiedzialny za:
-    -   Odczytanie parametru `:publicId` z aktywnej trasy.
-    -   Komunikację z `PublicSongService` w celu pobrania danych piosenki.
-    -   **Przetworzenie treści piosenki w celu usunięcia akordów.**
-    -   Zarządzanie stanem widoku (ładowanie, załadowano, błąd) za pomocą sygnałów.
-    -   Dynamiczne ustawianie tytułu strony (`<title>`) i metatagów (`<meta name="robots">`).
-    -   Renderowanie odpowiedniego komponentu w zależności od aktualnego stanu.
--   **Główne elementy:**
-    -   Kontener oparty na `@if` i `@switch` do warunkowego renderowania.
-    -   Komponent `mat-spinner` dla stanu ładowania.
-    -   Komponent `SongContentViewComponent` dla stanu sukcesu.
-    -   Komponent `ErrorDisplayComponent` dla stanu błędu.
--   **Obsługiwane interakcje:** Brak bezpośrednich interakcji użytkownika. Komponent reaguje na załadowanie strony i zmianę parametru w URL.
--   **Obsługiwana walidacja:** Brak. Walidacja odbywa się po stronie API.
--   **Typy:** `PublicSongState` (ViewModel/stan), `PublicSongDto` (DTO).
--   **Propsy (wejścia):** Brak. Komponent jest komponentem-stroną.
-
-### SongContentViewComponent
--   **Opis komponentu:** Prosty komponent prezentacyjny (dumb component), którego jedynym zadaniem jest estetyczne wyświetlenie tytułu i treści piosenki.
--   **Główne elementy:**
-    -   Element `<h1>` na tytuł piosenki.
-    -   Element `<pre>` lub `<div>` na treść piosenki, ze stylami CSS zapewniającymi zachowanie formatowania (np. `white-space: pre-wrap`).
--   **Obsługiwane interakcje:** Brak.
--   **Obsługiwana walidacja:** Brak.
--   **Typy:** `string` (dla `title` i `content`).
--   **Propsy (wejścia):**
+### `SongDisplayComponent`
+-   **Opis komponentu**: Prosty komponent prezentacyjny odpowiedzialny wyłącznie za wyświetlanie tytułu i treści piosenki.
+-   **Główne elementy**: Nagłówek `<h1>` na tytuł i paragraf `<p>` lub `<div>` z `white-space: pre-wrap` na treść, aby zachować formatowanie (np. podziały linii).
+-   **Obsługiwane interakcje**: Brak.
+-   **Obsługiwana walidacja**: Brak.
+-   **Typy**: `string`.
+-   **Propsy**:
     -   `@Input() title: string`
     -   `@Input() content: string`
 
+### `SongNavigationComponent`
+-   **Opis komponentu**: Komponent prezentacyjny wyświetlający przyciski nawigacyjne "Poprzednia piosenka" i "Następna piosenka".
+-   **Główne elementy**: Dwa komponenty `mat-stroked-button` lub `mat-flat-button`. Każdy przycisk jest opakowany w `@if`, aby renderować się tylko wtedy, gdy w danych wejściowych istnieje odpowiednio poprzednia lub następna piosenka.
+-   **Obsługiwane interakcje**: Kliknięcie przycisku nawiguje użytkownika do widoku poprzedniej/następnej piosenki przy użyciu dyrektywy `routerLink`.
+-   **Obsługiwana walidacja**: Brak.
+-   **Typy**: `SongNavigationViewModel`.
+-   **Propsy**:
+    -   `@Input() navigationData: SongNavigationViewModel`
+
 ## 5. Typy
+Do implementacji widoku wykorzystane zostaną istniejące typy DTO z pakietu `@strummerbox/contracts` oraz stworzone zostaną dedykowane ViewModele dla poprawy czytelności w szablonach.
 
-### PublicSongDto
-Typ DTO (Data Transfer Object) reprezentujący odpowiedź z API. Zostanie zaimportowany z `packages/contracts/types.ts`.
+-   **`PublicRepertoireSongDto` (DTO)**: Typ danych zwracany przez API, zdefiniowany w `packages/contracts/types.ts`.
+-   **`PublicSongState` (State)**: Interfejs opisujący stan zarządzany przez serwis i wykorzystywany w komponencie `PublicSongPageComponent`.
+    ```typescript
+    export interface PublicSongState {
+        data: PublicRepertoireSongDto | null;
+        loading: boolean;
+        error: string | null;
+    }
+    ```
+-   **`SongNavigationViewModel` (ViewModel)**: Model widoku przekazywany do `SongNavigationComponent`, zawierający uproszczone dane nawigacyjne.
+    ```typescript
+    export interface SongNavLinkViewModel {
+        title: string;
+        routerLink: any[];
+    }
 
-```typescript
-import type { SongRow } from '../../../packages/database/database.types.ts';
-
-export type PublicSongDto = {
-    title: SongRow['title'];
-    content: string; // Treść piosenki z akordami w formacie ChordPro
-    repertoireNavigation: PublicSongNavigationDto | null; // Ignorowane w tym widoku
-};
-```
-
-### PublicSongState (ViewModel)
-Typ unii dyskryminowanej do zarządzania stanem komponentu `PublicSongViewComponent` w sposób bezpieczny typologicznie.
-
-```typescript
-export type PublicSongState =
-  | { status: 'loading' }
-  | { status: 'loaded'; song: { title: string; content: string } } // Przechowuje już przetworzoną treść
-  | { status: 'error'; error: { code: number; message: string } };
-```
+    export interface SongNavigationViewModel {
+        previous: SongNavLinkViewModel | null;
+        next: SongNavLinkViewModel | null;
+    }
+    ```
 
 ## 6. Zarządzanie stanem
-Zarządzanie stanem będzie zaimplementowane w `PublicSongViewComponent` przy użyciu sygnałów Angulara.
+Zarządzanie stanem będzie realizowane przez dedykowany, wstrzykiwalny serwis `PublicSongService`, który będzie zgodny z architekturą singleton.
 
--   **Główny sygnał:** `state = signal<PublicSongState>({ status: 'loading' });`
--   **Źródło danych:** `ActivatedRoute.params` zostanie użyte do pobrania `publicId`.
--   **Logika:**
-    1.  Wstrzyknąć `ActivatedRoute` i `PublicSongService`.
-    2.  Stworzyć funkcję pomocniczą `stripChords(content: string): string`, która usuwa z tekstu znaczniki akordów (np. `[C]`).
-    3.  Użyć `effect` do nasłuchiwania na zmiany `publicId`.
-    4.  Przy każdej zmianie `publicId`:
-        -   Ustawić stan na `{ status: 'loading' }`.
-        -   Wywołać serwis w celu pobrania danych.
-        -   W przypadku sukcesu, przetworzyć treść piosenki za pomocą `stripChords` i zaktualizować sygnał `state` do `{ status: 'loaded', song: processedSong }`.
-        -   W przypadku błędu, zaktualizować sygnał `state` do `{ status: 'error', ... }`.
--   **Reaktywność:** Szablon HTML będzie bezpośrednio powiązany z sygnałem `state` i będzie się automatycznie aktualizować przy każdej zmianie stanu.
+-   Serwis będzie używał Angular Signals do przechowywania i udostępniania stanu `PublicSongState`.
+-   `PublicSongPageComponent` będzie wstrzykiwał `PublicSongService` i subskrybował (za pomocą `computed` lub bezpośrednio w szablonie) zmiany w sygnale stanu.
+-   Serwis udostępni publiczną metodę `loadSong(repertoirePublicId: string, songPublicId: string)`, która będzie odpowiedzialna za wykonanie zapytania API i aktualizację sygnału stanu w zależności od wyniku (sukces, błąd, ładowanie).
 
 ## 7. Integracja API
-
--   **Serwis:** Należy utworzyć `PublicSongService` w `src/app/pages/public-song/services/`.
--   **Metoda:** `getSongByPublicId(publicId: string): Observable<PublicSongDto>`
--   **Endpoint:** `GET /api/public/songs/{publicId}`
--   **Typ żądania:** Brak (dane w URL).
--   **Typ odpowiedzi (sukces):** `PublicSongDto` (z treścią zawierającą akordy).
--   **Typ odpowiedzi (błąd):** `HttpErrorResponse`.
+-   **Endpoint**: `GET /public/repertoires/{publicId}/songs/{songPublicId}`
+-   **Logika integracji**:
+    1.  `PublicSongPageComponent` pobiera parametry `:publicId` i `:songPublicId` z `ActivatedRoute`.
+    2.  Wywołuje metodę `publicSongService.loadSong()` z pobranymi parametrami.
+    3.  `PublicSongService` wykonuje żądanie HTTP GET do endpointu.
+    4.  **Odpowiedź (Sukces)**: Oczekiwany jest obiekt typu `PublicRepertoireSongDto`. Serwis aktualizuje swój stan, ustawiając `loading: false` i przypisując otrzymane dane do `data`.
+    5.  **Odpowiedź (Błąd)**: W przypadku błędu (np. 404, 410), serwis aktualizuje stan, ustawiając `loading: false` i wypełniając pole `error` odpowiednim komunikatem.
+-   **Transformacja danych**: W serwisie lub komponencie nastąpi transformacja `PublicRepertoireSongDto` na `SongNavigationViewModel` poprzez zmapowanie pól i przetworzenie `url` z API na tablicę dla `routerLink`.
 
 ## 8. Interakcje użytkownika
--   **Wejście na stronę:** Użytkownik otwiera link, co inicjuje pobieranie danych.
--   **Przewijanie:** Użytkownik może przewijać tekst piosenki.
--   **Brak innych interakcji:** Widok jest statyczny i nie zawiera przycisków ani formularzy.
+-   **Wejście na stronę**: Użytkownik otwiera URL piosenki. Aplikacja wyświetla wskaźnik ładowania, a następnie treść piosenki i przyciski nawigacyjne (jeśli dotyczy).
+-   **Kliknięcie przycisku "Następna piosenka"**: Użytkownik jest płynnie przenoszony na URL następnej piosenki. Komponent `PublicSongPageComponent` ponownie wykonuje logikę pobierania danych dla nowego utworu, a widok jest aktualizowany.
+-   **Kliknięcie przycisku "Poprzednia piosenka"**: Działa analogicznie do kliknięcia przycisku "Następna piosenka".
 
 ## 9. Warunki i walidacja
--   Frontend nie przeprowadza walidacji `publicId`.
--   Interfejs użytkownika reaguje na statusy HTTP zwrócone przez API:
-    -   **200 OK:** Wyświetla treść piosenki.
-    -   **404 Not Found:** Wyświetla komunikat "Nie znaleziono piosenki".
-    -   **410 Gone:** Wyświetla komunikat "Ta piosenka nie jest już dostępna".
-    -   **5xx / Inne:** Wyświetla ogólny komunikat o błędzie.
+-   **Brak `previous` w odpowiedzi API**: Przycisk nawigacji do poprzedniej piosenki nie jest renderowany w komponencie `SongNavigationComponent` (`@if (navigationData.previous)`).
+-   **Brak `next` w odpowiedzi API**: Przycisk nawigacji do następnej piosenki nie jest renderowany (`@if (navigationData.next)`).
+-   **Długie tytuły piosenek**: Tytuły na przyciskach nawigacyjnych będą miały zastosowane style CSS (`text-overflow: ellipsis`), aby zapobiec łamaniu się layoutu na małych ekranach. Pełny tytuł będzie dostępny w atrybucie `title` lub `matTooltip`.
 
 ## 10. Obsługa błędów
-Obsługa błędów będzie realizowana w `PublicSongService` (przez przechwycenie błędu z `HttpClient`) oraz w `PublicSongViewComponent` (przez ustawienie odpowiedniego stanu `error`).
-
--   **Komponent `ErrorDisplayComponent`** będzie reużywalnym komponentem wyświetlającym komunikaty błędów w zależności od przekazanego kodu błędu.
--   W przypadku błędów sieciowych (offline), zostanie wyświetlony ogólny komunikat o błędzie.
+-   **Błąd 404 (Not Found) / 410 (Gone)**: Jeśli API zwróci jeden z tych statusów, `PublicSongService` ustawi stan błędu. `PublicSongPageComponent` wyświetli dedykowany, przyjazny dla użytkownika komunikat, np. "Niestety, ta piosenka nie została znaleziona lub została usunięta."
+-   **Błąd sieci / serwera**: Globalny `HttpInterceptor` przechwyci błąd i może wyświetlić generyczny komunikat (np. za pomocą `MatSnackBar`) o problemie z połączeniem. Stan w `PublicSongService` również zostanie zaktualizowany, co pozwoli na wyświetlenie komunikatu w komponencie.
 
 ## 11. Kroki implementacji
-1.  **Utworzenie struktury plików:**
-    -   Stworzyć folder `src/app/pages/public-song`.
-    -   Wewnątrz niego stworzyć foldery `components`, `services` i `utils`.
-2.  **Implementacja funkcji pomocniczej:**
-    -   Stworzyć plik `chord-stripper.ts` w folderze `utils`.
-    -   Zaimplementować w nim i wyeksportować czystą funkcję `stripChords(content: string): string`, która używa wyrażenia regularnego do usunięcia fragmentów typu `[tekst]`.
-3.  **Implementacja serwisu API:**
-    -   Stworzyć plik `public-song.service.ts` w folderze `services`.
-    -   Zaimplementować w nim klasę `PublicSongService` z metodą `getSongByPublicId`.
-4.  **Implementacja komponentu `SongContentViewComponent`:**
-    -   Stworzyć komponent w `src/app/pages/public-song/components/song-content/`.
-    -   Zdefiniować wejścia `@Input()` na `title` i `content`.
-    -   Dodać prosty szablon HTML i style SCSS zapewniające dużą czcionkę i responsywność.
-5.  **Implementacja głównego komponentu widoku `PublicSongViewComponent`:**
-    -   Stworzyć plik `public-song.view.ts` w `src/app/pages/public-song/`.
-    -   Zaimplementować logikę pobierania danych, wywołania `stripChords` i zarządzania stanem za pomocą sygnałów.
-    -   Wstrzyknąć `Title` i `Meta` i zaimplementować dynamiczne ustawianie metatagów.
-    -   Stworzyć szablon HTML z logiką warunkowego renderowania (`@if`, `mat-spinner`, `stbo-song-content-view`).
-6.  **Konfiguracja routingu:**
-    -   Stworzyć plik `public-song.routes.ts` definiujący trasę do `PublicSongViewComponent`.
-    -   Dodać wpis do `src/app/app.routes.ts` w celu leniwego załadowania nowej trasy.
-7.  **Stworzenie reużywalnego `ErrorDisplayComponent`** (jeśli jeszcze nie istnieje w projekcie).
-8.  **Testowanie:**
-    -   Sprawdzić manualnie wszystkie scenariusze: pomyślne załadowanie, stan ładowania, błędy 404, 410 oraz błąd serwera.
-    -   Zweryfikować, czy akordy są poprawnie usuwane z treści piosenki.
-    -   Zweryfikować responsywność widoku na różnych urządzeniach.
-    -   Sprawdzić, czy tytuł strony i metatagi są poprawnie ustawiane.
+1.  **Utworzenie struktury plików**: Stworzenie folderów i plików dla nowych komponentów (`public-song-page`, `song-display`, `song-navigation`) oraz serwisu (`public-song.service.ts`) w odpowiednich lokalizacjach (`/pages`, `/shared/components`, `/core/services`).
+2.  **Implementacja serwisu (`PublicSongService`)**:
+    -   Zdefiniowanie sygnału stanu `PublicSongState`.
+    -   Implementacja metody `loadSong()` z logiką zapytania HTTP GET, obsługą sukcesu i błędów oraz aktualizacją stanu.
+3.  **Implementacja komponentów prezentacyjnych**:
+    -   Stworzenie `SongDisplayComponent` z odpowiednimi `@Input()` i prostym szablonem.
+    -   Stworzenie `SongNavigationComponent`, który przyjmuje `SongNavigationViewModel`, implementuje logikę warunkowego wyświetlania przycisków i używa `routerLink` do nawigacji.
+4.  **Implementacja komponentu strony (`PublicSongPageComponent`)**:
+    -   Wstrzyknięcie `ActivatedRoute` i `PublicSongService`.
+    -   Pobranie parametrów z URL i wywołanie serwisu w `ngOnInit` lub z użyciem `effect`.
+    -   Stworzenie logiki mapującej `PublicRepertoireSongDto` na `SongNavigationViewModel`.
+    -   Zaimplementowanie szablonu HTML, który zarządza wyświetlaniem stanów (ładowanie, błąd, sukces) i integruje komponenty prezentacyjne.
+5.  **Aktualizacja routingu**: Dodanie nowej ścieżki `/public/repertoires/:publicId/songs/:songPublicId` do modułu routingu, przypisując ją do `PublicSongPageComponent` i upewniając się, że korzysta z publicznego layoutu.
+6.  **SEO i Tytuł strony**: W `PublicSongPageComponent`, wstrzyknięcie serwisów `Title` i `Meta` z `@angular/platform-browser` i dynamiczne ustawienie tytułu strony na tytuł piosenki oraz dodanie meta tagu `<meta name="robots" content="noindex, nofollow">`.
+7.  **Stylowanie**: Dodanie stylów SCSS zapewniających dużą czytelność tekstu, responsywność i poprawne działanie przycisków nawigacyjnych na różnych urządzeniach.
+8.  **Testowanie manualne**: Weryfikacja wszystkich scenariuszy: poprawne wyświetlanie piosenki, działanie nawigacji, ukrywanie przycisków na skrajnych pozycjach oraz obsługa błędów 404/410.

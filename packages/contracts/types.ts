@@ -348,8 +348,8 @@ export type PublicRepertoireDto = {
 export type PublicRepertoireSongOrderDto = {
     position: number;
     total: number;
-    previous: string | null;
-    next: string | null;
+    previous: PublicSongNavLinkDto | null;
+    next: PublicSongNavLinkDto | null;
 };
 
 /**
@@ -360,6 +360,14 @@ export type PublicRepertoireSongDto = {
     title: SongRow['title'];
     content: string; // Chord-stripped content
     order: PublicRepertoireSongOrderDto;
+};
+
+/**
+ * Represents a navigation link to another song in a public repertoire view.
+ */
+export type PublicSongNavLinkDto = {
+    url: string;
+    title: string;
 };
 
 // ============================================================================
