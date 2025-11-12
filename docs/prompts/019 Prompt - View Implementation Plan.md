@@ -18,40 +18,51 @@ Najpierw przejrzyj następujące informacje:
 
 3. Nazwa widoku do implementacji
 <view_name>
-8. Lista Repertuarów (Repertoire List View) - roszerzenie widoku o obsługę usuwania re[pertuaru]
+4. Publiczny Widok Piosenki (Public Song View)
 </view_name>
 
 4. User Stories:
 <user_stories>
--   ID: US-011
--   Title: Usuwanie repertuaru
--   Description: Jako Organizator, chcę móc trwale usunąć cały repertuar.
+-   ID: US-015
+-   Title: Ulepszona nawigacja Biesiadnika w repertuarze
+-   Description: Jako Biesiadnik, przeglądając piosenkę w ramach repertuaru, chcę móc łatwo przejść do następnej lub poprzedniej piosenki, widząc ich tytuły na przyciskach nawigacyjnych.
 -   Acceptance Criteria:
-    -   Na liście repertuarów, przy każdym elemencie znajduje się opcja "Usuń".
-    -   Po kliknięciu opcji "Usuń", system wyświetla okno modalne z prośbą o potwierdzenie akcji, wykorzystując do tego reużywalny komponent `ConfirmationDialogComponent`.
-    -   Okno zawiera czytelne ostrzeżenie, np. "Czy na pewno chcesz usunąć repertuar '[Nazwa Repertuaru]'? Tej operacji nie można cofnąć."
-    -   Po potwierdzeniu, repertuar zostaje trwale usunięty i znika z listy.
-    -   Usunięcie repertuaru nie usuwa piosenek wchodzących w jego skład z głównej biblioteki piosenek.
-    -   W trakcie operacji usuwania wyświetlany jest wskaźnik ładowania.
+    -   W widoku piosenki dostępne są przyciski nawigacyjne do następnego i poprzedniego utworu.
+    -   Przycisk nawigacji do poprzedniej piosenki jest oznaczony jej tytułem. Jest on niewidoczny dla pierwszej piosenki na liście.
+    -   Przycisk nawigacji do następnej piosenki jest oznaczony jej tytułem. Jest on niewidoczny dla ostatniej piosenki na liście.
+    -   Kliknięcie przenosi do widoku odpowiedniej piosenki bez powrotu do listy.
+
 
 </user_stories>
 
 5. Endpoint Description:
 <endpoint_description>
-#### DELETE /repertoires/{id}
-- **Method:** DELETE
-- **Path:** `/repertoires/{id}`
-- **Description:** Permanently remove a repertoire. Associated entries in `repertoire_songs` are removed via database cascade, but the songs themselves are unaffected.
-- **Request JSON:** _none_
+
+#### GET /public/repertoires/{publicId}/songs/{songPublicId}
+- **Method:** GET
+- **Path:** `/public/repertoires/{publicId}/songs/{songPublicId}`
+- **Description:** Return a repertoire song view for anonymous users with navigation hints, including titles of adjacent songs.
 - **Response JSON:**
 ```json
 {
-  "id": "5f7a8f35-1cde-4f62-991e-0e020df3ac42",
-  "deleted": true
+  "title": "Knockin' on Heaven's Door",
+  "content": "Mama, take this badge off of me...",
+  "order": {
+    "position": 2,
+    "total": 12,
+    "previous": {
+      "url": "https://app.strummerbox.com/public/repertoires/8729a118-.../songs/prev-id",
+      "title": "Hej Sokoły"
+    },
+    "next": {
+      "url": "https://app.strummerbox.com/public/repertoires/8729a118-.../songs/next-id",
+      "title": "Wonderwall"
+    }
+  }
 }
 ```
 - **Success:** `200 OK`
-- **Errors:** `401 Unauthorized`, `403 Forbidden`, `404 Not Found`.
+- **Errors:** `404 Not Found`, `410 Gone`.
 
 </endpoint_description>
 

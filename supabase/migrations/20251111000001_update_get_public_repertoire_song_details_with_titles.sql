@@ -1,6 +1,10 @@
 -- Update RPC function to include previous and next song titles
 -- This modification adds title fields for navigation links as required by PublicSongNavLinkDto type
 
+-- Drop the old function first (signature change requires this)
+DROP FUNCTION IF EXISTS public.get_public_repertoire_song_details(uuid, uuid);
+
+-- Create the new function with updated signature
 create or replace function public.get_public_repertoire_song_details(
     repertoire_public_id uuid,
     song_public_id uuid

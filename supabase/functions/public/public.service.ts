@@ -1,5 +1,5 @@
-import type { 
-    PublicRepertoireDto, 
+import type {
+    PublicRepertoireDto,
     PublicRepertoireSongLinkDto,
     PublicRepertoireSongDto,
     PublicRepertoireSongOrderDto,
@@ -29,7 +29,7 @@ const PUBLIC_SONG_URL_PATTERN = (baseUrl: string, repertoirePublicId: string, so
 
 /**
  * Get base URL for constructing public links
- * 
+ *
  * Priority:
  * 1. PUBLIC_BASE_URL env var (for production/staging)
  * 2. Detect local environment and use localhost
@@ -55,11 +55,11 @@ const getBaseUrl = (): string => {
 
 /**
  * Fetches a published repertoire with its songs by public ID.
- * 
+ *
  * This service performs a two-step query:
  * 1. Verifies the repertoire exists and is published
  * 2. Fetches all songs in the repertoire ordered by position
- * 
+ *
  * @param supabase - Service role Supabase client for database access
  * @param publicId - Public UUID of the repertoire
  * @returns PublicRepertoireDto with repertoire metadata and song links
@@ -172,10 +172,10 @@ type PublicRepertoireSongRpcResult = {
 
 /**
  * Fetches details of a single song within a public repertoire context.
- * 
+ *
  * This service calls an RPC function that performs a single optimized query
  * to retrieve the song content and navigation metadata (position, previous, next).
- * 
+ *
  * @param supabase - Service role Supabase client for database access
  * @param repertoirePublicId - Public UUID of the repertoire
  * @param songPublicId - Public UUID of the song
@@ -251,25 +251,25 @@ export const getPublicRepertoireSongDetails = async (
 
     // Construct full URLs for navigation with titles
     const baseUrl = getBaseUrl();
-    
+
     // Build previous song navigation link
-    const previous: PublicSongNavLinkDto | null = 
+    const previous: PublicSongNavLinkDto | null =
         rpcResult.previous_song_public_id && rpcResult.previous_song_title
             ? {
                 url: PUBLIC_SONG_URL_PATTERN(baseUrl, repertoirePublicId, rpcResult.previous_song_public_id),
                 title: rpcResult.previous_song_title,
             }
             : null;
-    
+
     // Build next song navigation link
-    const next: PublicSongNavLinkDto | null = 
+    const next: PublicSongNavLinkDto | null =
         rpcResult.next_song_public_id && rpcResult.next_song_title
             ? {
                 url: PUBLIC_SONG_URL_PATTERN(baseUrl, repertoirePublicId, rpcResult.next_song_public_id),
                 title: rpcResult.next_song_title,
             }
             : null;
-    
+
     const order: PublicRepertoireSongOrderDto = {
         position: rpcResult.position_in_repertoire,
         total: rpcResult.total_songs_count,

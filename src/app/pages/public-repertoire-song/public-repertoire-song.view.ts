@@ -106,23 +106,23 @@ export class PublicRepertoireSongViewComponent implements OnInit, OnDestroy {
         return {
             previous: song.order.previous
                 ? {
-                      title: 'Poprzednia',
+                      title: song.order.previous.title,
                       link: [
                           '/public/repertoires',
                           repertoirePublicId,
                           'songs',
-                          this.extractSongId(song.order.previous),
+                          this.extractSongId(song.order.previous.url),
                       ],
                   }
                 : null,
             next: song.order.next
                 ? {
-                      title: 'Następna',
+                      title: song.order.next.title,
                       link: [
                           '/public/repertoires',
                           repertoirePublicId,
                           'songs',
-                          this.extractSongId(song.order.next),
+                          this.extractSongId(song.order.next.url),
                       ],
                   }
                 : null,
