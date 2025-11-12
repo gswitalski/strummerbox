@@ -3,13 +3,17 @@ Jesteś doświadczonym analitykiem produktowym i architektem oprogramowania. Two
 Oto dokumenty projektu, które musisz przeanalizować:
 
 <dokumenty_projektu>
-{{DOKUMENTY_PROJEKTU}}
+
+
+
 </dokumenty_projektu>
 
 Oto opis nowej funkcjonalności, którą należy dodać do projektu:
 
 <nowa_funkcjonalnosc>
-jako organiaztor  chce miec możliwość usuwana repertuarów wraz z powiązaniami. usuwanie ma działać analogicznie jak usuwanie pienek czyli z wykorzystaniem tego samego komopentu do potwierdzania
+
+
+
 </nowa_funkcjonalnosc>
 
 Twoim zadaniem jest:

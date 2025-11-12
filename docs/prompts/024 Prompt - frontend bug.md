@@ -34,19 +34,19 @@ Zapoznaj się z następującymi materiałami:
 
 <aktualne_zachowanie>
 
-publiczny widok piosenki w kontekście biesiady:
- - wciskam poprzednia lub następna
- - chwilę mam czarny ektan
- - za moment ładuje skię piosenk (poprzednia lub następna)
+1. Lista piosenek - gdy nie ma piosenek wyświetla się odpowiedni komunikat, ale w złym klorze (ciemny na ciemnym tle)
+2. Lista repertuarów - gdy nie ma repertuarów  wyświetla się odpowiedni komunikat, ale w złym klorze (ciemny na ciemnym tle)
 
 </aktualne_zachowanie>
 
 <oczekiwane_zachowanie>
 
-w trakcie czarnego ekranu - spinner aby uzytkownik wiedział, że coś się ładuje
+gdy aplikacja działa w srodowisku testowym do tytułu aplikacji dodany jest tekst "(środowisko testowe)"
 
 </oczekiwane_zachowanie>
 
+1. Lista piosenek - gdy nie ma piosenek wyświetla się odpowiedni komunikat w odpowiednim kolorze ze schematu angular material
+2. Lista repertuarów - gdy nie ma repertuarów wyświetla się odpowiedni komunikat w odpowiednim kolorze ze schematu angular material
 
 <implementation_rules>
 

@@ -429,7 +429,7 @@
 #### GET /public/repertoires/{publicId}/songs/{songPublicId}
 - **Method:** GET
 - **Path:** `/public/repertoires/{publicId}/songs/{songPublicId}`
-- **Description:** Return a repertoire song view for anonymous users with navigation hints.
+- **Description:** Return a repertoire song view for anonymous users with navigation hints, including titles of adjacent songs.
 - **Response JSON:**
 ```json
 {
@@ -438,8 +438,14 @@
   "order": {
     "position": 2,
     "total": 12,
-    "previous": "https://app.strummerbox.com/public/repertoires/8729a118-.../songs/prev-id",
-    "next": "https://app.strummerbox.com/public/repertoires/8729a118-.../songs/next-id"
+    "previous": {
+      "url": "https://app.strummerbox.com/public/repertoires/8729a118-.../songs/prev-id",
+      "title": "Hej Sokoły"
+    },
+    "next": {
+      "url": "https://app.strummerbox.com/public/repertoires/8729a118-.../songs/next-id",
+      "title": "Wonderwall"
+    }
   }
 }
 ```

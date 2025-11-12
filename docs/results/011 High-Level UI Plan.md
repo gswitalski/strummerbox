@@ -61,11 +61,11 @@ Zarządzanie stanem aplikacji będzie realizowane za pomocą serwisów Angulara 
 
 *   **Ścieżka:** `/public/songs/:publicId` oraz `/public/repertoires/:publicId/songs/:songPublicId`
 *   **Główny cel:** Wyświetlenie tekstu piosenki Biesiadnikowi.
-*   **Kluczowe informacje:** Tytuł piosenki, treść piosenki (bez akordów), przyciski nawigacyjne "Następna" / "Poprzednia" (jeśli piosenka jest częścią repertuaru).
+*   **Kluczowe informacje:** Tytuł piosenki, treść piosenki (bez akordów), przyciski nawigacyjne "{tytuł_następnej}" / "{tytuł_poprzedniej}" (jeśli piosenka jest częścią repertuaru) wyświetlające tytuły sąsiednich piosenek.
 *   **Kluczowe komponenty:** Prosty kontener na tekst, `mat-button` dla nawigacji.
 *   **UX, dostępność, bezpieczeństwo:**
-    *   **UX:** Minimalistyczny interfejs skupiony na tekście. Duża, czytelna czcionka, automatyczne dopasowanie do szerokości ekranu. Przyciski nawigacji są nieaktywne, jeśli użytkownik jest na pierwszej/ostatniej piosence w repertuarze.
-    *   **Dostępność:** Wysoki kontrast tekstu i tła.
+    *   **UX:** Minimalistyczny interfejs skupiony na tekście. Duża, czytelna czcionka, automatyczne dopasowanie do szerokości ekranu. Przyciski nawigacji są niewidoczne, jeśli użytkownik jest na pierwszej/ostatniej piosence w repertuarze. Wyświetlanie tytułów na przyciskach ułatwia orientację w repertuarze i zachęca do dalszego przeglądania.
+    *   **Dostępność:** Wysoki kontrast tekstu i tła. Etykiety `aria-label` dla przycisków powinny zawierać zarówno tytuł, jak i informację o akcji, np. "Przejdź do poprzedniej piosenki: [Tytuł piosenki]".
     *   **Bezpieczeństwo:** Jak w Publicznym Widoku Repertuaru.
 
 ---

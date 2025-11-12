@@ -4,6 +4,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { LayoutService } from '../services/layout.service';
 import { ProfileService } from '../../core/services/profile.service';
+import { environment } from '../../../environments/environment';
 
 @Component({
     selector: 'stbo-toolbar',
@@ -30,8 +31,25 @@ export class ToolbarComponent {
         return name.charAt(0).toUpperCase();
     });
 
+    // Dynamiczny tytuł aplikacji z oznaczeniem środowiska testowego
+    public readonly appTitle: string = this.getAppTitle();
+
     public toggleSidenav(): void {
         this.layoutService.toggleSidenav();
+    }
+
+    private getAppTitle(): string {
+        const baseTitle = 'StrummerBox';
+
+        if (environment.environmentName === 'test') {
+            return `${baseTitle} (test)`;
+        }
+
+        if (environment.environmentName === 'development') {
+            return `${baseTitle} (development)`;
+        }
+
+        return baseTitle;
     }
 }
 

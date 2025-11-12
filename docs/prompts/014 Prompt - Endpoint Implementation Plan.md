@@ -2,20 +2,46 @@ Jesteś doświadczonym architektem oprogramowania, którego zadaniem jest stworz
 
 Zanim zaczniemy, zapoznaj się z poniższymi informacjami:
 
-#### DELETE /repertoires/{id}
-- **Method:** DELETE
-- **Path:** `/repertoires/{id}`
-- **Description:** Permanently remove a repertoire. Associated entries in `repertoire_songs` are removed via database cascade, but the songs themselves are unaffected.
-- **Request JSON:** _none_
+1. Route API specification:
+<route_api_specification>
+
+#### GET /public/repertoires/{publicId}/songs/{songPublicId}
+- **Method:** GET
+- **Path:** `/public/repertoires/{publicId}/songs/{songPublicId}`
+- **Description:** Return a repertoire song view for anonymous users with navigation hints, including titles of adjacent songs.
 - **Response JSON:**
 ```json
 {
-  "id": "5f7a8f35-1cde-4f62-991e-0e020df3ac42",
-  "deleted": true
+  "title": "Knockin' on Heaven's Door",
+  "content": "Mama, take this badge off of me...",
+  "order": {
+    "position": 2,
+    "total": 12,
+    "previous": {
+      "url": "https://app.strummerbox.com/public/repertoires/8729a118-.../songs/prev-id",
+      "title": "Hej Sokoły"
+    },
+    "next": {
+      "url": "https://app.strummerbox.com/public/repertoires/8729a118-.../songs/next-id",
+      "title": "Wonderwall"
+    }
+  }
 }
 ```
 - **Success:** `200 OK`
-- **Errors:** `401 Unauthorized`, `403 Forbidden`, `404 Not Found`.
+- **Errors:** `404 Not Found`, `410 Gone`.
+
+
+
+</route_api_specification>
+
+aktualna implementacja:
+<current_implementation>
+
+
+
+</current_implementation>
+
 
 2. Related database resources:
 <related_db_resources>
