@@ -19,6 +19,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
 import { map } from 'rxjs';
 
@@ -28,6 +29,7 @@ import type {
 } from '../../../../../packages/contracts/types';
 import { SongFormComponent } from '../../song-create/components/song-form/song-form.component';
 import { ChordProPreviewComponent } from '../../song-create/components/chord-pro-preview/chord-pro-preview.component';
+import { ImportFromTextDialogComponent } from '../../song-create/components/import-from-text-dialog/import-from-text-dialog.component';
 import { SongsApiService } from '../../song-create/services/songs-api.service';
 
 interface SongEditFormViewModel {
@@ -50,6 +52,7 @@ const LARGE_SCREEN_QUERY = '(min-width: 1024px)' as const;
         MatProgressSpinnerModule,
         MatTabsModule,
         MatSnackBarModule,
+        MatDialogModule,
         NgClass,
         SongFormComponent,
         ChordProPreviewComponent,
@@ -65,6 +68,7 @@ export class SongEditPageComponent implements OnInit {
     private readonly destroyRef = inject(DestroyRef);
     private readonly songsApiService = inject(SongsApiService);
     private readonly snackBar = inject(MatSnackBar);
+    private readonly dialog = inject(MatDialog);
 
     @ViewChild(SongFormComponent)
     private songFormComponent?: SongFormComponent;
@@ -133,6 +137,37 @@ export class SongEditPageComponent implements OnInit {
 
     public onSubmit(): void {
         this.songFormComponent?.submitForm();
+    }
+
+    public onImportFromText(): void {
+        const dialogRef = this.dialog.open(ImportFromTextDialogComponent, {
+            width: '700px',
+            maxWidth: '90vw',
+            maxHeight: '90vh',
+        });
+
+        dialogRef.afterClosed().subscribe((convertedText: string | undefined) => {
+            if (!convertedText) {
+                return;
+            }
+
+            this.appendContentToForm(convertedText);
+        });
+    }
+
+    private appendContentToForm(newContent: string): void {
+        const currentValue = this.formValueState();
+        const currentContent = currentValue.content;
+
+        // Jeśli jest już jakaś treść, dodaj nową linię przed nową treścią
+        const updatedContent = currentContent
+            ? `${currentContent}\n${newContent}`
+            : newContent;
+
+        this.formValueState.update(value => ({
+            ...value,
+            content: updatedContent,
+        }));
     }
 
     private async loadSong(id: string): Promise<void> {
