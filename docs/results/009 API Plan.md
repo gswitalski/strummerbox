@@ -66,6 +66,8 @@
 
 ### 2.2 Songs (Authenticated Organizer)
 
+> **Note on ChordPro Conversion:** The feature allowing users to import songs from "chords-above-text" format is implemented entirely on the client-side. The conversion logic resides within the frontend application, which then sends the fully-formed ChordPro content via the standard `POST /songs` or `PATCH /songs/{id}` endpoints. No dedicated API endpoints are required for this functionality.
+
 #### POST /songs
 - **Method:** POST
 - **Path:** `/songs`

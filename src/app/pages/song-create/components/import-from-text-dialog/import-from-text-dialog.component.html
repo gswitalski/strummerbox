@@ -1,0 +1,44 @@
+<h2 mat-dialog-title id="import-dialog-title">Importuj piosenkę z tekstu</h2>
+
+<mat-dialog-content class="import-dialog__content">
+    <p id="import-dialog-description" class="import-dialog__description">
+        Wklej tekst piosenki z akordami umieszczonymi w linii powyżej tekstu. 
+        Zostanie on automatycznie przekonwertowany do formatu ChordPro.
+    </p>
+    
+    <mat-form-field appearance="outline" class="import-dialog__textarea">
+        <mat-label>Tekst piosenki z akordami</mat-label>
+        <textarea 
+            matInput 
+            [ngModel]="inputText()"
+            (ngModelChange)="onTextChange($event)"
+            rows="15"
+            placeholder="Przykład:&#10;    C        Am       F         G&#10;To jest przykład piosenki z akordami&#10;    C        Am&#10;Nad tekstem"
+            class="import-dialog__textarea-input"
+            aria-label="Pole tekstowe na import piosenki z akordami"
+            aria-describedby="import-dialog-description"
+        ></textarea>
+    </mat-form-field>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end" class="import-dialog__actions">
+    <button 
+        mat-button 
+        type="button" 
+        (click)="onCancel()"
+        aria-label="Anuluj import i zamknij okno"
+    >
+        Anuluj
+    </button>
+    <button 
+        mat-raised-button 
+        color="primary" 
+        type="button" 
+        (click)="onImport()"
+        [disabled]="isImportDisabled()"
+        aria-label="Importuj tekst i przekonwertuj do formatu ChordPro"
+    >
+        Importuj
+    </button>
+</mat-dialog-actions>
+

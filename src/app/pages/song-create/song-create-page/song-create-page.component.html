@@ -7,12 +7,24 @@
             <h1>Dodaj nową piosenkę</h1>
         </div>
         <div class="song-create__actions">
-            <button mat-stroked-button type="button" (click)="onCancel()" [disabled]="viewState().isSaving">
-                Anuluj
+            <button 
+                mat-stroked-button 
+                type="button" 
+                (click)="onImportFromText()" 
+                [disabled]="viewState().isSaving"
+                class="song-create__import-btn"
+            >
+                <mat-icon>file_upload</mat-icon>
+                Importuj z tekstu
             </button>
-            <button mat-flat-button color="primary" type="button" (click)="onSubmit()" [disabled]="!viewState().isFormValid || viewState().isSaving">
-                Zapisz
-            </button>
+            <div class="song-create__actions-right">
+                <button mat-stroked-button type="button" (click)="onCancel()" [disabled]="viewState().isSaving">
+                    Anuluj
+                </button>
+                <button mat-flat-button color="primary" type="button" (click)="onSubmit()" [disabled]="!viewState().isFormValid || viewState().isSaving">
+                    Zapisz
+                </button>
+            </div>
         </div>
     </header>
 
