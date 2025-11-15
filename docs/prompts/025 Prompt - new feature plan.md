@@ -12,6 +12,8 @@ Oto opis nowej funkcjonalności, którą należy dodać do projektu:
 
 <nowa_funkcjonalnosc>
 
+Aktualnie nowy użytkownik zakłąłdając konto musie podać email i hasło i od razu ma założone konto. 
+Chce aby system wymagał od uzytkownika potwierdzenie emaila aby konto zostało aktywowane
 
 
 </nowa_funkcjonalnosc>
@@ -44,4 +46,13 @@ Twoja końcowa odpowiedź powinna zawierać trzy wyraźnie oznaczone sekcje:
 3. Nowe API w planie API
 
 Sformatuj swoją odpowiedź używając odpowiednich nagłówków i zachowując czytelną strukturę.
+
+
+Stwórz jescze jeden dokument w doc/results/{nazwa-ficzera-po-angielsku}-change.md
+W tym dokumence umieść 3 rozdziały:
+1. historyjki użytkownika
+2. API
+2. Widoki.
+
+W każdym rozdziale umiesc odpowiednio opisy historyjek, endpointów i widoków które są nowe lub zmienione. dla zmienionych dopisz notatkę co się zmieniło.
 
