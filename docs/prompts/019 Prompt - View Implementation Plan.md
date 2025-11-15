@@ -16,40 +16,77 @@ Najpierw przejrzyj następujące informacje:
 
 </ui_plan>
 
-3. Nazwa widoku do implementacji
-<view_name>
-7. Tworzenie / Edycja Piosenki (Song Create/Edit View) - rozszerzenie o importownanie tekstu
-</view_name>
+3. Widok do implementacji
+<view>
+### Zmodyfikowane Widoki
+
+#### **2. Widok Rejestracji (Register View)**
+
+*   **Ścieżka:** `/register` - wejscie do ściezki poprzez dodanie dodatkowego przycisku "Zarejestruj się" na formularzu logowania
+*   **Główny cel:** Umożliwienie nowemu Organizatorowi założenia konta.
+*   **Kluczowe informacje:** Formularz z polami na e-mail, nick (displayName) i hasło (z potwierdzeniem).
+*   **Kluczowe komponenty:** Takie same jak w Widoku Logowania.
+*   **UX, dostępność, bezpieczeństwo:**
+    *   **UX:** Walidacja hasła (np. minimalna długość) i jego potwierdzenia po stronie klienta. Komunikaty o błędach (np. "Konto o tym adresie e-mail już istnieje"). Po pomyślnej rejestracji użytkownik jest przekierowywany na nowy "Widok Oczekiwania na Potwierdzenie E-mail".
+    *   **Dostępność:** Jak w widoku logowania.
+    *   **Bezpieczeństwo:** Jak w widoku logowania.
+*   ***Notatka o zmianie:*** *Zmieniono przepływ UX po pomyślnej rejestracji. Zamiast automatycznego logowania i przekierowania do dashboardu, użytkownik jest teraz kierowany do nowego "Widoku Oczekiwania na Potwierdzenie E-mail".*
+
+---
+
+### Nowe Widoki
+
+#### **3. Widok Oczekiwania na Potwierdzenie E-mail (Awaiting Email Confirmation View)**
+
+*   **Ścieżka:** `/auth/awaiting-confirmation`
+*   **Główny cel:** Poinformowanie użytkownika o konieczności weryfikacji adresu e-mail w celu dokończenia procesu rejestracji.
+*   **Kluczowe informacje:** Wyraźny komunikat, np. "Rejestracja prawie zakończona! Sprawdź swoją skrzynkę pocztową i kliknij w link aktywacyjny, aby dokończyć proces." Ikona koperty. Informacja o adresie e-mail, na który wysłano link. Przycisk/link "Nie otrzymałem e-maila. Wyślij ponownie".
+*   **Kluczowe komponenty:** `mat-card`, `mat-icon`, `mat-button`.
+*   **UX, dostępność, bezpieczeństwo:**
+    *   **UX:** Prosty, jednoznaczny widok, który nie pozostawia wątpliwości co do następnego kroku. Umożliwia łatwe ponowne wysłanie linku w przypadku problemów.
+    *   **Dostępność:** Etykiety dla wszystkich interaktywnych elementów.
+    *   **Bezpieczeństwo:** Widok publiczny, nie wymaga uwierzytelnienia.
+
+</view>
 
 4. User Stories:
 <user_stories>
--   ID: US-021
--   Title: Importowanie piosenki z formatu "akordy nad tekstem"
--   Description: Jako Organizator, który posiada swoje piosenki w formacie, gdzie akordy są zapisane w linii powyżej tekstu, chcę mieć możliwość szybkiego przekonwertowania ich do formatu ChordPro bezpośrednio w edytorze, aby przyspieszyć proces dodawania nowych utworów do mojej biblioteki.
--   Acceptance Criteria:
-    -   W widoku tworzenia/edycji piosenki znajduje się przycisk, np. "Importuj z tekstu".
-    -   Po kliknięciu przycisku otwiera się okno modalne z dużym polem tekstowym (`textarea`) i przyciskami "Importuj" oraz "Anuluj".
-    -   Mogę wkleić do pola tekstowego piosenkę w formacie, gdzie linia z akordami znajduje się bezpośrednio nad linią z tekstem.
-    -   Po kliknięciu "Importuj", zawartość okna modalnego jest konwertowana do formatu ChordPro (np. `[G]Idę sobie [D]ulicą...`).
-    -   Okno modalne zostaje zamknięte, a przekonwertowany tekst jest dodawany na końcu treści w głównym edytorze piosenki, oddzielony nową linią.
-    -   Jeśli w edytorze znajdował się już jakiś tekst, nie jest on nadpisywany, lecz uzupełniany o nową treść.
-    -   Kliknięcie "Anuluj" zamyka okno modalne bez wprowadzania żadnych zmian.
-
+-   **ID:** US-001
+-   **Title:** Rejestracja nowego Organizatora
+-   **Description:** Jako nowy użytkownik, chcę móc założyć konto w aplikacji przy użyciu mojego adresu e-mail i hasła, aby uzyskać dostęp do funkcji zarządzania piosenkami i repertuarami.
+-   **Acceptance Criteria:**
+    -   Formularz logownanie jest rozszerzony o przycisk "Zarejestruj" sie, który prrzekierowuje użytkownika do formularza rejestracji
+    -   Formularz rejestracji zawiera pola na adres e-mail, nick i hasło.
+    -   System waliduje, czy podany e-mail jest w poprawnym formacie.
+    -   System sprawdza, czy e-mail nie jest już zarejestrowany.
+    -   Po pomyślnym wypełnieniu formularza, na mój adres e-mail wysyłana jest wiadomość z linkiem aktywacyjnym.
+    -   Jestem przekierowywany na stronę informującą o konieczności sprawdzenia skrzynki e-mail w celu dokończenia rejestracji.
+    -   Próba logowania przed aktywacją konta skutkuje wyświetleniem odpowiedniego komunikatu z możliwością ponownego wysłania linku.
+-   ***Notatka o zmianie:*** *Główne kryterium akceptacji zostało zmienione. Zamiast automatycznego logowania po rejestracji, użytkownik musi teraz potwierdzić swój adres e-mail. Dodano kroki dotyczące wysyłki linku aktywacyjnego i przekierowania na stronę informacyjną.*
 </user_stories>
 
 5. Endpoint Description:
 <endpoint_description>
+#### POST /auth/register
+- **Method:** POST
+- **Path:** `/auth/register`
+- **Description:** Register a new organizer. Creates an inactive user in Supabase Auth, which triggers a confirmation email. The account is not active until the email link is clicked. Also creates a corresponding profile entry.
+- **Request JSON:**
+```json
+{
+  "email": "organizer@example.com",
+  "password": "supersecretpassword",
+  "displayName": "Basia"
+}
+```
+- **Response JSON:** same as `GET /me/profile`.
+- **Success:** `201 Created`
+- **Errors:** `400 Bad Request` (invalid payload, e.g. weak password), `409 Conflict` (email already exists).
 
-nie dotyczy
+
 
 </endpoint_description>
 
-6. Endpoint Implementation:
-<endpoint_implementation>
-
-nie dotyczy
-
-</endpoint_implementation>
 
 7. Type Definitions:
 <type_definitions>
