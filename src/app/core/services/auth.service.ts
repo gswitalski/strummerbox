@@ -139,25 +139,73 @@ export class AuthService {
      * Obsługuje proces potwierdzenia e-maila po kliknięciu linku aktywacyjnego.
      * Metoda nasłuchuje na zdarzenia onAuthStateChange od Supabase i weryfikuje,
      * czy użytkownik został pomyślnie uwierzytelniony.
-     * 
+     *
      * @returns Promise który rozwiązuje się po pomyślnej weryfikacji lub odrzuca w przypadku błędu
      * @throws Error jeśli token jest nieprawidłowy, wygasł lub wystąpił błąd sieciowy
      */
     public async handleEmailConfirmation(): Promise<void> {
-        const CONFIRMATION_TIMEOUT_MS = 5000;
+        const CONFIRMATION_TIMEOUT_MS = 10000; // Zwiększono do 10 sekund
+        const SESSION_CHECK_DELAY_MS = 2000; // Sprawdzenie po 2 sekundach
 
         return new Promise((resolve, reject) => {
             let isResolved = false;
             let unsubscribe: (() => void) | null = null;
 
-            // Ustawienie timeout na wypadek, gdyby zdarzenie SIGNED_IN nie wystąpiło
-            const timeoutId = setTimeout(() => {
-                if (!isResolved) {
+            // Dodatkowe sprawdzenie sesji po krótkim opóźnieniu
+            // (czasami Supabase przetwarza token przed wywołaniem zdarzenia)
+            const sessionCheckId = setTimeout(async () => {
+                if (isResolved) {
+                    return;
+                }
+
+                const { data: { session } } = await this.supabase.auth.getSession();
+
+                if (session?.user?.email_confirmed_at) {
+                    console.log('AuthService: Email confirmed via session check');
                     isResolved = true;
+                    clearTimeout(timeoutId);
                     if (unsubscribe) {
                         unsubscribe();
                     }
-                    reject(new Error('Token potwierdzający jest nieprawidłowy lub wygasł.'));
+
+                    // Wylogowanie użytkownika po pomyślnej weryfikacji
+                    try {
+                        await this.supabase.auth.signOut();
+                    } catch (error) {
+                        console.warn('AuthService: error during post-confirmation sign out', error);
+                    }
+
+                    resolve();
+                }
+            }, SESSION_CHECK_DELAY_MS);
+
+            // Ustawienie timeout na wypadek, gdyby zdarzenie SIGNED_IN nie wystąpiło
+            const timeoutId = setTimeout(async () => {
+                if (!isResolved) {
+                    // Ostatnia próba sprawdzenia sesji przed odrzuceniem
+                    const { data: { session } } = await this.supabase.auth.getSession();
+
+                    if (session?.user?.email_confirmed_at) {
+                        console.log('AuthService: Email confirmed via final session check');
+                        isResolved = true;
+                        if (unsubscribe) {
+                            unsubscribe();
+                        }
+
+                        try {
+                            await this.supabase.auth.signOut();
+                        } catch (error) {
+                            console.warn('AuthService: error during post-confirmation sign out', error);
+                        }
+
+                        resolve();
+                    } else {
+                        isResolved = true;
+                        if (unsubscribe) {
+                            unsubscribe();
+                        }
+                        reject(new Error('Token potwierdzający jest nieprawidłowy lub wygasł.'));
+                    }
                 }
             }, CONFIRMATION_TIMEOUT_MS);
 
@@ -168,12 +216,17 @@ export class AuthService {
                         return;
                     }
 
+                    console.log('AuthService: Auth state change event:', event);
+
                     if (event === 'SIGNED_IN' && session) {
                         isResolved = true;
                         clearTimeout(timeoutId);
+                        clearTimeout(sessionCheckId);
                         if (unsubscribe) {
                             unsubscribe();
                         }
+
+                        console.log('AuthService: Email confirmed via SIGNED_IN event');
 
                         // Wylogowanie użytkownika po pomyślnej weryfikacji
                         // aby zapewnić spójny przepływ, w którym użytkownik musi świadomie się zalogować

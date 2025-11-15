@@ -11,10 +11,12 @@ Ten dokument opisuje kroki niezbędne do skonfigurowania procesu potwierdzenia e
 W panelu Supabase, przejdź do:
 **Authentication → URL Configuration → Site URL**
 
-Ustaw odpowiedni URL w zależności od środowiska:
+Ustaw odpowiedni URL w zależności od środowiska **wraz ze ścieżką do widoku potwierdzenia**:
 
-- **Development**: `http://localhost:4200`
-- **Production**: `https://twoja-domena.com` (zastąp rzeczywistym adresem produkcyjnym)
+- **Development**: `http://localhost:4200/auth/confirm-email`
+- **Production**: `https://twoja-domena.com/auth/confirm-email` (zastąp rzeczywistym adresem produkcyjnym)
+
+**⚠️ WAŻNE:** Site URL musi zawierać pełną ścieżkę `/auth/confirm-email`, ponieważ Supabase używa tego URL jako podstawy dla linków w e-mailach!
 
 ### 2. Redirect URLs
 
@@ -40,13 +42,22 @@ https://twoja-domena.com/auth/confirm-email
 W panelu Supabase, przejdź do:
 **Authentication → Email Templates → Confirm signup**
 
-Upewnij się, że template e-mail zawiera link kierujący na właściwy endpoint:
+**⚠️ WAŻNE:** Template musi używać **TYLKO** zmiennej `{{ .ConfirmationURL }}` bez dodatkowych ścieżek!
 
+**✅ POPRAWNY szablon:**
 ```html
-<a href="{{ .ConfirmationURL }}">Potwierdź adres e-mail</a>
+<h2>Potwierdź rejestrację</h2>
+<p>Kliknij w poniższy link, aby potwierdzić swoje konto:</p>
+<p><a href="{{ .ConfirmationURL }}">Potwierdź adres e-mail</a></p>
 ```
 
-Supabase automatycznie wygeneruje URL z odpowiednim tokenem.
+**❌ NIEPOPRAWNY szablon (NIE DODAWAJ ścieżki!):**
+```html
+<!-- BŁĄD: nie dodawaj "/auth/confirm-email" do ConfirmationURL -->
+<a href="{{ .ConfirmationURL }}"/auth/confirm-email>Potwierdź</a>
+```
+
+Supabase automatycznie wygeneruje pełny URL bazując na Site URL + token.
 
 ### 4. Weryfikacja konfiguracji w kodzie
 
