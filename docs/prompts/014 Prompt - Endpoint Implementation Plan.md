@@ -4,33 +4,22 @@ Zanim zaczniemy, zapoznaj się z poniższymi informacjami:
 
 1. Route API specification:
 <route_api_specification>
-
-#### GET /public/repertoires/{publicId}/songs/{songPublicId}
-- **Method:** GET
-- **Path:** `/public/repertoires/{publicId}/songs/{songPublicId}`
-- **Description:** Return a repertoire song view for anonymous users with navigation hints, including titles of adjacent songs.
-- **Response JSON:**
+#### POST /auth/register
+- **Method:** POST
+- **Path:** `/auth/register`
+- **Description:** Register a new organizer. Creates an inactive user in Supabase Auth, which triggers a confirmation email. The account is not active until the email link is clicked. Also creates a corresponding profile entry.
+- **Request JSON:**
 ```json
 {
-  "title": "Knockin' on Heaven's Door",
-  "content": "Mama, take this badge off of me...",
-  "order": {
-    "position": 2,
-    "total": 12,
-    "previous": {
-      "url": "https://app.strummerbox.com/public/repertoires/8729a118-.../songs/prev-id",
-      "title": "Hej Sokoły"
-    },
-    "next": {
-      "url": "https://app.strummerbox.com/public/repertoires/8729a118-.../songs/next-id",
-      "title": "Wonderwall"
-    }
-  }
+  "email": "organizer@example.com",
+  "password": "supersecretpassword",
+  "displayName": "Basia"
 }
 ```
-- **Success:** `200 OK`
-- **Errors:** `404 Not Found`, `410 Gone`.
-
+- **Response JSON:** same as `GET /me/profile`.
+- **Success:** `201 Created`
+- **Errors:** `400 Bad Request` (invalid payload, e.g. weak password), `409 Conflict` (email already exists).
+- ***Notatka o zmianie:*** *Ścieżka została zmieniona z `/register` na `/auth/register`. Opis został zaktualizowany, aby odzwierciedlić, że konto jest tworzone jako nieaktywne i wysyłany jest e-mail weryfikacyjny.*
 
 
 </route_api_specification>
