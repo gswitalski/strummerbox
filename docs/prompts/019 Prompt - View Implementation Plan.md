@@ -18,51 +18,31 @@ Najpierw przejrzyj następujące informacje:
 
 3. Widok do implementacji
 <view>
-### Zmodyfikowane Widoki
+#### **4. Widok Potwierdzenia E-mail (Email Confirmation View)**
 
-#### **2. Widok Rejestracji (Register View)**
-
-*   **Ścieżka:** `/register` - wejscie do ściezki poprzez dodanie dodatkowego przycisku "Zarejestruj się" na formularzu logowania
-*   **Główny cel:** Umożliwienie nowemu Organizatorowi założenia konta.
-*   **Kluczowe informacje:** Formularz z polami na e-mail, nick (displayName) i hasło (z potwierdzeniem).
-*   **Kluczowe komponenty:** Takie same jak w Widoku Logowania.
+*   **Ścieżka:** `/auth/confirm-email` (lub inna ścieżka zwrotna skonfigurowana w Supabase)
+*   **Główny cel:** Obsługa kliknięcia w link aktywacyjny przez użytkownika i poinformowanie go o wyniku.
+*   **Kluczowe informacje:** Wskaźnik ładowania (`MatSpinner`) podczas weryfikacji tokenu. Po weryfikacji:
+    *   **Sukces:** Komunikat "Twoje konto zostało aktywowane!" i przycisk "Przejdź do logowania".
+    *   **Błąd (np. link wygasł):** Komunikat "Link aktywacyjny jest nieprawidłowy lub wygasł." i przycisk "Wyślij nowy link aktywacyjny".
+*   **Kluczowe komponenty:** `MatSpinner`, `mat-card`, `mat-button`.
 *   **UX, dostępność, bezpieczeństwo:**
-    *   **UX:** Walidacja hasła (np. minimalna długość) i jego potwierdzenia po stronie klienta. Komunikaty o błędach (np. "Konto o tym adresie e-mail już istnieje"). Po pomyślnej rejestracji użytkownik jest przekierowywany na nowy "Widok Oczekiwania na Potwierdzenie E-mail".
-    *   **Dostępność:** Jak w widoku logowania.
-    *   **Bezpieczeństwo:** Jak w widoku logowania.
-*   ***Notatka o zmianie:*** *Zmieniono przepływ UX po pomyślnej rejestracji. Zamiast automatycznego logowania i przekierowania do dashboardu, użytkownik jest teraz kierowany do nowego "Widoku Oczekiwania na Potwierdzenie E-mail".*
-
----
-
-### Nowe Widoki
-
-#### **3. Widok Oczekiwania na Potwierdzenie E-mail (Awaiting Email Confirmation View)**
-
-*   **Ścieżka:** `/auth/awaiting-confirmation`
-*   **Główny cel:** Poinformowanie użytkownika o konieczności weryfikacji adresu e-mail w celu dokończenia procesu rejestracji.
-*   **Kluczowe informacje:** Wyraźny komunikat, np. "Rejestracja prawie zakończona! Sprawdź swoją skrzynkę pocztową i kliknij w link aktywacyjny, aby dokończyć proces." Ikona koperty. Informacja o adresie e-mail, na który wysłano link. Przycisk/link "Nie otrzymałem e-maila. Wyślij ponownie".
-*   **Kluczowe komponenty:** `mat-card`, `mat-icon`, `mat-button`.
-*   **UX, dostępność, bezpieczeństwo:**
-    *   **UX:** Prosty, jednoznaczny widok, który nie pozostawia wątpliwości co do następnego kroku. Umożliwia łatwe ponowne wysłanie linku w przypadku problemów.
-    *   **Dostępność:** Etykiety dla wszystkich interaktywnych elementów.
-    *   **Bezpieczeństwo:** Widok publiczny, nie wymaga uwierzytelnienia.
-
+    *   **UX:** Jasny feedback dla użytkownika o wyniku operacji. Zapewnia łatwą ścieżkę do logowania lub rozwiązania problemu.
+    *   **Dostępność:** Odpowiednie role ARIA do komunikowania stanu (np. `aria-live` dla komunikatów o statusie).
+    *   **Bezpieczeństwo:** Strona obsługuje tokeny (jednorazowe, ograniczone czasowo) w parametrach URL, które są przetwarzane w celu aktywacji konta.
 </view>
 
 4. User Stories:
 <user_stories>
--   **ID:** US-001
--   **Title:** Rejestracja nowego Organizatora
--   **Description:** Jako nowy użytkownik, chcę móc założyć konto w aplikacji przy użyciu mojego adresu e-mail i hasła, aby uzyskać dostęp do funkcji zarządzania piosenkami i repertuarami.
+-   **ID:** US-022
+-   **Title:** Potwierdzenie adresu e-mail w celu aktywacji konta
+-   **Description:** Jako nowy Organizator, po otrzymaniu e-maila aktywacyjnego, chcę móc kliknąć w zawarty w nim link, aby pomyślnie aktywować moje konto i uzyskać możliwość logowania się do aplikacji.
 -   **Acceptance Criteria:**
-    -   Formularz logownanie jest rozszerzony o przycisk "Zarejestruj" sie, który prrzekierowuje użytkownika do formularza rejestracji
-    -   Formularz rejestracji zawiera pola na adres e-mail, nick i hasło.
-    -   System waliduje, czy podany e-mail jest w poprawnym formacie.
-    -   System sprawdza, czy e-mail nie jest już zarejestrowany.
-    -   Po pomyślnym wypełnieniu formularza, na mój adres e-mail wysyłana jest wiadomość z linkiem aktywacyjnym.
-    -   Jestem przekierowywany na stronę informującą o konieczności sprawdzenia skrzynki e-mail w celu dokończenia rejestracji.
-    -   Próba logowania przed aktywacją konta skutkuje wyświetleniem odpowiedniego komunikatu z możliwością ponownego wysłania linku.
--   ***Notatka o zmianie:*** *Główne kryterium akceptacji zostało zmienione. Zamiast automatycznego logowania po rejestracji, użytkownik musi teraz potwierdzić swój adres e-mail. Dodano kroki dotyczące wysyłki linku aktywacyjnego i przekierowania na stronę informacyjną.*
+    -   Link aktywacyjny otrzymany w wiadomości e-mail jest unikalny.
+    -   Kliknięcie w link przenosi mnie na dedykowaną stronę w aplikacji, która potwierdza status weryfikacji.
+    -   Po pomyślnej weryfikacji, strona wyświetla komunikat o sukcesie i przycisk przekierowujący do strony logowania.
+    -   Po aktywacji konta mogę się bez problemu zalogować na swoje dane.
+    -   W przypadku, gdy link jest nieprawidłowy lub wygasł, strona wyświetla stosowny komunikat o błędzie oraz oferuje możliwość ponownego wysłania e-maila aktywacyjnego.
 </user_stories>
 
 5. Endpoint Description:

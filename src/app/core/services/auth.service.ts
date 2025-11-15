@@ -135,6 +135,63 @@ export class AuthService {
         return isSuccessful;
     }
 
+    /**
+     * Obsługuje proces potwierdzenia e-maila po kliknięciu linku aktywacyjnego.
+     * Metoda nasłuchuje na zdarzenia onAuthStateChange od Supabase i weryfikuje,
+     * czy użytkownik został pomyślnie uwierzytelniony.
+     * 
+     * @returns Promise który rozwiązuje się po pomyślnej weryfikacji lub odrzuca w przypadku błędu
+     * @throws Error jeśli token jest nieprawidłowy, wygasł lub wystąpił błąd sieciowy
+     */
+    public async handleEmailConfirmation(): Promise<void> {
+        const CONFIRMATION_TIMEOUT_MS = 5000;
+
+        return new Promise((resolve, reject) => {
+            let isResolved = false;
+            let unsubscribe: (() => void) | null = null;
+
+            // Ustawienie timeout na wypadek, gdyby zdarzenie SIGNED_IN nie wystąpiło
+            const timeoutId = setTimeout(() => {
+                if (!isResolved) {
+                    isResolved = true;
+                    if (unsubscribe) {
+                        unsubscribe();
+                    }
+                    reject(new Error('Token potwierdzający jest nieprawidłowy lub wygasł.'));
+                }
+            }, CONFIRMATION_TIMEOUT_MS);
+
+            // Nasłuchiwanie na zdarzenia autentykacji
+            const { data: { subscription } } = this.supabase.auth.onAuthStateChange(
+                async (event, session) => {
+                    if (isResolved) {
+                        return;
+                    }
+
+                    if (event === 'SIGNED_IN' && session) {
+                        isResolved = true;
+                        clearTimeout(timeoutId);
+                        if (unsubscribe) {
+                            unsubscribe();
+                        }
+
+                        // Wylogowanie użytkownika po pomyślnej weryfikacji
+                        // aby zapewnić spójny przepływ, w którym użytkownik musi świadomie się zalogować
+                        try {
+                            await this.supabase.auth.signOut();
+                        } catch (error) {
+                            console.warn('AuthService: error during post-confirmation sign out', error);
+                        }
+
+                        resolve();
+                    }
+                }
+            );
+
+            unsubscribe = () => subscription.unsubscribe();
+        });
+    }
+
     private async handleRegisterHttpError(error: HttpErrorResponse): Promise<never> {
         const errorBody = error.error as Partial<ErrorResponseDto> | undefined;
         const message = errorBody?.error?.message;

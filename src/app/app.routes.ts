@@ -25,6 +25,13 @@ export const routes: Routes = [
             ),
     },
     {
+        path: 'auth/confirm-email',
+        loadComponent: () =>
+            import('./pages/auth/email-confirmation-page.component').then(
+                (m) => m.EmailConfirmationPageComponent
+            ),
+    },
+    {
         path: 'management',
         canActivate: [authGuard],
         loadComponent: () =>

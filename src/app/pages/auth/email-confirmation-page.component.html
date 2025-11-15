@@ -1,0 +1,57 @@
+<div class="email-confirmation-container">
+    @switch (state()) {
+        @case ('loading') {
+            <div class="loading-state">
+                <mat-spinner diameter="64"></mat-spinner>
+                <p class="loading-text">Weryfikacja adresu e-mail...</p>
+            </div>
+        }
+        @case ('success') {
+            <mat-card class="confirmation-card success-card">
+                <mat-card-header>
+                    <mat-icon class="success-icon">check_circle</mat-icon>
+                </mat-card-header>
+                <mat-card-content>
+                    <h1>E-mail potwierdzony!</h1>
+                    <p class="confirmation-message">
+                        Twój adres e-mail został pomyślnie zweryfikowany.
+                        Możesz teraz zalogować się do swojego konta.
+                    </p>
+                </mat-card-content>
+                <mat-card-actions>
+                    <button 
+                        mat-flat-button 
+                        color="primary" 
+                        (click)="goToLogin()"
+                        class="action-button">
+                        Przejdź do logowania
+                    </button>
+                </mat-card-actions>
+            </mat-card>
+        }
+        @case ('error') {
+            <mat-card class="confirmation-card error-card">
+                <mat-card-header>
+                    <mat-icon class="error-icon">error</mat-icon>
+                </mat-card-header>
+                <mat-card-content>
+                    <h1>Wystąpił błąd</h1>
+                    <p class="confirmation-message">
+                        Link aktywacyjny jest nieprawidłowy, został już użyty lub wygasł.
+                        Możesz poprosić o nowy link aktywacyjny.
+                    </p>
+                </mat-card-content>
+                <mat-card-actions>
+                    <button 
+                        mat-stroked-button 
+                        color="primary" 
+                        (click)="goToResendConfirmation()"
+                        class="action-button">
+                        Wyślij nowy link aktywacyjny
+                    </button>
+                </mat-card-actions>
+            </mat-card>
+        }
+    }
+</div>
+
