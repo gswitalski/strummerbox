@@ -16,40 +16,57 @@ Najpierw przejrzyj następujące informacje:
 
 </ui_plan>
 
-3. Nazwa widoku do implementacji
-<view_name>
-7. Tworzenie / Edycja Piosenki (Song Create/Edit View) - rozszerzenie o importownanie tekstu
-</view_name>
+3. Widok do implementacji
+<view>
+#### **4. Widok Potwierdzenia E-mail (Email Confirmation View)**
+
+*   **Ścieżka:** `/auth/confirm-email` (lub inna ścieżka zwrotna skonfigurowana w Supabase)
+*   **Główny cel:** Obsługa kliknięcia w link aktywacyjny przez użytkownika i poinformowanie go o wyniku.
+*   **Kluczowe informacje:** Wskaźnik ładowania (`MatSpinner`) podczas weryfikacji tokenu. Po weryfikacji:
+    *   **Sukces:** Komunikat "Twoje konto zostało aktywowane!" i przycisk "Przejdź do logowania".
+    *   **Błąd (np. link wygasł):** Komunikat "Link aktywacyjny jest nieprawidłowy lub wygasł." i przycisk "Wyślij nowy link aktywacyjny".
+*   **Kluczowe komponenty:** `MatSpinner`, `mat-card`, `mat-button`.
+*   **UX, dostępność, bezpieczeństwo:**
+    *   **UX:** Jasny feedback dla użytkownika o wyniku operacji. Zapewnia łatwą ścieżkę do logowania lub rozwiązania problemu.
+    *   **Dostępność:** Odpowiednie role ARIA do komunikowania stanu (np. `aria-live` dla komunikatów o statusie).
+    *   **Bezpieczeństwo:** Strona obsługuje tokeny (jednorazowe, ograniczone czasowo) w parametrach URL, które są przetwarzane w celu aktywacji konta.
+</view>
 
 4. User Stories:
 <user_stories>
--   ID: US-021
--   Title: Importowanie piosenki z formatu "akordy nad tekstem"
--   Description: Jako Organizator, który posiada swoje piosenki w formacie, gdzie akordy są zapisane w linii powyżej tekstu, chcę mieć możliwość szybkiego przekonwertowania ich do formatu ChordPro bezpośrednio w edytorze, aby przyspieszyć proces dodawania nowych utworów do mojej biblioteki.
--   Acceptance Criteria:
-    -   W widoku tworzenia/edycji piosenki znajduje się przycisk, np. "Importuj z tekstu".
-    -   Po kliknięciu przycisku otwiera się okno modalne z dużym polem tekstowym (`textarea`) i przyciskami "Importuj" oraz "Anuluj".
-    -   Mogę wkleić do pola tekstowego piosenkę w formacie, gdzie linia z akordami znajduje się bezpośrednio nad linią z tekstem.
-    -   Po kliknięciu "Importuj", zawartość okna modalnego jest konwertowana do formatu ChordPro (np. `[G]Idę sobie [D]ulicą...`).
-    -   Okno modalne zostaje zamknięte, a przekonwertowany tekst jest dodawany na końcu treści w głównym edytorze piosenki, oddzielony nową linią.
-    -   Jeśli w edytorze znajdował się już jakiś tekst, nie jest on nadpisywany, lecz uzupełniany o nową treść.
-    -   Kliknięcie "Anuluj" zamyka okno modalne bez wprowadzania żadnych zmian.
-
+-   **ID:** US-022
+-   **Title:** Potwierdzenie adresu e-mail w celu aktywacji konta
+-   **Description:** Jako nowy Organizator, po otrzymaniu e-maila aktywacyjnego, chcę móc kliknąć w zawarty w nim link, aby pomyślnie aktywować moje konto i uzyskać możliwość logowania się do aplikacji.
+-   **Acceptance Criteria:**
+    -   Link aktywacyjny otrzymany w wiadomości e-mail jest unikalny.
+    -   Kliknięcie w link przenosi mnie na dedykowaną stronę w aplikacji, która potwierdza status weryfikacji.
+    -   Po pomyślnej weryfikacji, strona wyświetla komunikat o sukcesie i przycisk przekierowujący do strony logowania.
+    -   Po aktywacji konta mogę się bez problemu zalogować na swoje dane.
+    -   W przypadku, gdy link jest nieprawidłowy lub wygasł, strona wyświetla stosowny komunikat o błędzie oraz oferuje możliwość ponownego wysłania e-maila aktywacyjnego.
 </user_stories>
 
 5. Endpoint Description:
 <endpoint_description>
+#### POST /auth/register
+- **Method:** POST
+- **Path:** `/auth/register`
+- **Description:** Register a new organizer. Creates an inactive user in Supabase Auth, which triggers a confirmation email. The account is not active until the email link is clicked. Also creates a corresponding profile entry.
+- **Request JSON:**
+```json
+{
+  "email": "organizer@example.com",
+  "password": "supersecretpassword",
+  "displayName": "Basia"
+}
+```
+- **Response JSON:** same as `GET /me/profile`.
+- **Success:** `201 Created`
+- **Errors:** `400 Bad Request` (invalid payload, e.g. weak password), `409 Conflict` (email already exists).
 
-nie dotyczy
+
 
 </endpoint_description>
 
-6. Endpoint Implementation:
-<endpoint_implementation>
-
-nie dotyczy
-
-</endpoint_implementation>
 
 7. Type Definitions:
 <type_definitions>

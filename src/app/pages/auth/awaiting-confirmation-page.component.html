@@ -1,0 +1,55 @@
+<div class="awaiting-confirmation-container">
+    <mat-card class="awaiting-confirmation-card">
+        <mat-card-header>
+            <div class="icon-wrapper">
+                <mat-icon class="email-icon">email</mat-icon>
+            </div>
+        </mat-card-header>
+
+        <mat-card-content>
+            <h1 class="title">Potwierdź swój adres e-mail</h1>
+
+            <p class="description">
+                Wysłaliśmy link aktywacyjny na adres:
+            </p>
+
+            <p class="email">{{ email() }}</p>
+
+            <p class="instruction">
+                Sprawdź swoją skrzynkę pocztową i kliknij w link, aby aktywować swoje konto.
+                Jeśli nie widzisz wiadomości, sprawdź folder spam.
+            </p>
+
+            <div class="resend-section">
+                <p class="resend-text">Nie otrzymałeś wiadomości?</p>
+
+                @if (isResending()) {
+                    <mat-progress-bar mode="indeterminate" class="resend-progress"></mat-progress-bar>
+                }
+
+                <button
+                    mat-raised-button
+                    color="primary"
+                    [disabled]="!canResend() || isResending()"
+                    (click)="onResend()"
+                    class="resend-button"
+                >
+                    Wyślij ponownie
+                </button>
+
+                @if (!canResend() && !isResending()) {
+                    <p class="cooldown-message">
+                        Możesz wysłać ponownie za chwilę
+                    </p>
+                }
+            </div>
+        </mat-card-content>
+
+        <mat-card-actions>
+            <a mat-button routerLink="/login" class="back-to-login">
+                Wróć do logowania
+            </a>
+        </mat-card-actions>
+    </mat-card>
+</div>
+
