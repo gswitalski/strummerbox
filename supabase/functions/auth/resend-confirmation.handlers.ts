@@ -53,12 +53,12 @@ const parseRequestBody = async (request: Request): Promise<ResendConfirmationCom
 
 /**
  * Obsługuje żądanie ponownego wysłania emaila potwierdzającego.
- * 
+ *
  * WAŻNE: Zawsze zwraca 200 OK z generyczną wiadomością, niezależnie od tego:
  * - Czy użytkownik istnieje
  * - Czy konto jest już potwierdzone
  * - Czy wystąpił błąd podczas wysyłania emaila
- * 
+ *
  * Jest to celowe zachowanie zapobiegające enumeracji użytkowników.
  */
 export const handleResendConfirmation = async (request: Request): Promise<Response> => {
