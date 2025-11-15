@@ -1,0 +1,146 @@
+### Auth Edge Function - Test Requests
+### Używaj z rozszerzeniem REST Client w VS Code lub kopiuj do Postmana/Insomnii
+
+@baseUrl = http://localhost:54321/functions/v1/auth
+@prodUrl = https://your-project-ref.supabase.co/functions/v1/auth
+
+### 1. Poprawna rejestracja
+POST {{baseUrl}}/register
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "TestPassword123",
+  "displayName": "Jan Testowy"
+}
+
+### 2. Rejestracja z polskimi znakami w nazwie
+POST {{baseUrl}}/register
+Content-Type: application/json
+
+{
+  "email": "kasia@example.com",
+  "password": "SecurePass456",
+  "displayName": "Kasia Zając"
+}
+
+### 3. Walidacja - za krótkie hasło (powinno zwrócić 400)
+POST {{baseUrl}}/register
+Content-Type: application/json
+
+{
+  "email": "test2@example.com",
+  "password": "short",
+  "displayName": "Jan Testowy"
+}
+
+### 4. Walidacja - nieprawidłowy email (powinno zwrócić 400)
+POST {{baseUrl}}/register
+Content-Type: application/json
+
+{
+  "email": "not-an-email",
+  "password": "TestPassword123",
+  "displayName": "Jan Testowy"
+}
+
+### 5. Walidacja - brak wymaganego pola email (powinno zwrócić 400)
+POST {{baseUrl}}/register
+Content-Type: application/json
+
+{
+  "password": "TestPassword123",
+  "displayName": "Jan Testowy"
+}
+
+### 6. Walidacja - pusta displayName (powinno zwrócić 400)
+POST {{baseUrl}}/register
+Content-Type: application/json
+
+{
+  "email": "test3@example.com",
+  "password": "TestPassword123",
+  "displayName": "   "
+}
+
+### 7. Walidacja - displayName zbyt długa (powinno zwrócić 400)
+POST {{baseUrl}}/register
+Content-Type: application/json
+
+{
+  "email": "test4@example.com",
+  "password": "TestPassword123",
+  "displayName": "Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua ut enim"
+}
+
+### 8. Test duplikatu - użyj tego samego emaila co w teście #1 (powinno zwrócić 409)
+POST {{baseUrl}}/register
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "AnotherPassword789",
+  "displayName": "Inny Użytkownik"
+}
+
+### 9. Nieprawidłowy JSON (powinno zwrócić 400)
+POST {{baseUrl}}/register
+Content-Type: application/json
+
+{
+  "email": "test5@example.com",
+  "password": "TestPassword123",
+  "displayName": "Jan Testowy"
+  // Ten komentarz sprawi, że JSON jest nieprawidłowy
+
+### 10. Nieprawidłowa metoda HTTP - GET (powinno zwrócić 405)
+GET {{baseUrl}}/register
+
+### 11. Nieprawidłowa metoda HTTP - PUT (powinno zwrócić 405)
+PUT {{baseUrl}}/register
+Content-Type: application/json
+
+{
+  "email": "test6@example.com",
+  "password": "TestPassword123",
+  "displayName": "Jan Testowy"
+}
+
+### 12. Nieistniejąca ścieżka (powinno zwrócić 404)
+POST {{baseUrl}}/nonexistent
+Content-Type: application/json
+
+{
+  "email": "test7@example.com"
+}
+
+### 13. Walidacja - hasło zbyt długie (powinno zwrócić 400)
+POST {{baseUrl}}/register
+Content-Type: application/json
+
+{
+  "email": "test8@example.com",
+  "password": "Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua Ut enim ad minim veniam quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat Duis aute irure dolor in reprehenderit",
+  "displayName": "Jan Testowy"
+}
+
+### 14. Rejestracja z minimalną poprawną długością hasła (8 znaków)
+POST {{baseUrl}}/register
+Content-Type: application/json
+
+{
+  "email": "test9@example.com",
+  "password": "Pass1234",
+  "displayName": "Minimal User"
+}
+
+### 15. Rejestracja z maksymalną długością displayName (120 znaków)
+POST {{baseUrl}}/register
+Content-Type: application/json
+
+{
+  "email": "test10@example.com",
+  "password": "TestPassword123",
+  "displayName": "Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna ali"
+}
+
