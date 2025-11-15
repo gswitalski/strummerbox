@@ -18,6 +18,13 @@ export const routes: Routes = [
             ),
     },
     {
+        path: 'auth/awaiting-confirmation',
+        loadComponent: () =>
+            import('./pages/auth/awaiting-confirmation-page.component').then(
+                (m) => m.AwaitingConfirmationPageComponent
+            ),
+    },
+    {
         path: 'management',
         canActivate: [authGuard],
         loadComponent: () =>

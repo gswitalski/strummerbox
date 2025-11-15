@@ -1,4 +1,5 @@
-import { handleError } from '../_shared/errors.ts';
+import { ApplicationError, createInternalError } from '../_shared/errors.ts';
+import { buildErrorResponse, handleCorsPreFlight } from '../_shared/http.ts';
 import { logger } from '../_shared/logger.ts';
 import { registerRouter } from './register.handlers.ts';
 import { resendConfirmationRouter } from './resend-confirmation.handlers.ts';
@@ -8,21 +9,29 @@ import { resendConfirmationRouter } from './resend-confirmation.handlers.ts';
  * Obsługuje endpointy związane z autentykacją i rejestracją.
  */
 Deno.serve(async (request: Request) => {
+    // Handle CORS preflight requests
+    if (request.method === 'OPTIONS') {
+        return handleCorsPreFlight(request);
+    }
+
     const url = new URL(request.url);
-    const path = url.pathname;
+    const fullPath = url.pathname;
+    // Usuń prefiks /auth jeśli istnieje
+    const path = fullPath.replace(/^\/auth/, '') || '/';
 
     logger.info('Auth endpoint request', { 
         method: request.method, 
+        fullPath,
         path 
     });
 
     try {
-        // POST /auth/register
+        // POST /auth/register lub /register
         if (path === '/register' || path === '/') {
             return await registerRouter(request);
         }
 
-        // POST /auth/resend-confirmation
+        // POST /auth/resend-confirmation lub /resend-confirmation
         if (path === '/resend-confirmation') {
             return await resendConfirmationRouter(request);
         }
@@ -41,7 +50,16 @@ Deno.serve(async (request: Request) => {
             }
         );
     } catch (error) {
-        return handleError(error);
+        if (error instanceof Response) {
+            return error;
+        }
+
+        if (error instanceof ApplicationError) {
+            return buildErrorResponse(error);
+        }
+
+        logger.error('Unexpected error in /auth endpoint', { error });
+        return buildErrorResponse(createInternalError('Wystąpił nieoczekiwany błąd serwera', error));
     }
 });
 

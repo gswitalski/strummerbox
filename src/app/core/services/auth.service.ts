@@ -1,10 +1,7 @@
 import { Injectable, Signal, WritableSignal, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import {
-    FunctionsFetchError,
-    FunctionsHttpError,
-    FunctionsRelayError,
-} from '@supabase/supabase-js';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
 
 import { SupabaseService } from './supabase.service';
 import { ProfileService } from './profile.service';
@@ -12,6 +9,7 @@ import type {
     ErrorResponseDto,
     OrganizerProfileDto,
     OrganizerRegisterCommand,
+    ResendConfirmationCommand,
 } from '../../../../packages/contracts/types';
 import { environment } from '../../../environments/environment';
 
@@ -22,6 +20,9 @@ export class AuthService {
     private readonly supabase = inject(SupabaseService);
     private readonly profileService = inject(ProfileService);
     private readonly router = inject(Router);
+    private readonly http = inject(HttpClient);
+
+    private readonly authBaseUrl = `${environment.supabase.url}/functions/v1/auth` as const;
 
     private readonly isLoggingOutState: WritableSignal<boolean> = signal(false);
     private readonly logoutErrorState: WritableSignal<string | null> = signal(null);
@@ -32,28 +33,57 @@ export class AuthService {
     public async register(
         command: OrganizerRegisterCommand
     ): Promise<OrganizerProfileDto> {
-        const result = await this.supabase.client.functions.invoke<RegisterResponse>(
-            'me/register',
-            {
-                body: command,
-                headers: {
-                    Authorization: `Bearer ${environment.supabase.anonKey}`,
-                    apikey: environment.supabase.anonKey,
-                },
-            }
-        );
-
-        if (result.error) {
-            await this.handleRegisterError(result.error);
-        }
-
-        if (!result.data || !result.data.data) {
-            throw new Error(
-                'Nie udało się zarejestrować. Spróbuj ponownie później.'
+        try {
+            const response = await firstValueFrom(
+                this.http.post<{ data: OrganizerProfileDto }>(
+                    `${this.authBaseUrl}/register`,
+                    command,
+                    {
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${environment.supabase.anonKey}`,
+                            'apikey': environment.supabase.anonKey,
+                        },
+                    }
+                )
             );
-        }
 
-        return result.data.data;
+            return response.data;
+        } catch (error) {
+            if (error instanceof HttpErrorResponse) {
+                await this.handleRegisterHttpError(error);
+            }
+
+            console.error('AuthService: unexpected register error', error);
+            throw new Error('Wystąpił nieoczekiwany błąd podczas rejestracji.');
+        }
+    }
+
+    public async resendConfirmation(
+        command: ResendConfirmationCommand
+    ): Promise<void> {
+        try {
+            await firstValueFrom(
+                this.http.post<{ message: string }>(
+                    `${this.authBaseUrl}/resend-confirmation`,
+                    command,
+                    {
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${environment.supabase.anonKey}`,
+                            'apikey': environment.supabase.anonKey,
+                        },
+                    }
+                )
+            );
+        } catch (error) {
+            if (error instanceof HttpErrorResponse) {
+                await this.handleResendConfirmationHttpError(error);
+            }
+
+            console.error('AuthService: unexpected resend confirmation error', error);
+            throw new Error('Wystąpił nieoczekiwany błąd podczas wysyłania linku aktywacyjnego.');
+        }
     }
 
     public async login(email: string, password: string): Promise<void> {
@@ -105,66 +135,43 @@ export class AuthService {
         return isSuccessful;
     }
 
-    private async handleRegisterError(error: unknown): Promise<never> {
-        if (error instanceof FunctionsHttpError) {
-            const status = this.extractStatus(error.context);
-            const message = await this.extractErrorMessage(error.context);
+    private async handleRegisterHttpError(error: HttpErrorResponse): Promise<never> {
+        const errorBody = error.error as Partial<ErrorResponseDto> | undefined;
+        const message = errorBody?.error?.message;
 
-            if (status === 409) {
-                throw new Error(
-                    message ?? 'Użytkownik o tym adresie e-mail już istnieje.'
-                );
-            }
-
+        if (error.status === 409) {
             throw new Error(
-                message ?? 'Nie udało się zarejestrować. Spróbuj ponownie później.'
+                message ?? 'Użytkownik o tym adresie e-mail już istnieje.'
             );
         }
 
-        if (error instanceof FunctionsRelayError || error instanceof FunctionsFetchError) {
+        if (error.status === 400) {
+            throw new Error(
+                message ?? 'Wprowadzone dane są nieprawidłowe.'
+            );
+        }
+
+        if (error.status === 0 || error.status >= 500) {
             throw new Error('Nie udało się połączyć z serwerem. Spróbuj ponownie później.');
         }
 
-        console.error('AuthService: unexpected register error', error);
-        throw new Error('Wystąpił nieoczekiwany błąd podczas rejestracji.');
+        throw new Error(
+            message ?? 'Nie udało się zarejestrować. Spróbuj ponownie później.'
+        );
     }
 
-    private extractStatus(context: unknown): number | null {
-        if (!context || typeof context !== 'object') {
-            return null;
+    private async handleResendConfirmationHttpError(error: HttpErrorResponse): Promise<never> {
+        const errorBody = error.error as Partial<ErrorResponseDto> | undefined;
+        const message = errorBody?.error?.message;
+
+        if (error.status === 0 || error.status >= 500) {
+            throw new Error('Nie udało się połączyć z serwerem. Spróbuj ponownie później.');
         }
 
-        const maybeResponse = context as Response;
-
-        if (typeof maybeResponse.status === 'number') {
-            return maybeResponse.status;
-        }
-
-        return null;
+        throw new Error(
+            message ?? 'Nie udało się wysłać ponownie linku aktywacyjnego. Spróbuj ponownie później.'
+        );
     }
 
-    private async extractErrorMessage(context: unknown): Promise<string | null> {
-        if (!context || typeof context !== 'object') {
-            return null;
-        }
-
-        const maybeResponse = context as Response;
-
-        if (typeof maybeResponse.json !== 'function') {
-            return null;
-        }
-
-        try {
-            const payload = (await maybeResponse.json()) as Partial<ErrorResponseDto>;
-            return payload.error?.message ?? null;
-        } catch (error) {
-            console.warn('AuthService: unable to parse register error payload', error);
-            return null;
-        }
-    }
-}
-
-interface RegisterResponse {
-    data: OrganizerProfileDto;
 }
 
