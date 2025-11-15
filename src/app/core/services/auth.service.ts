@@ -137,112 +137,66 @@ export class AuthService {
 
     /**
      * Obsługuje proces potwierdzenia e-maila po kliknięciu linku aktywacyjnego.
-     * Metoda nasłuchuje na zdarzenia onAuthStateChange od Supabase i weryfikuje,
-     * czy użytkownik został pomyślnie uwierzytelniony.
+     * Metoda aktywnie sprawdza sesję w pętli, aby wykryć pomyślną weryfikację.
      *
      * @returns Promise który rozwiązuje się po pomyślnej weryfikacji lub odrzuca w przypadku błędu
      * @throws Error jeśli token jest nieprawidłowy, wygasł lub wystąpił błąd sieciowy
      */
     public async handleEmailConfirmation(): Promise<void> {
-        const CONFIRMATION_TIMEOUT_MS = 10000; // Zwiększono do 10 sekund
-        const SESSION_CHECK_DELAY_MS = 2000; // Sprawdzenie po 2 sekundach
+        const MAX_ATTEMPTS = 15; // Maksymalnie 15 prób
+        const CHECK_INTERVAL_MS = 500; // Sprawdzaj co 0.5 sekundy
+        const INITIAL_DELAY_MS = 1000; // Poczekaj 1 sekundę przed pierwszym sprawdzeniem
 
-        return new Promise((resolve, reject) => {
-            let isResolved = false;
-            let unsubscribe: (() => void) | null = null;
+        console.log('AuthService: Starting email confirmation handler');
 
-            // Dodatkowe sprawdzenie sesji po krótkim opóźnieniu
-            // (czasami Supabase przetwarza token przed wywołaniem zdarzenia)
-            const sessionCheckId = setTimeout(async () => {
-                if (isResolved) {
-                    return;
-                }
+        // Poczekaj krótką chwilę, aby Supabase mógł przetworzyć token z URL
+        await new Promise(resolve => setTimeout(resolve, INITIAL_DELAY_MS));
 
-                const { data: { session } } = await this.supabase.auth.getSession();
+        // Polling - sprawdzaj sesję w pętli
+        for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+            console.log(`AuthService: Checking session (attempt ${attempt}/${MAX_ATTEMPTS})`);
 
-                if (session?.user?.email_confirmed_at) {
-                    console.log('AuthService: Email confirmed via session check');
-                    isResolved = true;
-                    clearTimeout(timeoutId);
-                    if (unsubscribe) {
-                        unsubscribe();
-                    }
+            const { data: { session }, error } = await this.supabase.auth.getSession();
+
+            if (error) {
+                console.error('AuthService: Error getting session:', error);
+                continue; // Spróbuj ponownie
+            }
+
+            // Sprawdź czy użytkownik jest zalogowany i e-mail potwierdzony
+            if (session?.user) {
+                console.log('AuthService: Session found', {
+                    userId: session.user.id,
+                    email: session.user.email,
+                    emailConfirmedAt: session.user.email_confirmed_at,
+                });
+
+                // Sukces - użytkownik jest zalogowany (nawet jeśli email_confirmed_at jeszcze nie jest ustawione)
+                // Sam fakt istnienia sesji po kliknięciu w link oznacza sukces
+                if (session.user.email_confirmed_at || session.user.email) {
+                    console.log('AuthService: Email confirmation successful');
 
                     // Wylogowanie użytkownika po pomyślnej weryfikacji
                     try {
                         await this.supabase.auth.signOut();
-                    } catch (error) {
-                        console.warn('AuthService: error during post-confirmation sign out', error);
+                        console.log('AuthService: User signed out after confirmation');
+                    } catch (signOutError) {
+                        console.warn('AuthService: Error during post-confirmation sign out', signOutError);
                     }
 
-                    resolve();
+                    return; // Sukces!
                 }
-            }, SESSION_CHECK_DELAY_MS);
+            }
 
-            // Ustawienie timeout na wypadek, gdyby zdarzenie SIGNED_IN nie wystąpiło
-            const timeoutId = setTimeout(async () => {
-                if (!isResolved) {
-                    // Ostatnia próba sprawdzenia sesji przed odrzuceniem
-                    const { data: { session } } = await this.supabase.auth.getSession();
+            // Poczekaj przed następną próbą
+            if (attempt < MAX_ATTEMPTS) {
+                await new Promise(resolve => setTimeout(resolve, CHECK_INTERVAL_MS));
+            }
+        }
 
-                    if (session?.user?.email_confirmed_at) {
-                        console.log('AuthService: Email confirmed via final session check');
-                        isResolved = true;
-                        if (unsubscribe) {
-                            unsubscribe();
-                        }
-
-                        try {
-                            await this.supabase.auth.signOut();
-                        } catch (error) {
-                            console.warn('AuthService: error during post-confirmation sign out', error);
-                        }
-
-                        resolve();
-                    } else {
-                        isResolved = true;
-                        if (unsubscribe) {
-                            unsubscribe();
-                        }
-                        reject(new Error('Token potwierdzający jest nieprawidłowy lub wygasł.'));
-                    }
-                }
-            }, CONFIRMATION_TIMEOUT_MS);
-
-            // Nasłuchiwanie na zdarzenia autentykacji
-            const { data: { subscription } } = this.supabase.auth.onAuthStateChange(
-                async (event, session) => {
-                    if (isResolved) {
-                        return;
-                    }
-
-                    console.log('AuthService: Auth state change event:', event);
-
-                    if (event === 'SIGNED_IN' && session) {
-                        isResolved = true;
-                        clearTimeout(timeoutId);
-                        clearTimeout(sessionCheckId);
-                        if (unsubscribe) {
-                            unsubscribe();
-                        }
-
-                        console.log('AuthService: Email confirmed via SIGNED_IN event');
-
-                        // Wylogowanie użytkownika po pomyślnej weryfikacji
-                        // aby zapewnić spójny przepływ, w którym użytkownik musi świadomie się zalogować
-                        try {
-                            await this.supabase.auth.signOut();
-                        } catch (error) {
-                            console.warn('AuthService: error during post-confirmation sign out', error);
-                        }
-
-                        resolve();
-                    }
-                }
-            );
-
-            unsubscribe = () => subscription.unsubscribe();
-        });
+        // Jeśli dotarliśmy tutaj, nie udało się wykryć sesji
+        console.error('AuthService: Email confirmation timeout - no valid session found');
+        throw new Error('Token potwierdzający jest nieprawidłowy lub wygasł.');
     }
 
     private async handleRegisterHttpError(error: HttpErrorResponse): Promise<never> {

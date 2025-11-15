@@ -62,29 +62,40 @@
 - Link prowadzi do poprawnej strony
 - Wyświetla się: "Link aktywacyjny jest nieprawidłowy, został już użyty lub wygasł"
 - Mimo to użytkownik może się zalogować
-- W konsoli brak błędów
+- W konsoli brak błędów lub tylko logi "Checking session"
 
 ### Przyczyna:
-Timeout w `AuthService.handleEmailConfirmation()` jest za krótki - Supabase potrzebuje więcej czasu na przetworzenie tokenu.
+Event `SIGNED_IN` od Supabase nie jest emitowany lub jest emitowany za wcześnie (przed nasłuchiwaniem).
 
 ### Rozwiązanie:
 
-**Kod został już poprawiony w wersji 1.1+** - timeout zwiększony z 5s do 10s + dodatkowe sprawdzenia sesji.
+**Kod został już poprawiony w wersji 2.0+** - zamiast czekać na event, używamy **polling** (aktywne sprawdzanie sesji).
 
-Jeśli nadal występuje problem:
+**Jak to teraz działa:**
+1. Poczekaj 1 sekundę (Supabase przetwarza token)
+2. Sprawdzaj sesję co 0.5 sekundy
+3. Maksymalnie 15 prób (7.5 sekundy całkowicie)
+4. Jak tylko sesja istnieje = SUKCES!
 
-1. Sprawdź konsolę przeglądarki, czy widzisz logi:
-   ```
-   AuthService: Auth state change event: SIGNED_IN
-   AuthService: Email confirmed via SIGNED_IN event
-   ```
+**Logi w konsoli powinny wyglądać tak:**
+```
+AuthService: Starting email confirmation handler
+AuthService: Checking session (attempt 1/15)
+AuthService: Checking session (attempt 2/15)
+AuthService: Session found { userId: "...", email: "...", emailConfirmedAt: "..." }
+AuthService: Email confirmation successful
+AuthService: User signed out after confirmation
+```
 
-2. Jeśli logi nie pojawiają się, zwiększ timeout w `auth.service.ts`:
-   ```typescript
-   const CONFIRMATION_TIMEOUT_MS = 15000; // 15 sekund
-   ```
-
-3. Przebuduj i wdroż aplikację
+**Jeśli nadal problem:**
+- Zwiększ `MAX_ATTEMPTS` w `auth.service.ts`:
+  ```typescript
+  const MAX_ATTEMPTS = 20; // Więcej prób
+  ```
+- Lub zwiększ `CHECK_INTERVAL_MS`:
+  ```typescript
+  const CHECK_INTERVAL_MS = 1000; // Sprawdzaj co sekundę
+  ```
 
 ---
 
