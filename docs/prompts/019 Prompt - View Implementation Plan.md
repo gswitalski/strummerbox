@@ -18,58 +18,36 @@ Najpierw przejrzyj następujące informacje:
 
 3. Nazwa widoku do implementacji
 <view_name>
-4. Publiczny Widok Piosenki (Public Song View)
+7. Tworzenie / Edycja Piosenki (Song Create/Edit View) - rozszerzenie o importownanie tekstu
 </view_name>
 
 4. User Stories:
 <user_stories>
--   ID: US-015
--   Title: Ulepszona nawigacja Biesiadnika w repertuarze
--   Description: Jako Biesiadnik, przeglądając piosenkę w ramach repertuaru, chcę móc łatwo przejść do następnej lub poprzedniej piosenki, widząc ich tytuły na przyciskach nawigacyjnych.
+-   ID: US-021
+-   Title: Importowanie piosenki z formatu "akordy nad tekstem"
+-   Description: Jako Organizator, który posiada swoje piosenki w formacie, gdzie akordy są zapisane w linii powyżej tekstu, chcę mieć możliwość szybkiego przekonwertowania ich do formatu ChordPro bezpośrednio w edytorze, aby przyspieszyć proces dodawania nowych utworów do mojej biblioteki.
 -   Acceptance Criteria:
-    -   W widoku piosenki dostępne są przyciski nawigacyjne do następnego i poprzedniego utworu.
-    -   Przycisk nawigacji do poprzedniej piosenki jest oznaczony jej tytułem. Jest on niewidoczny dla pierwszej piosenki na liście.
-    -   Przycisk nawigacji do następnej piosenki jest oznaczony jej tytułem. Jest on niewidoczny dla ostatniej piosenki na liście.
-    -   Kliknięcie przenosi do widoku odpowiedniej piosenki bez powrotu do listy.
-
+    -   W widoku tworzenia/edycji piosenki znajduje się przycisk, np. "Importuj z tekstu".
+    -   Po kliknięciu przycisku otwiera się okno modalne z dużym polem tekstowym (`textarea`) i przyciskami "Importuj" oraz "Anuluj".
+    -   Mogę wkleić do pola tekstowego piosenkę w formacie, gdzie linia z akordami znajduje się bezpośrednio nad linią z tekstem.
+    -   Po kliknięciu "Importuj", zawartość okna modalnego jest konwertowana do formatu ChordPro (np. `[G]Idę sobie [D]ulicą...`).
+    -   Okno modalne zostaje zamknięte, a przekonwertowany tekst jest dodawany na końcu treści w głównym edytorze piosenki, oddzielony nową linią.
+    -   Jeśli w edytorze znajdował się już jakiś tekst, nie jest on nadpisywany, lecz uzupełniany o nową treść.
+    -   Kliknięcie "Anuluj" zamyka okno modalne bez wprowadzania żadnych zmian.
 
 </user_stories>
 
 5. Endpoint Description:
 <endpoint_description>
 
-#### GET /public/repertoires/{publicId}/songs/{songPublicId}
-- **Method:** GET
-- **Path:** `/public/repertoires/{publicId}/songs/{songPublicId}`
-- **Description:** Return a repertoire song view for anonymous users with navigation hints, including titles of adjacent songs.
-- **Response JSON:**
-```json
-{
-  "title": "Knockin' on Heaven's Door",
-  "content": "Mama, take this badge off of me...",
-  "order": {
-    "position": 2,
-    "total": 12,
-    "previous": {
-      "url": "https://app.strummerbox.com/public/repertoires/8729a118-.../songs/prev-id",
-      "title": "Hej Sokoły"
-    },
-    "next": {
-      "url": "https://app.strummerbox.com/public/repertoires/8729a118-.../songs/next-id",
-      "title": "Wonderwall"
-    }
-  }
-}
-```
-- **Success:** `200 OK`
-- **Errors:** `404 Not Found`, `410 Gone`.
+nie dotyczy
 
 </endpoint_description>
 
 6. Endpoint Implementation:
 <endpoint_implementation>
 
-
+nie dotyczy
 
 </endpoint_implementation>
 

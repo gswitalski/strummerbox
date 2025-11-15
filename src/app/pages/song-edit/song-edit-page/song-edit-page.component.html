@@ -8,12 +8,24 @@
         </div>
         @if (!isLoading() && error() !== 'not_found' && error() !== 'load_failed') {
             <div class="song-edit__actions">
-                <button mat-stroked-button type="button" (click)="onCancel()" [disabled]="isSaving()">
-                    Anuluj
+                <button 
+                    mat-stroked-button 
+                    type="button" 
+                    (click)="onImportFromText()" 
+                    [disabled]="isSaving()"
+                    class="song-edit__import-btn"
+                >
+                    <mat-icon>file_upload</mat-icon>
+                    Importuj z tekstu
                 </button>
-                <button mat-flat-button color="primary" type="button" (click)="onSubmit()" [disabled]="!isFormValid() || isSaving()">
-                    Zapisz
-                </button>
+                <div class="song-edit__actions-right">
+                    <button mat-stroked-button type="button" (click)="onCancel()" [disabled]="isSaving()">
+                        Anuluj
+                    </button>
+                    <button mat-flat-button color="primary" type="button" (click)="onSubmit()" [disabled]="!isFormValid() || isSaving()">
+                        Zapisz
+                    </button>
+                </div>
             </div>
         }
     </header>

@@ -1,0 +1,355 @@
+import 'zone.js';
+import 'zone.js/testing';
+import { TestBed } from '@angular/core/testing';
+import {
+    BrowserDynamicTestingModule,
+    platformBrowserDynamicTesting,
+} from '@angular/platform-browser-dynamic/testing';
+import { describe, it, expect, beforeEach, beforeAll } from 'vitest';
+import { ChordConverterService } from './chord-converter.service';
+
+describe('ChordConverterService', () => {
+    let service: ChordConverterService;
+
+    // Inicjalizacja środowiska testowego Angular przed wszystkimi testami
+    beforeAll(() => {
+        TestBed.resetTestEnvironment();
+        TestBed.initTestEnvironment(
+            BrowserDynamicTestingModule,
+            platformBrowserDynamicTesting()
+        );
+    });
+
+    beforeEach(async () => {
+        await TestBed.configureTestingModule({
+            providers: [ChordConverterService],
+        }).compileComponents();
+
+        service = TestBed.inject(ChordConverterService);
+    });
+
+    it('should be created', () => {
+        expect(service).toBeTruthy();
+    });
+
+    describe('convertFromChordsOverText', () => {
+        it('should return empty string for empty input', () => {
+            const result = service.convertFromChordsOverText('');
+            expect(result).toBe('');
+        });
+
+        it('should return empty string for whitespace-only input', () => {
+            const result = service.convertFromChordsOverText('   \n  \n  ');
+            expect(result).toBe('');
+        });
+
+        it('should convert simple chord-over-text format', () => {
+            const input = [
+                'C        Am       F         G',
+                'To jest przykład piosenki z akordami'
+            ].join('\n');
+
+            const result = service.convertFromChordsOverText(input);
+
+            expect(result).toContain('[C]');
+            expect(result).toContain('[Am]');
+            expect(result).toContain('[F]');
+            expect(result).toContain('[G]');
+            // Sprawdź czy tekst jest obecny (z akordami wstawionymi)
+            expect(result).toContain('To jest');
+            expect(result).toContain('iosenki'); // fragment słowa
+            expect(result).toContain('akordami');
+        });
+
+        it('should handle multiple verse sections', () => {
+            const input = [
+                'C        Am',
+                'Pierwsza zwrotka',
+                '',
+                'F        G',
+                'Druga zwrotka'
+            ].join('\n');
+
+            const result = service.convertFromChordsOverText(input);
+            const lines = result.split('\n');
+
+            expect(lines[0]).toContain('[C]');
+            expect(lines[0]).toContain('[Am]');
+            expect(lines[0]).toContain('Pierwsza');
+            expect(lines[0]).toContain('wrotka'); // fragment słowa
+            expect(lines[1]).toBe('');
+            expect(lines[2]).toContain('[F]');
+            expect(lines[2]).toContain('[G]');
+            expect(lines[2]).toContain('Druga');
+            expect(lines[2]).toContain('otka'); // fragment słowa
+        });
+
+        it('should handle chord line without text below', () => {
+            const input = 'C  Am  F  G';
+
+            const result = service.convertFromChordsOverText(input);
+
+            expect(result).toContain('[C]');
+            expect(result).toContain('[Am]');
+            expect(result).toContain('[F]');
+            expect(result).toContain('[G]');
+        });
+
+        it('should preserve plain text lines', () => {
+            const input = [
+                'To jest zwykły tekst',
+                'Druga linia tekstu',
+                'Trzecia linia'
+            ].join('\n');
+
+            const result = service.convertFromChordsOverText(input);
+
+            expect(result).toBe(input);
+        });
+
+        it('should handle complex chord notations with modifiers', () => {
+            const input = [
+                'Am7      Dm9      G#sus4   Cmaj7',
+                'Tekst z skomplikowanymi akordami'
+            ].join('\n');
+
+            const result = service.convertFromChordsOverText(input);
+
+            expect(result).toContain('[Am7]');
+            expect(result).toContain('[Dm9]');
+            expect(result).toContain('Tekst');
+            expect(result).toContain('komplikow'); // fragment słowa
+            expect(result).toContain('ako'); // fragment słowa
+        });
+
+        it('should handle chords with sharps and flats', () => {
+            const input = [
+                'C#       Bb       F#m      Eb',
+                'Tekst z akordami z krzyżykami i bemolami'
+            ].join('\n');
+
+            const result = service.convertFromChordsOverText(input);
+
+            expect(result).toContain('[C#]');
+            expect(result).toContain('[Bb]');
+            expect(result).toContain('[F#m]');
+            expect(result).toContain('[Eb]');
+        });
+
+        it('should position chords at correct text positions', () => {
+            const input = [
+                'C           Am',
+                'Pierwsza    druga'
+            ].join('\n');
+
+            const result = service.convertFromChordsOverText(input);
+
+            // Akord C powinien być na początku
+            expect(result.indexOf('[C]')).toBe(0);
+            
+            // Akord Am powinien być gdzieś w okolicy słowa "druga"
+            const amIndex = result.indexOf('[Am]');
+            const drugaIndex = result.indexOf('druga');
+            expect(amIndex).toBeGreaterThan(0);
+            expect(amIndex).toBeLessThanOrEqual(drugaIndex);
+        });
+
+        it('should handle empty lines between sections', () => {
+            const input = [
+                'C        Am',
+                'Pierwsza linia',
+                '',
+                '',
+                'F        G',
+                'Druga linia'
+            ].join('\n');
+
+            const result = service.convertFromChordsOverText(input);
+            const lines = result.split('\n');
+
+            expect(lines.length).toBeGreaterThanOrEqual(4);
+            expect(lines[1]).toBe('');
+            expect(lines[2]).toBe('');
+        });
+
+        it('should handle consecutive chord lines', () => {
+            const input = [
+                'C  Am  F  G',
+                'Dm Em  Am G'
+            ].join('\n');
+
+            const result = service.convertFromChordsOverText(input);
+
+            // Obie linie powinny zostać rozpoznane jako linie z akordami
+            expect(result).toContain('[C]');
+            expect(result).toContain('[Am]');
+            expect(result).toContain('[F]');
+            expect(result).toContain('[G]');
+            expect(result).toContain('[Dm]');
+            expect(result).toContain('[Em]');
+        });
+
+        it('should handle mixed content with chords and regular text', () => {
+            const input = [
+                'Refren:',
+                'C        Am       F         G',
+                'To jest refren naszej piosenki',
+                '',
+                'Zwrotka:',
+                'Dm       Em',
+                'Tekst zwrotki'
+            ].join('\n');
+
+            const result = service.convertFromChordsOverText(input);
+
+            expect(result).toContain('Refren:');
+            expect(result).toContain('[C]');
+            expect(result).toContain('[Am]');
+            expect(result).toContain('efren'); // fragment słowa
+            expect(result).toContain('iosen'); // fragment słowa
+            expect(result).toContain('Zwrotka:');
+            expect(result).toContain('[Dm]');
+            expect(result).toContain('[Em]');
+            expect(result).toContain('Tekst');
+            expect(result).toContain('otki'); // fragment słowa
+        });
+
+        it('should handle single chord on a line', () => {
+            const input = [
+                'C',
+                'Tekst piosenki'
+            ].join('\n');
+
+            const result = service.convertFromChordsOverText(input);
+
+            expect(result).toContain('[C]');
+            expect(result).toContain('Tekst piosenki');
+        });
+
+        it('should handle augmented and diminished chords', () => {
+            const input = [
+                'Caug     Ddim',
+                'Tekst z rzadkimi akordami'
+            ].join('\n');
+
+            const result = service.convertFromChordsOverText(input);
+
+            expect(result).toContain('[Caug]');
+            expect(result).toContain('[Ddim]');
+        });
+
+        it('should handle real-world example', () => {
+            const input = [
+                'Intro:',
+                'C  Am  F  G',
+                '',
+                'Zwrotka 1:',
+                'C              Am',
+                'Kiedy pada deszcz',
+                '    F                G',
+                'Chowam się pod dach',
+                '',
+                'Refren:',
+                'Am           F',
+                'I śpiewam tę piosenkę',
+                'C            G',
+                'Dla Ciebie każdego dnia'
+            ].join('\n');
+
+            const result = service.convertFromChordsOverText(input);
+
+            // Sprawdź czy wszystkie sekcje są zachowane
+            expect(result).toContain('Intro:');
+            expect(result).toContain('Zwrotka 1:');
+            expect(result).toContain('Refren:');
+
+            // Sprawdź czy akordy zostały przekonwertowane
+            expect(result).toContain('[C]');
+            expect(result).toContain('[Am]');
+            expect(result).toContain('[F]');
+            expect(result).toContain('[G]');
+
+            // Sprawdź czy fragmenty tekstu są obecne (mogą być rozdzielone akordami)
+            expect(result).toContain('Kiedy');
+            expect(result).toContain('pada');
+            expect(result).toContain('Chow');
+            expect(result).toContain('dach');
+            expect(result).toContain('śpiewam');
+            expect(result).toContain('piosenkę');
+            expect(result).toContain('Ciebie');
+            expect(result).toContain('dnia');
+        });
+
+        it('should not confuse chord-like words with actual chords', () => {
+            const input = [
+                'To jest normalne zdanie bez akordów.',
+                'Kolejna linia z samym tekstem.'
+            ].join('\n');
+
+            const result = service.convertFromChordsOverText(input);
+
+            // Nie powinny pojawić się żadne nawiasy kwadratowe
+            expect(result).not.toContain('[');
+            expect(result).not.toContain(']');
+            expect(result).toBe(input);
+        });
+
+        it('should handle lines with tabs instead of spaces', () => {
+            const input = 'C\t\tAm\t\tF\t\tG\nTekst z akordami';
+
+            const result = service.convertFromChordsOverText(input);
+
+            expect(result).toContain('[C]');
+            expect(result).toContain('[Am]');
+            expect(result).toContain('[F]');
+            expect(result).toContain('[G]');
+            expect(result).toContain('ek'); // fragment słowa "Tekst"
+            expect(result).toContain('ordami'); // fragment słowa
+        });
+
+        it('should handle lowercase chords (European notation)', () => {
+            const input = [
+                '   C          a      C           a',
+                'Ragazzo da Napoli zajechał mirafiori',
+                '    C            A7         d  G',
+                'Na sam trotuar wjechał kołami'
+            ].join('\n');
+
+            const result = service.convertFromChordsOverText(input);
+
+            // Sprawdź czy wszystkie akordy zostały wykryte
+            expect(result).toContain('[C]');
+            expect(result).toContain('[a]');
+            expect(result).toContain('[A7]');
+            expect(result).toContain('[d]');
+            expect(result).toContain('[G]');
+
+            // Sprawdź czy fragmenty tekstu są obecne (mogą być rozdzielone akordami)
+            expect(result).toContain('Rag'); // fragment "Ragazzo"
+            expect(result).toContain('azzo');
+            expect(result).toContain('Nap'); // fragment "Napoli"
+            expect(result).toContain('oli');
+            expect(result).toContain('mirafi'); // fragment "mirafiori"
+            expect(result).toContain('ori');
+            expect(result).toContain('trotuar');
+            expect(result).toContain('kołam'); // fragment słowa "kołami"
+        });
+
+        it('should handle mixed case chords in one line', () => {
+            const input = [
+                'C  a  d  G  e  A',
+                'Tekst piosenki z mieszanymi akordami'
+            ].join('\n');
+
+            const result = service.convertFromChordsOverText(input);
+
+            expect(result).toContain('[C]');
+            expect(result).toContain('[a]');
+            expect(result).toContain('[d]');
+            expect(result).toContain('[G]');
+            expect(result).toContain('[e]');
+            expect(result).toContain('[A]');
+        });
+    });
+});
+
