@@ -1,6 +1,7 @@
 import { handleError } from '../_shared/errors.ts';
 import { logger } from '../_shared/logger.ts';
 import { registerRouter } from './register.handlers.ts';
+import { resendConfirmationRouter } from './resend-confirmation.handlers.ts';
 
 /**
  * Główny router dla Edge Function /auth.
@@ -19,6 +20,11 @@ Deno.serve(async (request: Request) => {
         // POST /auth/register
         if (path === '/register' || path === '/') {
             return await registerRouter(request);
+        }
+
+        // POST /auth/resend-confirmation
+        if (path === '/resend-confirmation') {
+            return await resendConfirmationRouter(request);
         }
 
         // Nieznana ścieżka

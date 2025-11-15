@@ -144,3 +144,69 @@ Content-Type: application/json
   "displayName": "Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna ali"
 }
 
+### ============================================================================
+### PONOWNE WYSŁANIE EMAILA POTWIERDZAJĄCEGO
+### ============================================================================
+
+### 16. Poprawne żądanie ponownego wysłania emaila
+POST {{baseUrl}}/resend-confirmation
+Content-Type: application/json
+
+{
+  "email": "test@example.com"
+}
+
+### 17. Żądanie dla nieistniejącego użytkownika (też zwraca 200 - ochrona przed enumeracją)
+POST {{baseUrl}}/resend-confirmation
+Content-Type: application/json
+
+{
+  "email": "nieistniejacy@example.com"
+}
+
+### 18. Walidacja - nieprawidłowy format emaila (powinno zwrócić 400)
+POST {{baseUrl}}/resend-confirmation
+Content-Type: application/json
+
+{
+  "email": "not-an-email"
+}
+
+### 19. Walidacja - brak pola email (powinno zwrócić 400)
+POST {{baseUrl}}/resend-confirmation
+Content-Type: application/json
+
+{
+  "wrongField": "test@example.com"
+}
+
+### 20. Walidacja - puste pole email (powinno zwrócić 400)
+POST {{baseUrl}}/resend-confirmation
+Content-Type: application/json
+
+{
+  "email": ""
+}
+
+### 21. Nieprawidłowy JSON (powinno zwrócić 400)
+POST {{baseUrl}}/resend-confirmation
+Content-Type: application/json
+
+{
+  "email": "test@example.com"
+  // Komentarz, który psuje JSON
+
+### 22. Nieprawidłowa metoda HTTP - GET (powinno zwrócić 405)
+GET {{baseUrl}}/resend-confirmation
+
+### 23. Nieprawidłowa metoda HTTP - PUT (powinno zwrócić 405)
+PUT {{baseUrl}}/resend-confirmation
+Content-Type: application/json
+
+{
+  "email": "test@example.com"
+}
+
+### 24. Nieprawidłowa metoda HTTP - DELETE (powinno zwrócić 405)
+DELETE {{baseUrl}}/resend-confirmation
+

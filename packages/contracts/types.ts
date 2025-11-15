@@ -53,6 +53,15 @@ export type OrganizerRegisterCommand = {
     displayName: ProfileRow['display_name'];
 };
 
+/**
+ * Command to resend a confirmation email.
+ * Used in: POST /auth/resend-confirmation
+ */
+export type ResendConfirmationCommand = {
+    email: string;
+};
+
+
 // ============================================================================
 // Song DTOs and Commands (Section 2.2)
 // ============================================================================

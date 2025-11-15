@@ -59,6 +59,46 @@ Rejestracja nowego organizatora w systemie.
 
 - **500 Internal Server Error** - Błąd serwera
 
+### POST /auth/resend-confirmation
+
+Ponowne wysłanie emaila z linkiem potwierdzającym dla użytkownika, którego konto nie zostało jeszcze zweryfikowane.
+
+**Request Body:**
+```json
+{
+  "email": "organizer@example.com"
+}
+```
+
+**Success Response (200 OK):**
+```json
+{
+  "message": "If an account with this email exists and is not yet confirmed, a new confirmation link has been sent."
+}
+```
+
+**WAŻNE - Ochrona przed enumeracją użytkowników:**
+- Endpoint **zawsze** zwraca 200 OK z tą samą generyczną wiadomością
+- Nie ujawnia informacji czy użytkownik istnieje, czy jest już potwierdzony
+- To zachowanie jest celowe i zwiększa bezpieczeństwo systemu
+
+**Error Responses:**
+
+- **400 Bad Request** - Nieprawidłowe dane wejściowe
+```json
+{
+  "error": {
+    "code": "validation_error",
+    "message": "Nieprawidłowe dane wejściowe",
+    "details": {
+      "email": { "_errors": ["Podaj prawidłowy adres email"] }
+    }
+  }
+}
+```
+
+- **405 Method Not Allowed** - Nieprawidłowa metoda HTTP
+
 ## Proces rejestracji
 
 1. Walidacja danych wejściowych (email, hasło min. 8 znaków, nazwa wyświetlana)
@@ -121,6 +161,18 @@ curl -X POST http://localhost:54321/functions/v1/auth/register \
 
 Wykonaj to samo żądanie dwukrotnie - drugie powinno zwrócić błąd 409.
 
+#### Ponowne wysłanie emaila potwierdzającego
+
+```bash
+curl -X POST http://localhost:54321/functions/v1/auth/resend-confirmation \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "test@example.com"
+  }'
+```
+
+**Uwaga:** Ten endpoint zwraca sukces nawet dla nieistniejących użytkowników - to celowe zachowanie chroniące przed enumeracją.
+
 ## Weryfikacja w Supabase Dashboard
 
 Po rejestracji:
@@ -144,7 +196,7 @@ W środowisku lokalnym:
 - [ ] Po kliknięciu linku status zmienia się na potwierdzony
 - [ ] Profil zostaje utworzony w tabeli `profiles`
 
-### ❌ Przypadki negatywne
+### ❌ Przypadki negatywne (Rejestracja)
 
 - [ ] Brak email w żądaniu → 400
 - [ ] Nieprawidłowy format email → 400
@@ -155,6 +207,20 @@ W środowisku lokalnym:
 - [ ] displayName dłuższa niż 120 znaków → 400
 - [ ] Nieprawidłowy JSON w body → 400
 - [ ] Duplikat email → 409
+- [ ] Nieprawidłowa metoda HTTP (GET, PUT, DELETE) → 405
+
+### ✅ Przypadki pozytywne (Resend Confirmation)
+
+- [ ] Żądanie dla istniejącego, niepotwierdzonegoużytkownika → 200 i nowy email
+- [ ] Żądanie dla nieistniejącego użytkownika → 200 (generyczna odpowiedź)
+- [ ] Żądanie dla już potwierdzonego użytkownika → 200 (generyczna odpowiedź)
+
+### ❌ Przypadki negatywne (Resend Confirmation)
+
+- [ ] Brak email w żądaniu → 400
+- [ ] Nieprawidłowy format email → 400
+- [ ] Puste pole email → 400
+- [ ] Nieprawidłowy JSON w body → 400
 - [ ] Nieprawidłowa metoda HTTP (GET, PUT, DELETE) → 405
 
 ## Atomowość operacji
