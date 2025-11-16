@@ -18,50 +18,33 @@ Najpierw przejrzyj następujące informacje:
 
 3. Widok do implementacji
 <view>
-#### **4. Widok Potwierdzenia E-mail (Email Confirmation View)**
+#### **3. Okno Modalne: Konto Niepotwierdzone (Dialog)**
 
-*   **Ścieżka:** `/auth/confirm-email` (lub inna ścieżka zwrotna skonfigurowana w Supabase)
-*   **Główny cel:** Obsługa kliknięcia w link aktywacyjny przez użytkownika i poinformowanie go o wyniku.
-*   **Kluczowe informacje:** Wskaźnik ładowania (`MatSpinner`) podczas weryfikacji tokenu. Po weryfikacji:
-    *   **Sukces:** Komunikat "Twoje konto zostało aktywowane!" i przycisk "Przejdź do logowania".
-    *   **Błąd (np. link wygasł):** Komunikat "Link aktywacyjny jest nieprawidłowy lub wygasł." i przycisk "Wyślij nowy link aktywacyjny".
-*   **Kluczowe komponenty:** `MatSpinner`, `mat-card`, `mat-button`.
+*   **Kontekst:** Wyświetlane w ramach **Widoku Logowania**.
+*   **Główny cel:** Poinformowanie użytkownika, że jego konto nie jest jeszcze aktywne i umożliwienie ponownego wysłania linku aktywacyjnego.
+*   **Kluczowe informacje:** Komunikat "Konto nieaktywne. Sprawdź swoją skrzynkę e-mail, aby dokończyć rejestrację."
+*   **Kluczowe komponenty:** `mat-dialog`, `mat-button`.
 *   **UX, dostępność, bezpieczeństwo:**
-    *   **UX:** Jasny feedback dla użytkownika o wyniku operacji. Zapewnia łatwą ścieżkę do logowania lub rozwiązania problemu.
-    *   **Dostępność:** Odpowiednie role ARIA do komunikowania stanu (np. `aria-live` dla komunikatów o statusie).
-    *   **Bezpieczeństwo:** Strona obsługuje tokeny (jednorazowe, ograniczone czasowo) w parametrach URL, które są przetwarzane w celu aktywacji konta.
+    *   **UX:** Dialog pojawia się po próbie logowania na niepotwierdzone konto, blokując dalsze akcje do czasu jego zamknięcia. Zawiera przyciski "Zamknij" oraz "Wyślij link ponownie".
+    *   **Dostępność:** Dialog jest modalny, fokus klawiatury jest poprawnie zarządzany.
+    *   **Bezpieczeństwo:** Akcja ponownego wysłania linku komunikuje się z bezpiecznym endpointem API.
 </view>
 
 4. User Stories:
 <user_stories>
--   **ID:** US-022
--   **Title:** Potwierdzenie adresu e-mail w celu aktywacji konta
--   **Description:** Jako nowy Organizator, po otrzymaniu e-maila aktywacyjnego, chcę móc kliknąć w zawarty w nim link, aby pomyślnie aktywować moje konto i uzyskać możliwość logowania się do aplikacji.
+-   **ID:** US-002
+-   **Title:** Logowanie Organizatora
+-   **Description:** Jako zarejestrowany Organizator, chcę móc zalogować się na moje konto, aby uzyskać dostęp do moich piosenek i repertuarów.
 -   **Acceptance Criteria:**
-    -   Link aktywacyjny otrzymany w wiadomości e-mail jest unikalny.
-    -   Kliknięcie w link przenosi mnie na dedykowaną stronę w aplikacji, która potwierdza status weryfikacji.
-    -   Po pomyślnej weryfikacji, strona wyświetla komunikat o sukcesie i przycisk przekierowujący do strony logowania.
-    -   Po aktywacji konta mogę się bez problemu zalogować na swoje dane.
-    -   W przypadku, gdy link jest nieprawidłowy lub wygasł, strona wyświetla stosowny komunikat o błędzie oraz oferuje możliwość ponownego wysłania e-maila aktywacyjnego.
+    -   Formularz logowania zawiera pola na adres e-mail i hasło.
+    -   Po podaniu poprawnych danych jestem zalogowany i przekierowany do panelu zarządzania.
+    -   W przypadku podania błędnych danych, wyświetlany jest stosowny komunikat.
+    -   W przypadku próby logowania na konto, które nie zostało aktywowane przez e-mail, wyświetlany jest komunikat o konieczności aktywacji konta.
+-   ***Notatka o zmianie:*** *Dodano nowe kryterium akceptacji, które obsługuje przypadek próby logowania na nieaktywowane (niepotwierdzone e-mailem) konto.*
 </user_stories>
 
 5. Endpoint Description:
 <endpoint_description>
-#### POST /auth/register
-- **Method:** POST
-- **Path:** `/auth/register`
-- **Description:** Register a new organizer. Creates an inactive user in Supabase Auth, which triggers a confirmation email. The account is not active until the email link is clicked. Also creates a corresponding profile entry.
-- **Request JSON:**
-```json
-{
-  "email": "organizer@example.com",
-  "password": "supersecretpassword",
-  "displayName": "Basia"
-}
-```
-- **Response JSON:** same as `GET /me/profile`.
-- **Success:** `201 Created`
-- **Errors:** `400 Bad Request` (invalid payload, e.g. weak password), `409 Conflict` (email already exists).
 
 
 
