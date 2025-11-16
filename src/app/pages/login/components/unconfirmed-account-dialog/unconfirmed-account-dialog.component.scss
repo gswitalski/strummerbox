@@ -1,0 +1,19 @@
+mat-dialog-content {
+    p {
+        margin-bottom: 1rem;
+
+        &:last-of-type {
+            margin-bottom: 1.5rem;
+        }
+    }
+
+    mat-progress-bar {
+        margin-top: 1rem;
+    }
+}
+
+mat-dialog-actions {
+    padding: 16px 24px;
+    gap: 8px;
+}
+
