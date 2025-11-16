@@ -20,11 +20,19 @@ Zapoznaj się z następującymi materiałami:
 
 </plan_ui>
 
+<plan_api>
+
+
+
+</plan_api>
+
 <typy>
 
 
 
 </typy>
+
+
 
 <aktualna_implementacja>
 
@@ -34,19 +42,20 @@ Zapoznaj się z następującymi materiałami:
 
 <aktualne_zachowanie>
 
-1. Lista piosenek - gdy nie ma piosenek wyświetla się odpowiedni komunikat, ale w złym klorze (ciemny na ciemnym tle)
-2. Lista repertuarów - gdy nie ma repertuarów  wyświetla się odpowiedni komunikat, ale w złym klorze (ciemny na ciemnym tle)
+Widok Potwierdzenia E-mail (Email Confirmation View)** Ścieżka:`/auth/confirm-email`
+czeka na potwierdzenie maila po czym pisze, że linkt aktywacyjny wygasł, choć taknaprawde link został aktywowanyproawidłowo i możmna się logować
+
 
 </aktualne_zachowanie>
 
 <oczekiwane_zachowanie>
 
-gdy aplikacja działa w srodowisku testowym do tytułu aplikacji dodany jest tekst "(środowisko testowe)"
+Na widok  
+Widok Potwierdzenia E-mail (Email Confirmation View)** Ścieżka:`/auth/confirm-email`
+Wyświela informację o poprawnym aktywowaniu maila
 
 </oczekiwane_zachowanie>
 
-1. Lista piosenek - gdy nie ma piosenek wyświetla się odpowiedni komunikat w odpowiednim kolorze ze schematu angular material
-2. Lista repertuarów - gdy nie ma repertuarów wyświetla się odpowiedni komunikat w odpowiednim kolorze ze schematu angular material
 
 <implementation_rules>
 
