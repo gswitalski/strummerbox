@@ -79,11 +79,17 @@ export class LoginComponent {
             );
 
             if (error) {
+                // Debug: sprawdź pełną strukturę błędu
+                console.log('Login error object:', error);
+                console.log('Login error JSON:', JSON.stringify(error, null, 2));
+
                 // Sprawdź czy błąd dotyczy nieaktywowanego konta
                 const isEmailNotConfirmed = this.isEmailNotConfirmedError(error);
+                console.log('isEmailNotConfirmed:', isEmailNotConfirmed);
 
                 if (isEmailNotConfirmed) {
                     // Otwórz dialog z informacją o niepotwierdzonym koncie
+                    console.log('Opening UnconfirmedAccountDialogComponent');
                     this.dialog.open(UnconfirmedAccountDialogComponent, {
                         data: { email },
                         width: '500px',
@@ -130,12 +136,28 @@ export class LoginComponent {
     private isEmailNotConfirmedError(error: AuthError): boolean {
         // Sprawdź różne możliwe struktury błędu
         const errorCode = error?.code || error?.status;
-        const errorMessage = error?.message || '';
+        const errorMessage = (error?.message || '').toLowerCase();
+        const errorName = (error?.name || '').toLowerCase();
 
-        return (
+        console.log('errorCode: ', errorCode);
+        console.log('errorMessage:', errorMessage);
+        console.log('errorName:', errorName);
+        console.log('error.status:', error?.status);
+
+        // Sprawdź wszystkie możliwe warianty
+        const hasEmailNotConfirmedCode =
             errorCode === 'email_not_confirmed' ||
-            errorMessage.toLowerCase().includes('email not confirmed')
-        );
+            errorName === 'email_not_confirmed';
+
+        const hasEmailNotConfirmedMessage =
+            errorMessage.includes('email not confirmed') ||
+            errorMessage.includes('email hasn\'t been confirmed') ||
+            errorMessage.includes('email confirmation');
+
+        console.log('hasEmailNotConfirmedCode:', hasEmailNotConfirmedCode);
+        console.log('hasEmailNotConfirmedMessage:', hasEmailNotConfirmedMessage);
+
+        return hasEmailNotConfirmedCode || hasEmailNotConfirmedMessage;
     }
 }
 
