@@ -1,0 +1,109 @@
+.awaiting-confirmation-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 1rem;
+    background-color: var(--mat-sys-surface-container-low);
+}
+
+.awaiting-confirmation-card {
+    max-width: 500px;
+    width: 100%;
+}
+
+.icon-wrapper {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin-bottom: 1rem;
+}
+
+.email-icon {
+    font-size: 64px;
+    width: 64px;
+    height: 64px;
+    color: var(--mat-sys-primary);
+}
+
+mat-card-header {
+    display: flex;
+    justify-content: center;
+    padding: 1rem;
+}
+
+mat-card-content {
+    text-align: center;
+    padding: 1.5rem;
+}
+
+.title {
+    font-size: 1.75rem;
+    font-weight: 500;
+    margin: 0 0 1rem 0;
+    color: var(--mat-sys-on-surface);
+}
+
+.description {
+    font-size: 1rem;
+    margin: 0 0 0.5rem 0;
+    color: var(--mat-sys-on-surface-variant);
+}
+
+.email {
+    font-size: 1.125rem;
+    font-weight: 500;
+    margin: 0 0 1.5rem 0;
+    color: var(--mat-sys-primary);
+    word-break: break-word;
+}
+
+.instruction {
+    font-size: 0.875rem;
+    line-height: 1.5;
+    margin: 0 0 2rem 0;
+    color: var(--mat-sys-on-surface-variant);
+}
+
+.resend-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1.5rem;
+    border-radius: 8px;
+    background-color: var(--mat-sys-surface-container-highest);
+}
+
+.resend-text {
+    font-size: 0.875rem;
+    margin: 0;
+    color: var(--mat-sys-on-surface-variant);
+}
+
+.resend-progress {
+    width: 100%;
+    margin-bottom: 0.5rem;
+}
+
+.resend-button {
+    min-width: 200px;
+}
+
+.cooldown-message {
+    font-size: 0.75rem;
+    margin: 0;
+    color: var(--mat-sys-on-surface-variant);
+    font-style: italic;
+}
+
+mat-card-actions {
+    display: flex;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.back-to-login {
+    color: var(--mat-sys-primary);
+}
+

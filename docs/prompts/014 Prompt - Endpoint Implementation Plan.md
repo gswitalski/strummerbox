@@ -5,32 +5,24 @@ Zanim zaczniemy, zapoznaj się z poniższymi informacjami:
 1. Route API specification:
 <route_api_specification>
 
-#### GET /public/repertoires/{publicId}/songs/{songPublicId}
-- **Method:** GET
-- **Path:** `/public/repertoires/{publicId}/songs/{songPublicId}`
-- **Description:** Return a repertoire song view for anonymous users with navigation hints, including titles of adjacent songs.
+#### POST /auth/resend-confirmation
+- **Method:** POST
+- **Path:** `/auth/resend-confirmation`
+- **Description:** Resends the confirmation email to a user with an unconfirmed account. This endpoint calls the underlying Supabase functionality to issue a new confirmation link.
+- **Request JSON:**
+```json
+{
+  "email": "organizer@example.com"
+}
+```
 - **Response JSON:**
 ```json
 {
-  "title": "Knockin' on Heaven's Door",
-  "content": "Mama, take this badge off of me...",
-  "order": {
-    "position": 2,
-    "total": 12,
-    "previous": {
-      "url": "https://app.strummerbox.com/public/repertoires/8729a118-.../songs/prev-id",
-      "title": "Hej Sokoły"
-    },
-    "next": {
-      "url": "https://app.strummerbox.com/public/repertoires/8729a118-.../songs/next-id",
-      "title": "Wonderwall"
-    }
-  }
+  "message": "If an account with this email exists and is not yet confirmed, a new confirmation link has been sent."
 }
 ```
-- **Success:** `200 OK`
-- **Errors:** `404 Not Found`, `410 Gone`.
-
+- **Success:** `200 OK` (A generic success message is returned to prevent user enumeration).
+- **Errors:** `400 Bad Request` (invalid email format).
 
 
 </route_api_specification>

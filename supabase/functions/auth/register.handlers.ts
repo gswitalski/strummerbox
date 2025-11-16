@@ -82,4 +82,3 @@ export const registerRouter = async (request: Request): Promise<Response> => {
     return await handleRegister(request);
 };
 
-

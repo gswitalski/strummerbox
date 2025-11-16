@@ -11,11 +11,13 @@ import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { RouterModule } from '@angular/router';
-import type { SignInWithPasswordCredentials } from '@supabase/supabase-js';
+import type { AuthError, SignInWithPasswordCredentials } from '@supabase/supabase-js';
 
 import { SupabaseService } from '../../core/services/supabase.service';
 import { ProfileService } from '../../core/services/profile.service';
+import { UnconfirmedAccountDialogComponent } from './components/unconfirmed-account-dialog/unconfirmed-account-dialog.component';
 
 @Component({
     selector: 'stbo-login',
@@ -28,6 +30,7 @@ import { ProfileService } from '../../core/services/profile.service';
         MatFormFieldModule,
         MatInputModule,
         MatProgressBarModule,
+        MatDialogModule,
         RouterModule,
     ],
     templateUrl: './login.component.html',
@@ -40,6 +43,7 @@ export class LoginComponent {
     private readonly route = inject(ActivatedRoute);
     private readonly supabase = inject(SupabaseService);
     private readonly profileService = inject(ProfileService);
+    private readonly dialog = inject(MatDialog);
 
     readonly loginForm = this.formBuilder.nonNullable.group({
         email: this.formBuilder.nonNullable.control('', {
@@ -75,6 +79,20 @@ export class LoginComponent {
             );
 
             if (error) {
+                // Sprawdź czy błąd dotyczy nieaktywowanego konta
+                const isEmailNotConfirmed = this.isEmailNotConfirmedError(error);
+
+                if (isEmailNotConfirmed) {
+                    // Otwórz dialog z informacją o niepotwierdzonym koncie
+                    this.dialog.open(UnconfirmedAccountDialogComponent, {
+                        data: { email },
+                        width: '500px',
+                        disableClose: false,
+                    });
+                    return;
+                }
+
+                // Inne błędy logowania
                 this.errorMessage.set(error.message);
                 return;
             }
@@ -103,6 +121,27 @@ export class LoginComponent {
         } finally {
             this.isLoading.set(false);
         }
+    }
+
+    /**
+     * Sprawdza czy błąd dotyczy nieaktywowanego konta (niepotwierdzony email).
+     * Supabase zwraca błąd z kodem "email_not_confirmed" lub komunikatem "Email not confirmed".
+     */
+    private isEmailNotConfirmedError(error: AuthError): boolean {
+        const errorCode = error?.code || error?.status;
+        const errorMessage = (error?.message || '').toLowerCase();
+        const errorName = (error?.name || '').toLowerCase();
+
+        const hasEmailNotConfirmedCode =
+            errorCode === 'email_not_confirmed' ||
+            errorName === 'email_not_confirmed';
+
+        const hasEmailNotConfirmedMessage =
+            errorMessage.includes('email not confirmed') ||
+            errorMessage.includes('email hasn\'t been confirmed') ||
+            errorMessage.includes('email confirmation');
+
+        return hasEmailNotConfirmedCode || hasEmailNotConfirmedMessage;
     }
 }
 

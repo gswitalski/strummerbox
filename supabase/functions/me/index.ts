@@ -5,7 +5,6 @@ import { buildErrorResponse, handleCorsPreFlight, withErrorHandling } from '../_
 import { logger } from '../_shared/logger.ts';
 import { ApplicationError, createInternalError } from '../_shared/errors.ts';
 import { profileRouter } from './profile.handlers.ts';
-import { registerRouter } from './register.handlers.ts';
 import { biesiadaRouter } from './biesiada.handlers.ts';
 
 let isSupabaseHealthy = false;
@@ -66,10 +65,6 @@ serve(async (request) => {
     const supabase = createSupabaseClient(request);
 
     const execute = withErrorHandling(async () => {
-        if (path.endsWith('/register')) {
-            return await registerRouter(request);
-        }
-
         const user = await requireAuth(supabase);
 
         // Routing dla trybu Biesiada - sprawdzamy najpierw, bo jest bardziej specyficzny

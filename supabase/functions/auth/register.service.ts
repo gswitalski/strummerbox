@@ -42,6 +42,9 @@ const rollbackUserCreation = async (
 /**
  * Rejestruje nowego organizatora tworząc konto w Supabase Auth oraz odpowiadający profil.
  * W przypadku niepowodzenia drugiego kroku próbuje wycofać utworzone konto użytkownika.
+ * 
+ * WAŻNE: Konto użytkownika pozostaje nieaktywne do momentu potwierdzenia adresu email
+ * poprzez kliknięcie w link wysłany automatycznie przez Supabase Auth.
  */
 export const registerOrganizer = async (
     params: RegisterOrganizerParams,
@@ -94,21 +97,12 @@ export const registerOrganizer = async (
 
     const userId = user.id;
 
-    // Automatyczne potwierdzenie emaila użytkownika dla środowiska produkcyjnego
-    // (na lokalnym środowisku email jest automatycznie potwierdzony, ale na produkcji wymaga to jawnej akcji)
-    const { error: confirmError } = await supabase.auth.admin.updateUserById(userId, {
-        email_confirm: true,
+    // Supabase Auth automatycznie wysyła email weryfikacyjny na podany adres.
+    // Konto pozostaje nieaktywne do momentu kliknięcia w link weryfikacyjny przez użytkownika.
+    logger.info('Utworzono konto użytkownika - oczekiwanie na weryfikację email', { 
+        userId,
+        email 
     });
-
-    if (confirmError) {
-        logger.warn('Nie udało się automatycznie potwierdzić emaila użytkownika', {
-            userId,
-            error: confirmError,
-        });
-        // Kontynuujemy mimo błędu potwierdzenia - użytkownik będzie musiał potwierdzić email ręcznie
-    } else {
-        logger.info('Automatycznie potwierdzono email użytkownika', { userId });
-    }
 
     const { data: profileData, error: profileError } = await supabase
         .from('profiles')
@@ -142,5 +136,4 @@ export const registerOrganizer = async (
         updatedAt: profileData.updated_at,
     };
 };
-
 

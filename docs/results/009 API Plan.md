@@ -49,8 +49,8 @@
 
 #### POST /me/profile
 - **Method:** POST
-- **Path:** `/register`
-- **Description:** Register a new organizer. Creates a user in Supabase Auth and a corresponding profile entry.
+- **Path:** `/auth/register`
+- **Description:** Register a new organizer. Creates an inactive user in Supabase Auth, which triggers a confirmation email. The account is not active until the email link is clicked. Also creates a corresponding profile entry.
 - **Query Parameters:** none
 - **Request JSON:**
 ```json
@@ -63,6 +63,26 @@
 - **Response JSON:** same as `GET /me/profile`.
 - **Success:** `201 Created`
 - **Errors:** `400 Bad Request` (invalid payload, e.g. weak password), `409 Conflict` (email already exists).
+
+#### POST /auth/resend-confirmation
+- **Method:** POST
+- **Path:** `/auth/resend-confirmation`
+- **Description:** Resends the confirmation email to a user with an unconfirmed account. This endpoint calls the underlying Supabase functionality to issue a new confirmation link.
+- **Query Parameters:** none
+- **Request JSON:**
+```json
+{
+  "email": "organizer@example.com"
+}
+```
+- **Response JSON:**
+```json
+{
+  "message": "If an account with this email exists and is not yet confirmed, a new confirmation link has been sent."
+}
+```
+- **Success:** `200 OK` (A generic success message is returned to prevent user enumeration).
+- **Errors:** `400 Bad Request` (invalid email format).
 
 ### 2.2 Songs (Authenticated Organizer)
 

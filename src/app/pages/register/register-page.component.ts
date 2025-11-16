@@ -123,8 +123,9 @@ export class RegisterPageComponent {
 
         try {
             await this.authService.register(command);
-            await this.authService.login(command.email, command.password);
-            await this.router.navigateByUrl('/management/dashboard');
+            await this.router.navigate(['/auth/awaiting-confirmation'], {
+                queryParams: { email: command.email },
+            });
         } catch (error) {
             console.error('RegisterPageComponent: register error', error);
             this.errorMessage.set(this.mapError(error));

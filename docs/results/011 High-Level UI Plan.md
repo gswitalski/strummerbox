@@ -26,6 +26,7 @@ Zarządzanie stanem aplikacji będzie realizowane za pomocą serwisów Angulara 
 *   **Kluczowe komponenty:** `mat-card`, `mat-form-field`, `mat-input`, `mat-button`, `mat-progress-bar`.
 *   **UX, dostępność, bezpieczeństwo:**
     *   **UX:** Wyraźne komunikaty o błędach walidacji (np. "Nieprawidłowy e-mail") i błędach logowania (np. "Błędne dane logowania"). Po pomyślnym zalogowaniu użytkownik jest przekierowywany do Dashboardu. Przycisk logowania jest nieaktywny, dopóki formularz nie jest poprawny.
+    *   **UX (Konto niepotwierdzone):** W przypadku próby logowania na konto, które nie zostało jeszcze aktywowane, otwierane jest okno modalne (`mat-dialog`) z informacją: "Konto nieaktywne. Sprawdź swoją skrzynkę e-mail, aby dokończyć rejestrację." Okno zawiera również przycisk "Wyślij link ponownie", który pozwala zainicjować ponowne wysłanie e-maila aktywacyjnego.
     *   **Dostępność:** Etykiety (`aria-label`) dla pól formularza, obsługa nawigacji klawiaturą.
     *   **Bezpieczeństwo:** Komunikacja z API przez HTTPS.
 
@@ -38,13 +39,41 @@ Zarządzanie stanem aplikacji będzie realizowane za pomocą serwisów Angulara 
 *   **Kluczowe informacje:** Formularz z polami na e-mail, nick (displayName) i hasło (z potwierdzeniem).
 *   **Kluczowe komponenty:** Takie same jak w Widoku Logowania.
 *   **UX, dostępność, bezpieczeństwo:**
-    *   **UX:** Walidacja hasła (np. minimalna długość) i jego potwierdzenia po stronie klienta. Komunikaty o błędach (np. "Konto o tym adresie e-mail już istnieje"). Po sukcesie użytkownik jest automatycznie logowany i przekierowywany do Dashboardu.
+    *   **UX:** Walidacja hasła (np. minimalna długość) i jego potwierdzenia po stronie klienta. Komunikaty o błędach (np. "Konto o tym adresie e-mail już istnieje"). Po pomyślnej rejestracji użytkownik jest przekierowywany na nowy "Widok Oczekiwania na Potwierdzenie E-mail".
     *   **Dostępność:** Jak w widoku logowania.
     *   **Bezpieczeństwo:** Jak w widoku logowania.
 
 ---
 
-#### **3. Publiczny Widok Repertuaru (Public Repertoire View)**
+#### **3. Widok Oczekiwania na Potwierdzenie E-mail (Awaiting Email Confirmation View)**
+
+*   **Ścieżka:** `/auth/awaiting-confirmation`
+*   **Główny cel:** Poinformowanie użytkownika o konieczności weryfikacji adresu e-mail w celu dokończenia procesu rejestracji.
+*   **Kluczowe informacje:** Wyraźny komunikat, np. "Rejestracja prawie zakończona! Sprawdź swoją skrzynkę pocztową i kliknij w link aktywacyjny, aby dokończyć proces." Ikona koperty. Informacja o adresie e-mail, na który wysłano link. Przycisk/link "Nie otrzymałem e-maila. Wyślij ponownie".
+*   **Kluczowe komponenty:** `mat-card`, `mat-icon`, `mat-button`.
+*   **UX, dostępność, bezpieczeństwo:**
+    *   **UX:** Prosty, jednoznaczny widok, który nie pozostawia wątpliwości co do następnego kroku. Umożliwia łatwe ponowne wysłanie linku w przypadku problemów.
+    *   **Dostępność:** Etykiety dla wszystkich interaktywnych elementów.
+    *   **Bezpieczeństwo:** Widok publiczny, nie wymaga uwierzytelnienia.
+
+---
+
+#### **4. Widok Potwierdzenia E-mail (Email Confirmation View)**
+
+*   **Ścieżka:** `/auth/confirm-email` (lub inna ścieżka zwrotna skonfigurowana w Supabase)
+*   **Główny cel:** Obsługa kliknięcia w link aktywacyjny przez użytkownika i poinformowanie go o wyniku.
+*   **Kluczowe informacje:** Wskaźnik ładowania (`MatSpinner`) podczas weryfikacji tokenu. Po weryfikacji:
+    *   **Sukces:** Komunikat "Twoje konto zostało aktywowane!" i przycisk "Przejdź do logowania".
+    *   **Błąd (np. link wygasł):** Komunikat "Link aktywacyjny jest nieprawidłowy lub wygasł." i przycisk "Wyślij nowy link aktywacyjny".
+*   **Kluczowe komponenty:** `MatSpinner`, `mat-card`, `mat-button`.
+*   **UX, dostępność, bezpieczeństwo:**
+    *   **UX:** Jasny feedback dla użytkownika o wyniku operacji. Zapewnia łatwą ścieżkę do logowania lub rozwiązania problemu.
+    *   **Dostępność:** Odpowiednie role ARIA do komunikowania stanu (np. `aria-live` dla komunikatów o statusie).
+    *   **Bezpieczeństwo:** Strona obsługuje tokeny (jednorazowe, ograniczone czasowo) w parametrach URL, które są przetwarzane w celu aktywacji konta.
+
+---
+
+#### **4a. Publiczny Widok Repertuaru (Public Repertoire View)**
 
 *   **Ścieżka:** `/public/repertoires/:publicId`
 *   **Główny cel:** Wyświetlenie listy piosenek zawartych w udostępnionym repertuarze dla Biesiadnika.
@@ -57,7 +86,7 @@ Zarządzanie stanem aplikacji będzie realizowane za pomocą serwisów Angulara 
 
 ---
 
-#### **4. Publiczny Widok Piosenki (Public Song View)**
+#### **4b. Publiczny Widok Piosenki (Public Song View)**
 
 *   **Ścieżka:** `/public/songs/:publicId` oraz `/public/repertoires/:publicId/songs/:songPublicId`
 *   **Główny cel:** Wyświetlenie tekstu piosenki Biesiadnikowi.

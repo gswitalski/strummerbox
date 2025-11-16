@@ -16,40 +16,40 @@ Najpierw przejrzyj następujące informacje:
 
 </ui_plan>
 
-3. Nazwa widoku do implementacji
-<view_name>
-7. Tworzenie / Edycja Piosenki (Song Create/Edit View) - rozszerzenie o importownanie tekstu
-</view_name>
+3. Widok do implementacji
+<view>
+#### **3. Okno Modalne: Konto Niepotwierdzone (Dialog)**
+
+*   **Kontekst:** Wyświetlane w ramach **Widoku Logowania**.
+*   **Główny cel:** Poinformowanie użytkownika, że jego konto nie jest jeszcze aktywne i umożliwienie ponownego wysłania linku aktywacyjnego.
+*   **Kluczowe informacje:** Komunikat "Konto nieaktywne. Sprawdź swoją skrzynkę e-mail, aby dokończyć rejestrację."
+*   **Kluczowe komponenty:** `mat-dialog`, `mat-button`.
+*   **UX, dostępność, bezpieczeństwo:**
+    *   **UX:** Dialog pojawia się po próbie logowania na niepotwierdzone konto, blokując dalsze akcje do czasu jego zamknięcia. Zawiera przyciski "Zamknij" oraz "Wyślij link ponownie".
+    *   **Dostępność:** Dialog jest modalny, fokus klawiatury jest poprawnie zarządzany.
+    *   **Bezpieczeństwo:** Akcja ponownego wysłania linku komunikuje się z bezpiecznym endpointem API.
+</view>
 
 4. User Stories:
 <user_stories>
--   ID: US-021
--   Title: Importowanie piosenki z formatu "akordy nad tekstem"
--   Description: Jako Organizator, który posiada swoje piosenki w formacie, gdzie akordy są zapisane w linii powyżej tekstu, chcę mieć możliwość szybkiego przekonwertowania ich do formatu ChordPro bezpośrednio w edytorze, aby przyspieszyć proces dodawania nowych utworów do mojej biblioteki.
--   Acceptance Criteria:
-    -   W widoku tworzenia/edycji piosenki znajduje się przycisk, np. "Importuj z tekstu".
-    -   Po kliknięciu przycisku otwiera się okno modalne z dużym polem tekstowym (`textarea`) i przyciskami "Importuj" oraz "Anuluj".
-    -   Mogę wkleić do pola tekstowego piosenkę w formacie, gdzie linia z akordami znajduje się bezpośrednio nad linią z tekstem.
-    -   Po kliknięciu "Importuj", zawartość okna modalnego jest konwertowana do formatu ChordPro (np. `[G]Idę sobie [D]ulicą...`).
-    -   Okno modalne zostaje zamknięte, a przekonwertowany tekst jest dodawany na końcu treści w głównym edytorze piosenki, oddzielony nową linią.
-    -   Jeśli w edytorze znajdował się już jakiś tekst, nie jest on nadpisywany, lecz uzupełniany o nową treść.
-    -   Kliknięcie "Anuluj" zamyka okno modalne bez wprowadzania żadnych zmian.
-
+-   **ID:** US-002
+-   **Title:** Logowanie Organizatora
+-   **Description:** Jako zarejestrowany Organizator, chcę móc zalogować się na moje konto, aby uzyskać dostęp do moich piosenek i repertuarów.
+-   **Acceptance Criteria:**
+    -   Formularz logowania zawiera pola na adres e-mail i hasło.
+    -   Po podaniu poprawnych danych jestem zalogowany i przekierowany do panelu zarządzania.
+    -   W przypadku podania błędnych danych, wyświetlany jest stosowny komunikat.
+    -   W przypadku próby logowania na konto, które nie zostało aktywowane przez e-mail, wyświetlany jest komunikat o konieczności aktywacji konta.
+-   ***Notatka o zmianie:*** *Dodano nowe kryterium akceptacji, które obsługuje przypadek próby logowania na nieaktywowane (niepotwierdzone e-mailem) konto.*
 </user_stories>
 
 5. Endpoint Description:
 <endpoint_description>
 
-nie dotyczy
+
 
 </endpoint_description>
 
-6. Endpoint Implementation:
-<endpoint_implementation>
-
-nie dotyczy
-
-</endpoint_implementation>
 
 7. Type Definitions:
 <type_definitions>

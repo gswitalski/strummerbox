@@ -6,11 +6,12 @@
 1. [Project Description](#project-description)
 2. [Tech Stack](#tech-stack)
 3. [Getting Started Locally](#getting-started-locally)
-4. [Available Scripts](#available-scripts)
-5. [CI/CD Pipeline](#cicd-pipeline)
-6. [Project Scope](#project-scope)
-7. [Project Status](#project-status)
-8. [License](#license)
+4. [Supabase Production Setup](#supabase-production-setup)
+5. [Available Scripts](#available-scripts)
+6. [CI/CD Pipeline](#cicd-pipeline)
+7. [Project Scope](#project-scope)
+8. [Project Status](#project-status)
+9. [License](#license)
 
 ## Project Description
 
@@ -99,6 +100,283 @@ supabase functions serve share --env-file .env
 # Bash (Linux/macOS):
 ./scripts/test-share-endpoint.sh "your-jwt-token" "song-uuid"
 ```
+
+## Supabase Production Setup
+
+To deploy the application to a production environment, you need to set up a Supabase project in the cloud and configure it properly.
+
+### 1. Create a Supabase Project
+
+1. Go to [https://supabase.com](https://supabase.com) and sign in or create an account
+2. Click **"New Project"**
+3. Fill in the project details:
+   - **Name**: strummerbox (or your preferred name)
+   - **Database Password**: Generate a strong password (save it securely!)
+   - **Region**: Choose the closest to your users
+   - **Pricing Plan**: Select based on your needs (Free tier available)
+4. Wait for the project to be provisioned (usually 1-2 minutes)
+
+### 2. Configure Authentication
+
+#### Email Settings
+
+Navigate to **Dashboard → Authentication → Email Templates**
+
+1. **Enable Email Confirmation:**
+   - Go to **Settings → Auth → Email Auth**
+   - Ensure **"Confirm email"** is enabled
+   - Set **"Confirmation URL"** to your frontend URL: `https://your-domain.com`
+
+2. **Configure SMTP Provider (Recommended for Production):**
+   
+   Go to **Settings → Auth → SMTP Settings**
+   
+   **Option A: Use Supabase's built-in service (Limited)**
+   - Free tier: 4 emails/hour
+   - Pro tier: Higher limits
+   - No configuration needed (default)
+   
+   **Option B: Configure your own SMTP (Recommended)**
+   
+   Choose one of the following providers:
+   
+   **Using Resend (Recommended):**
+   ```
+   SMTP Host: smtp.resend.com
+   SMTP Port: 465 (SSL) or 587 (TLS)
+   SMTP User: resend
+   SMTP Password: Your Resend API Key
+   Sender Email: noreply@your-domain.com
+   Sender Name: StrummerBox
+   ```
+   
+   **Using SendGrid:**
+   ```
+   SMTP Host: smtp.sendgrid.net
+   SMTP Port: 465 (SSL) or 587 (TLS)
+   SMTP User: apikey
+   SMTP Password: Your SendGrid API Key
+   Sender Email: noreply@your-domain.com
+   Sender Name: StrummerBox
+   ```
+   
+   **Using Gmail (Development only):**
+   ```
+   SMTP Host: smtp.gmail.com
+   SMTP Port: 465 (SSL) or 587 (TLS)
+   SMTP User: your-email@gmail.com
+   SMTP Password: App-specific password
+   Sender Email: your-email@gmail.com
+   Sender Name: StrummerBox
+   ```
+
+3. **Customize Email Templates:**
+   
+   Navigate to **Authentication → Email Templates**
+   
+   Edit the following templates:
+   - **Confirm signup**: Email sent when user registers
+   - **Magic Link**: Email sent for passwordless login
+   - **Change Email Address**: Email sent when user changes email
+   
+   Example template for **Confirm signup**:
+   ```html
+   <h2>Witaj w StrummerBox!</h2>
+   <p>Dziękujemy za rejestrację.</p>
+   <p>Kliknij poniższy link, aby aktywować swoje konto:</p>
+   <p><a href="{{ .ConfirmationURL }}">Potwierdź adres email</a></p>
+   <p>Link jest ważny przez 24 godziny.</p>
+   <p>Jeśli to nie Ty rejestrowałeś konto, zignoruj ten email.</p>
+   ```
+
+#### URL Configuration
+
+Navigate to **Settings → Auth → URL Configuration**
+
+Set the following URLs:
+- **Site URL**: `https://your-domain.com` (your frontend application URL)
+- **Redirect URLs**: Add all URLs where users can be redirected after authentication:
+  ```
+  https://your-domain.com/**
+  http://localhost:4200/** (for development)
+  ```
+
+### 3. Database Setup
+
+#### Run Migrations
+
+Link your local project to the cloud project:
+
+```sh
+# Login to Supabase
+supabase login
+
+# Link to your cloud project
+supabase link --project-ref your-project-ref
+
+# Push your local database schema to production
+supabase db push
+```
+
+To find your `project-ref`:
+- Go to **Dashboard → Settings → General**
+- Look for **Reference ID**
+
+#### Set up Row Level Security (RLS)
+
+Ensure all RLS policies are in place:
+
+```sh
+# Check RLS status
+supabase db pull
+
+# Review policies in supabase/migrations/
+```
+
+### 4. Deploy Edge Functions
+
+Deploy all Edge Functions to production:
+
+```sh
+# Deploy all functions at once
+supabase functions deploy
+
+# Or deploy specific functions
+supabase functions deploy auth
+supabase functions deploy songs
+supabase functions deploy repertoires
+supabase functions deploy share
+supabase functions deploy public
+supabase functions deploy me
+```
+
+#### Set Environment Variables for Functions
+
+Set required environment variables:
+
+```sh
+# Set APP_PUBLIC_URL for generating public links
+supabase secrets set APP_PUBLIC_URL=https://your-domain.com
+```
+
+To view all secrets:
+```sh
+supabase secrets list
+```
+
+### 5. Configure Frontend Environment
+
+Update your frontend environment configuration (`src/environments/environment.prod.ts`):
+
+```typescript
+export const environment = {
+  production: true,
+  supabaseUrl: 'https://your-project-ref.supabase.co',
+  supabaseAnonKey: 'your-anon-public-key',
+  functionsUrl: 'https://your-project-ref.supabase.co/functions/v1'
+};
+```
+
+To get your keys:
+- Go to **Dashboard → Settings → API**
+- Copy **Project URL** and **anon/public key**
+
+### 6. Configure CORS (if needed)
+
+If you encounter CORS issues, configure allowed origins:
+
+Navigate to **Dashboard → Settings → API → CORS**
+
+Add your frontend domain:
+```
+https://your-domain.com
+```
+
+### 7. Rate Limiting
+
+Configure rate limiting to protect your endpoints:
+
+Navigate to **Dashboard → Settings → Auth → Rate Limits**
+
+Recommended settings:
+- **Email signups**: 10 per hour per IP
+- **Password signins**: 30 per hour per IP
+- **Email OTP signins**: 10 per hour per IP
+
+### 8. Monitoring and Logs
+
+Monitor your application:
+
+- **Dashboard → Logs**: View all logs (Auth, Database, Functions)
+- **Dashboard → Reports**: Usage statistics and performance metrics
+- **Dashboard → Database → Backups**: Configure automatic backups
+
+### 9. Deploy Frontend
+
+Build and deploy your Angular application:
+
+```sh
+# Build for production
+npm run build
+
+# Deploy to Firebase Hosting (or your preferred hosting)
+firebase deploy
+```
+
+### 10. Post-Deployment Checklist
+
+- [ ] Email verification works (test registration flow)
+- [ ] SMTP is configured and emails are delivered
+- [ ] All Edge Functions are deployed and accessible
+- [ ] Database migrations are applied
+- [ ] RLS policies are active and working
+- [ ] Environment variables are set correctly
+- [ ] CORS is configured properly
+- [ ] Rate limiting is enabled
+- [ ] Frontend connects to production Supabase
+- [ ] Public links and QR codes work correctly
+- [ ] Test both organizer and partygoer workflows
+
+### Useful Commands
+
+```sh
+# View function logs
+supabase functions logs auth
+
+# Check database status
+supabase db diff
+
+# Pull production schema
+supabase db pull
+
+# List all deployed functions
+supabase functions list
+```
+
+### Troubleshooting
+
+**Emails not sending:**
+- Check SMTP configuration in Dashboard → Settings → Auth
+- Verify sender email is verified with your SMTP provider
+- Check function logs: `supabase functions logs auth`
+- Test SMTP credentials independently
+
+**CORS errors:**
+- Add your domain to allowed origins in Dashboard → Settings → API
+- Ensure `supabaseUrl` in frontend matches your project URL
+- Check browser console for exact error message
+
+**Authentication issues:**
+- Verify Site URL in Dashboard → Settings → Auth
+- Check redirect URLs include your domain
+- Ensure JWT secret hasn't been regenerated
+
+**Function deployment fails:**
+- Check Deno version compatibility
+- Verify all dependencies are accessible via URLs
+- Review function logs for specific errors
+
+For more help, consult [Supabase Documentation](https://supabase.com/docs) or [StrummerBox Documentation](./docs).
 
 ## Available Scripts
 
