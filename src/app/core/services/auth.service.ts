@@ -156,7 +156,7 @@ export class AuthService {
         await new Promise(resolve => setTimeout(resolve, INITIAL_DELAY_MS));
 
         // Najpierw sprawdź czy już istnieje sesja (link został już użyty wcześniej)
-        const { data: { session: existingSession }, error: sessionError } = await this.supabase.auth.getSession();
+        const { data: { session: existingSession } } = await this.supabase.auth.getSession();
 
         if (existingSession?.user?.email_confirmed_at) {
             // Konto jest już aktywowane - sukces!
@@ -194,7 +194,7 @@ export class AuthService {
                     console.error('AuthService: Email confirmation timeout - no SIGNED_IN event received');
 
                     // Sprawdź jeszcze raz czy może sesja została utworzona podczas timeoutu
-                    this.supabase.auth.getSession().then(({ data: { session }, error }) => {
+                    this.supabase.auth.getSession().then(({ data: { session } }) => {
                         if (session?.user?.email_confirmed_at) {
                             console.log('AuthService: Session found after timeout - confirmation successful');
                             // Wylogowanie użytkownika
