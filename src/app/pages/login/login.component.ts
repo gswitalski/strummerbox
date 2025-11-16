@@ -13,7 +13,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { RouterModule } from '@angular/router';
-import type { SignInWithPasswordCredentials } from '@supabase/supabase-js';
+import type { AuthError, SignInWithPasswordCredentials } from '@supabase/supabase-js';
 
 import { SupabaseService } from '../../core/services/supabase.service';
 import { ProfileService } from '../../core/services/profile.service';
@@ -81,7 +81,7 @@ export class LoginComponent {
             if (error) {
                 // Sprawdź czy błąd dotyczy nieaktywowanego konta
                 const isEmailNotConfirmed = this.isEmailNotConfirmedError(error);
-                
+
                 if (isEmailNotConfirmed) {
                     // Otwórz dialog z informacją o niepotwierdzonym koncie
                     this.dialog.open(UnconfirmedAccountDialogComponent, {
@@ -127,10 +127,10 @@ export class LoginComponent {
      * Sprawdza czy błąd dotyczy nieaktywowanego konta (niepotwierdzony email).
      * Supabase zwraca błąd z kodem "email_not_confirmed" lub komunikatem "Email not confirmed".
      */
-    private isEmailNotConfirmedError(error: any): boolean {
+    private isEmailNotConfirmedError(error: AuthError): boolean {
         // Sprawdź różne możliwe struktury błędu
-        const errorCode = error?.code || error?.error_code || error?.status;
-        const errorMessage = error?.message || error?.msg || '';
+        const errorCode = error?.code || error?.status;
+        const errorMessage = error?.message || '';
 
         return (
             errorCode === 'email_not_confirmed' ||
