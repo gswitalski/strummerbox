@@ -120,13 +120,26 @@ Ten dokument podsumowuje wszystkie zmiany i dodatki wprowadzone do dokumentacji 
     *   **UX:** Walidacja hasła (np. minimalna długość) i jego potwierdzenia po stronie klienta. Komunikaty o błędach (np. "Konto o tym adresie e-mail już istnieje"). Po pomyślnej rejestracji użytkownik jest przekierowywany na nowy "Widok Oczekiwania na Potwierdzenie E-mail".
     *   **Dostępność:** Jak w widoku logowania.
     *   **Bezpieczeństwo:** Jak w widoku logowania.
-*   ***Notatka o zmianie:*** *Zmieniono przepływ UX po pomyślnej rejestracji. Zamiast automatycznego logowania i przekierowania do dashboardu, użytkownik jest teraz kierowany do nowego "Widoku Oczekiwania na Potwierdzenie E-mail".*
+*   ***Notatka o zmianie:*** *Zmieniono przepływ UX po pomyślnej rejestracji. Zamiast automatycznego logowania i przekierowania do dashboardu, użytkownik jest teraz kierowany do nowego "Widoku Oczekiwania na Potwierdzenie E-mail". Dodano również obsługę nowego stanu w widoku logowania (opis poniżej), który pojawia się przy próbie logowania na niepotwierdzone konto.*
 
 ---
 
 ### Nowe Widoki
 
-#### **3. Widok Oczekiwania na Potwierdzenie E-mail (Awaiting Email Confirmation View)**
+#### **3. Okno Modalne: Konto Niepotwierdzone (Dialog)**
+
+*   **Kontekst:** Wyświetlane w ramach **Widoku Logowania**.
+*   **Główny cel:** Poinformowanie użytkownika, że jego konto nie jest jeszcze aktywne i umożliwienie ponownego wysłania linku aktywacyjnego.
+*   **Kluczowe informacje:** Komunikat "Konto nieaktywne. Sprawdź swoją skrzynkę e-mail, aby dokończyć rejestrację."
+*   **Kluczowe komponenty:** `mat-dialog`, `mat-button`.
+*   **UX, dostępność, bezpieczeństwo:**
+    *   **UX:** Dialog pojawia się po próbie logowania na niepotwierdzone konto, blokując dalsze akcje do czasu jego zamknięcia. Zawiera przyciski "Zamknij" oraz "Wyślij link ponownie".
+    *   **Dostępność:** Dialog jest modalny, fokus klawiatury jest poprawnie zarządzany.
+    *   **Bezpieczeństwo:** Akcja ponownego wysłania linku komunikuje się z bezpiecznym endpointem API.
+
+---
+
+#### **4. Widok Oczekiwania na Potwierdzenie E-mail (Awaiting Email Confirmation View)**
 
 *   **Ścieżka:** `/auth/awaiting-confirmation`
 *   **Główny cel:** Poinformowanie użytkownika o konieczności weryfikacji adresu e-mail w celu dokończenia procesu rejestracji.
@@ -139,7 +152,7 @@ Ten dokument podsumowuje wszystkie zmiany i dodatki wprowadzone do dokumentacji 
 
 ---
 
-#### **4. Widok Potwierdzenia E-mail (Email Confirmation View)**
+#### **5. Widok Potwierdzenia E-mail (Email Confirmation View)**
 
 *   **Ścieżka:** `/auth/confirm-email` (lub inna ścieżka zwrotna skonfigurowana w Supabase)
 *   **Główny cel:** Obsługa kliknięcia w link aktywacyjny przez użytkownika i poinformowanie go o wyniku.

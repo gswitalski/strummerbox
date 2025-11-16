@@ -26,6 +26,7 @@ Zarządzanie stanem aplikacji będzie realizowane za pomocą serwisów Angulara 
 *   **Kluczowe komponenty:** `mat-card`, `mat-form-field`, `mat-input`, `mat-button`, `mat-progress-bar`.
 *   **UX, dostępność, bezpieczeństwo:**
     *   **UX:** Wyraźne komunikaty o błędach walidacji (np. "Nieprawidłowy e-mail") i błędach logowania (np. "Błędne dane logowania"). Po pomyślnym zalogowaniu użytkownik jest przekierowywany do Dashboardu. Przycisk logowania jest nieaktywny, dopóki formularz nie jest poprawny.
+    *   **UX (Konto niepotwierdzone):** W przypadku próby logowania na konto, które nie zostało jeszcze aktywowane, otwierane jest okno modalne (`mat-dialog`) z informacją: "Konto nieaktywne. Sprawdź swoją skrzynkę e-mail, aby dokończyć rejestrację." Okno zawiera również przycisk "Wyślij link ponownie", który pozwala zainicjować ponowne wysłanie e-maila aktywacyjnego.
     *   **Dostępność:** Etykiety (`aria-label`) dla pól formularza, obsługa nawigacji klawiaturą.
     *   **Bezpieczeństwo:** Komunikacja z API przez HTTPS.
 
