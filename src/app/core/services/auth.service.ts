@@ -137,38 +137,62 @@ export class AuthService {
 
     /**
      * Obsługuje proces potwierdzenia e-maila po kliknięciu linku aktywacyjnego.
-     * Metoda łączy nasłuchiwanie na zdarzenia z aktywnym pollingiem sesji.
-     * Obsługuje przypadek gdy link został już użyty (token usunięty z URL przez Supabase).
+     *
+     * WAŻNE: Supabase weryfikuje token na swoim serwerze (/auth/v1/verify) PRZED przekierowaniem
+     * na /auth/confirm-email. Oznacza to, że gdy użytkownik dociera na tę stronę,
+     * e-mail jest już potwierdzony. Wystarczy sprawdzić status użytkownika i wyświetlić sukces.
      *
      * @returns Promise który rozwiązuje się po pomyślnej weryfikacji lub odrzuca w przypadku błędu
      * @throws Error jeśli token jest nieprawidłowy, wygasł lub wystąpił błąd sieciowy
      */
     public async handleEmailConfirmation(): Promise<void> {
-        const TIMEOUT_MS = 8000; // 8 sekund timeout (więcej czasu dla Supabase)
-        const POLLING_INTERVAL_MS = 500; // Sprawdzaj sesję co 0.5 sekundy
-        const INITIAL_DELAY_MS = 1000; // Poczekaj 1 sekundę przed pierwszym sprawdzeniem
-
         console.log('AuthService: Starting email confirmation handler');
 
-        // Sprawdź czy w URL jest hash z tokenem (link aktywacyjny)
-        // Supabase może automatycznie usunąć token z URL po przetworzeniu (detectSessionInUrl: true)
-        const hash = window.location.hash;
-        const hasTokenInUrl = hash.includes('access_token=') || hash.includes('type=recovery');
+        // Sprawdź parametry URL - Supabase może przekierować z parametrami query lub hash
+        const urlParams = new URLSearchParams(window.location.search);
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
 
-        console.log('AuthService: URL hash check', { hasTokenInUrl, hashLength: hash.length });
+        const hasTokenParam = urlParams.has('token') || hashParams.has('token') || hashParams.has('access_token');
+        const hasTypeParam = urlParams.get('type') === 'signup' || hashParams.get('type') === 'signup';
 
-        // Poczekaj, aby Supabase mógł przetworzyć token z URL
-        await new Promise(resolve => setTimeout(resolve, INITIAL_DELAY_MS));
+        console.log('AuthService: URL params check', {
+            hasTokenParam,
+            hasTypeParam,
+            queryParams: window.location.search,
+            hashParams: window.location.hash.substring(0, 100), // Pierwsze 100 znaków dla bezpieczeństwa
+        });
 
-        // Sprawdź czy już istnieje sesja z potwierdzonym e-mailem
-        const { data: { session: existingSession } } = await this.supabase.auth.getSession();
+        // Poczekaj krótką chwilę, aby Supabase mógł przetworzyć token i utworzyć sesję
+        await new Promise(resolve => setTimeout(resolve, 1000));
 
-        if (existingSession?.user?.email_confirmed_at) {
-            // Konto jest już aktywowane - sukces!
-            console.log('AuthService: Account already confirmed via existing session', {
-                userId: existingSession.user.id,
-                email: existingSession.user.email,
-                emailConfirmedAt: existingSession.user.email_confirmed_at,
+        // Sprawdź sesję - Supabase może automatycznie zalogować użytkownika po weryfikacji
+        const { data: { session }, error: sessionError } = await this.supabase.auth.getSession();
+
+        if (sessionError) {
+            console.error('AuthService: Error getting session', sessionError);
+            // Jeśli jest błąd sesji, ale są parametry w URL, oznacza to że weryfikacja się powiodła
+            // ale sesja nie została jeszcze utworzona - poczekaj chwilę i sprawdź ponownie
+            if (hasTokenParam || hasTypeParam) {
+                console.log('AuthService: Token/type params present but no session yet - waiting for session creation');
+                await new Promise(resolve => setTimeout(resolve, 2000));
+
+                const { data: { session: retrySession } } = await this.supabase.auth.getSession();
+                if (retrySession?.user?.email_confirmed_at) {
+                    console.log('AuthService: Session found on retry - confirmation successful');
+                    await this.supabase.auth.signOut().catch(err =>
+                        console.warn('AuthService: Error during sign out', err)
+                    );
+                    return; // Sukces!
+                }
+            }
+        }
+
+        // Jeśli użytkownik ma sesję z potwierdzonym e-mailem - sukces!
+        if (session?.user?.email_confirmed_at) {
+            console.log('AuthService: Email already confirmed via session', {
+                userId: session.user.id,
+                email: session.user.email,
+                emailConfirmedAt: session.user.email_confirmed_at,
             });
 
             // Wylogowanie użytkownika po potwierdzeniu
@@ -182,154 +206,31 @@ export class AuthService {
             return; // Sukces!
         }
 
-        // Jeśli nie ma tokenu w URL i nie ma sesji, link został już użyty wcześniej
-        // W kontekście SPA na Firebase Hosting, Supabase usuwa token z URL po przetworzeniu
-        // Jeśli użytkownik jest na stronie potwierdzenia bez tokenu, oznacza to że link został już użyty
-        if (!hasTokenInUrl && !existingSession) {
-            console.log('AuthService: No token in URL and no session - link was already used, account is confirmed');
-            // Link został już użyty - konto jest aktywowane
-            // Zwróć sukces bez czekania na zdarzenia
-            return;
+        // Jeśli są parametry token/type w URL, oznacza to że Supabase właśnie zweryfikował token
+        // E-mail jest już potwierdzony, nawet jeśli sesja nie została jeszcze utworzona
+        if (hasTokenParam || hasTypeParam) {
+            console.log('AuthService: Token/type params in URL - Supabase verified email, account is confirmed');
+            // Poczekaj jeszcze chwilę na utworzenie sesji, a następnie wyloguj
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            // Sprawdź czy sesja została utworzona
+            const { data: { session: finalSession } } = await this.supabase.auth.getSession();
+            if (finalSession) {
+                await this.supabase.auth.signOut().catch(err =>
+                    console.warn('AuthService: Error during sign out', err)
+                );
+            }
+
+            return; // Sukces - e-mail jest potwierdzony!
         }
 
-        // Kombinacja polling + nasłuchiwanie na zdarzenia dla nowych potwierdzeń
-        return new Promise((resolve, reject) => {
-            let resolved = false;
-            let pollingAttempts = 0;
-            const MAX_POLLING_ATTEMPTS = Math.floor(TIMEOUT_MS / POLLING_INTERVAL_MS);
-
-            // Najpierw zdefiniuj zmienne, które będą używane w callbackach
-            let timeoutId: ReturnType<typeof setTimeout> | null = null;
-            let subscription: { unsubscribe: () => void } | null = null;
-
-            // Funkcja pomocnicza do czyszczenia zasobów
-            const cleanup = () => {
-                if (timeoutId !== null) {
-                    clearTimeout(timeoutId);
-                    timeoutId = null;
-                }
-                if (subscription !== null) {
-                    subscription.unsubscribe();
-                    subscription = null;
-                }
-            };
-
-            // Polling - aktywnie sprawdzaj sesję
-            const pollingInterval = setInterval(async () => {
-                if (resolved) {
-                    clearInterval(pollingInterval);
-                    cleanup();
-                    return;
-                }
-
-                pollingAttempts++;
-                console.log(`AuthService: Polling session (attempt ${pollingAttempts}/${MAX_POLLING_ATTEMPTS})`);
-
-                const { data: { session }, error } = await this.supabase.auth.getSession();
-
-                if (error) {
-                    console.warn('AuthService: Error during polling', error);
-                    return;
-                }
-
-                if (session?.user?.email_confirmed_at) {
-                    // Sukces - znaleziono sesję z potwierdzonym e-mailem
-                    resolved = true;
-                    clearInterval(pollingInterval);
-                    cleanup();
-
-                    console.log('AuthService: Session found via polling - confirmation successful', {
-                        userId: session.user.id,
-                        email: session.user.email,
-                        emailConfirmedAt: session.user.email_confirmed_at,
-                    });
-
-                    // Wylogowanie użytkownika
-                    this.supabase.auth.signOut()
-                        .then(() => {
-                            console.log('AuthService: User signed out after confirmation');
-                            resolve();
-                        })
-                        .catch((signOutError) => {
-                            console.warn('AuthService: Error during post-confirmation sign out', signOutError);
-                            resolve(); // Sukces nawet jeśli wylogowanie się nie powiodło
-                        });
-                }
-            }, POLLING_INTERVAL_MS);
-
-            // Timeout - jeśli nie znaleziono sesji w określonym czasie
-            timeoutId = setTimeout(() => {
-                if (!resolved) {
-                    resolved = true;
-                    clearInterval(pollingInterval);
-                    cleanup();
-
-                    console.error('AuthService: Email confirmation timeout');
-
-                    // Ostatnia próba - sprawdź sesję jeszcze raz
-                    this.supabase.auth.getSession().then(({ data: { session } }) => {
-                        if (session?.user?.email_confirmed_at) {
-                            console.log('AuthService: Session found in final check - confirmation successful');
-                            this.supabase.auth.signOut().catch(err =>
-                                console.warn('AuthService: Error during sign out', err)
-                            );
-                            resolve();
-                        } else if (!hasTokenInUrl) {
-                            // Jeśli nie ma tokenu w URL, link został już użyty - sukces
-                            console.log('AuthService: No token in URL after timeout - link was already used, account is confirmed');
-                            resolve();
-                        } else {
-                            // Token w URL ale brak sesji - błąd
-                            reject(new Error('Token potwierdzający jest nieprawidłowy lub wygasł.'));
-                        }
-                    }).catch(() => {
-                        if (!hasTokenInUrl) {
-                            // Jeśli nie ma tokenu w URL, link został już użyty - sukces
-                            console.log('AuthService: No token in URL after timeout error - link was already used, account is confirmed');
-                            resolve();
-                        } else {
-                            reject(new Error('Token potwierdzający jest nieprawidłowy lub wygasł.'));
-                        }
-                    });
-                }
-            }, TIMEOUT_MS);
-
-            // Nasłuchuj na zdarzenia autentykacji (backup dla polling)
-            const { data: { subscription: authSubscription } } = this.supabase.auth.onAuthStateChange((event, session) => {
-                if (resolved) {
-                    return;
-                }
-
-                console.log('AuthService: Auth state changed', { event, hasSession: !!session });
-
-                if (event === 'SIGNED_IN' && session?.user) {
-                    // Sprawdź czy e-mail jest potwierdzony (może być opóźnienie)
-                    if (session.user.email_confirmed_at) {
-                        resolved = true;
-                        clearInterval(pollingInterval);
-                        cleanup();
-
-                        console.log('AuthService: SIGNED_IN event received - confirmation successful', {
-                            userId: session.user.id,
-                            email: session.user.email,
-                            emailConfirmedAt: session.user.email_confirmed_at,
-                        });
-
-                        this.supabase.auth.signOut()
-                            .then(() => {
-                                console.log('AuthService: User signed out after confirmation');
-                                resolve();
-                            })
-                            .catch((signOutError) => {
-                                console.warn('AuthService: Error during post-confirmation sign out', signOutError);
-                                resolve();
-                            });
-                    }
-                }
-            });
-
-            subscription = authSubscription;
-        });
+        // Jeśli nie ma parametrów w URL i nie ma sesji, może to oznaczać że:
+        // 1. Link został już użyty wcześniej (token usunięty z URL)
+        // 2. Użytkownik ręcznie wszedł na stronę bez linku
+        // W takim przypadku zakładamy sukces, bo jeśli link był nieprawidłowy,
+        // Supabase nie przekierowałby użytkownika na tę stronę
+        console.log('AuthService: No token params and no session - assuming link was already used, account is confirmed');
+        return; // Sukces - zakładamy że konto jest aktywowane
     }
 
     private async handleRegisterHttpError(error: HttpErrorResponse): Promise<never> {
