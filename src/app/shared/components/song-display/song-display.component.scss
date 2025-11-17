@@ -1,0 +1,81 @@
+.song-display {
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+    gap: 1rem;
+
+    &__empty {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--mat-sys-on-surface-variant);
+        font-size: 0.95rem;
+        text-align: center;
+        background: var(--mat-sys-surface-container-highest);
+        border-radius: 0.75rem;
+        padding: 2rem;
+    }
+
+    &__content {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        font-family: 'Fira Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+            'Liberation Mono', 'Courier New', monospace;
+        font-size: 1.25rem;
+    }
+
+    &__line {
+        display: block;
+    }
+
+    &__lyrics-line {
+        display: flex;
+        flex-wrap: wrap;
+        line-height: 1.8;
+        min-height: 1.8em;
+
+        // Dodaj padding tylko gdy akordy są widoczne
+        &--with-chords {
+            padding-top: 1.5rem; // Przestrzeń dla akordów nad tekstem
+        }
+    }
+
+    &__segment {
+        display: inline-flex;
+        flex-direction: column;
+        position: relative;
+    }
+
+    &__chord {
+        position: absolute;
+        top: -1.5rem;
+        left: 0;
+        color: var(--mat-sys-primary);
+        font-weight: 600;
+        font-size: 1.25rem;
+        white-space: nowrap;
+        line-height: 1.2;
+    }
+
+    &__text {
+        white-space: pre;
+    }
+
+    &__directive {
+        font-style: italic;
+        color: var(--mat-sys-on-surface-variant);
+        padding: 0.25rem 0;
+    }
+
+    &__comment {
+        color: var(--mat-sys-primary);
+        opacity: 0.85;
+        padding: 0.25rem 0;
+    }
+
+    &__spacer {
+        height: 1rem;
+    }
+}
+

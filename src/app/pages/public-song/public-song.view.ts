@@ -5,34 +5,35 @@ import {
     WritableSignal,
     inject,
     signal,
-    computed,
 } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Title, Meta } from '@angular/platform-browser';
 import { HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
+import { MatToolbarModule } from '@angular/material/toolbar';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { PublicSongService } from './services/public-song.service';
-import { stripChords } from './utils/chord-stripper';
-import { SongViewerComponent } from '../../shared/components/song-viewer/song-viewer.component';
+import { SongDisplayComponent } from '../../shared/components/song-display/song-display.component';
 import { ErrorDisplayComponent } from '../../shared/components/error-display/error-display.component';
 import type { PublicSongState } from './public-song.types';
 import type { PublicSongDto } from '../../../../packages/contracts/types';
-import type { SongNavigation } from '../../shared/components/song-viewer/song-viewer.types';
 
 /**
  * Główny komponent widoku publicznej piosenki (smart component).
  * Odpowiedzialny za:
  * - Odczytanie parametru publicId z URL
  * - Pobranie danych piosenki z API
- * - Usunięcie akordów z treści
- * - Zarządzanie stanem widoku
+ * - Zarządzanie stanem widoku (ładowanie, błąd, dane)
+ * - Obsługę przełącznika widoczności akordów
  * - Dynamiczne ustawianie metatagów
  */
 @Component({
     selector: 'stbo-public-song-view',
     standalone: true,
     imports: [
-        SongViewerComponent,
+        MatToolbarModule,
+        MatButtonToggleModule,
+        SongDisplayComponent,
         ErrorDisplayComponent,
     ],
     templateUrl: './public-song.view.html',
@@ -51,6 +52,12 @@ export class PublicSongViewComponent implements OnInit {
     public readonly state: WritableSignal<PublicSongState> = signal({
         status: 'loading',
     });
+
+    /**
+     * Sygnał zarządzający widocznością akordów
+     * Domyślnie false (tylko tekst)
+     */
+    public readonly showChords: WritableSignal<boolean> = signal(false);
 
     /**
      * Pomocnicze gettery dla type narrowing w template
@@ -77,31 +84,6 @@ export class PublicSongViewComponent implements OnInit {
         return currentState.status === 'error' ? currentState.error : null;
     }
 
-    /**
-     * Computed signal - nawigacja dla SongViewerComponent (pusta, bez przycisków)
-     */
-    public readonly navigation = computed<SongNavigation>(() => {
-        return {
-            previous: null,
-            next: null,
-            back: null,
-        };
-    });
-
-    /**
-     * Computed signal - tytuł piosenki
-     */
-    public readonly title = computed<string>(() => {
-        return this.loadedSong?.title ?? '';
-    });
-
-    /**
-     * Computed signal - treść piosenki bez akordów
-     */
-    public readonly content = computed<string>(() => {
-        return this.loadedSong?.content ?? '';
-    });
-
     ngOnInit(): void {
         // Pobierz publicId z parametrów trasy
         const publicId = this.route.snapshot.paramMap.get('publicId');
@@ -118,7 +100,7 @@ export class PublicSongViewComponent implements OnInit {
     }
 
     /**
-     * Pobiera dane piosenki z API i przetwarza treść
+     * Pobiera dane piosenki z API
      */
     private async loadSong(publicId: string): Promise<void> {
         this.state.set({ status: 'loading' });
@@ -128,15 +110,12 @@ export class PublicSongViewComponent implements OnInit {
                 this.publicSongService.getSongByPublicId(publicId)
             );
 
-            // Usuń akordy z treści
-            const processedContent = stripChords(dto.content);
-
-            // Zaktualizuj stan
+            // Zaktualizuj stan z pełną treścią ChordPro
             this.state.set({
                 status: 'loaded',
                 song: {
                     title: dto.title,
-                    content: processedContent,
+                    content: dto.content,
                 },
             });
 

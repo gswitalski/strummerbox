@@ -7,14 +7,18 @@ import {
     signal,
     computed,
 } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Title } from '@angular/platform-browser';
 import { HttpErrorResponse } from '@angular/common/http';
 import { MatDialog } from '@angular/material/dialog';
+import { MatToolbarModule } from '@angular/material/toolbar';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { Subject, switchMap, takeUntil, catchError, of, map } from 'rxjs';
 import { BiesiadaService } from '../../core/services/biesiada.service';
 import { ErrorDisplayComponent } from '../../shared/components/error-display/error-display.component';
-import { SongViewerComponent } from '../../shared/components/song-viewer/song-viewer.component';
+import { SongDisplayComponent } from '../../shared/components/song-display/song-display.component';
 import { ShareDialogComponent } from '../../shared/components/share-dialog/share-dialog.component';
 import type { BiesiadaSongViewModel, BiesiadaSongState } from './biesiada-song.types';
 import type { BiesiadaRepertoireSongDetailDto } from '../../../../packages/contracts/types';
@@ -34,8 +38,13 @@ import type { ShareDialogData } from '../../shared/models/share-dialog.model';
     selector: 'stbo-biesiada-song-view',
     standalone: true,
     imports: [
+        RouterLink,
+        MatToolbarModule,
+        MatButtonModule,
+        MatIconModule,
+        MatProgressBarModule,
         ErrorDisplayComponent,
-        SongViewerComponent,
+        SongDisplayComponent,
     ],
     templateUrl: './biesiada-song.view.html',
     styleUrl: './biesiada-song.view.scss',
