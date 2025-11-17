@@ -8,14 +8,18 @@ import {
     OnDestroy,
     computed,
 } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Title, Meta } from '@angular/platform-browser';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Subject, switchMap, takeUntil, catchError, of, map } from 'rxjs';
+import { MatToolbarModule } from '@angular/material/toolbar';
+import { MatButtonModule } from '@angular/material/button';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { MatIconModule } from '@angular/material/icon';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { PublicRepertoireService } from '../public-repertoire/services/public-repertoire.service';
 import { ErrorDisplayComponent } from '../../shared/components/error-display/error-display.component';
-import { SongViewerComponent } from '../../shared/components/song-viewer/song-viewer.component';
-import { stripChords } from '../public-song/utils/chord-stripper';
+import { SongDisplayComponent } from '../../shared/components/song-display/song-display.component';
 import type { PublicRepertoireSongState } from './public-repertoire-song.types';
 import type { PublicRepertoireSongDto } from '../../../../packages/contracts/types';
 import type { SongNavigation } from '../../shared/components/song-viewer/song-viewer.types';
@@ -25,16 +29,23 @@ import type { SongNavigation } from '../../shared/components/song-viewer/song-vi
  * Odpowiedzialny za:
  * - Odczytanie parametrów repertoirePublicId i songPublicId z URL
  * - Pobranie danych piosenki z API
- * - Zarządzanie stanem widoku
+ * - Zarządzanie stanem widoku (ładowanie, błąd, dane)
  * - Nawigację między piosenkami w repertuarze
+ * - Obsługę przełącznika widoczności akordów
  * - Dynamiczne ustawianie metatagów
  */
 @Component({
     selector: 'stbo-public-repertoire-song-view',
     standalone: true,
     imports: [
+        RouterLink,
+        MatToolbarModule,
+        MatButtonModule,
+        MatButtonToggleModule,
+        MatIconModule,
+        MatProgressBarModule,
         ErrorDisplayComponent,
-        SongViewerComponent,
+        SongDisplayComponent,
     ],
     templateUrl: './public-repertoire-song.view.html',
     styleUrl: './public-repertoire-song.view.scss',
@@ -59,6 +70,12 @@ export class PublicRepertoireSongViewComponent implements OnInit, OnDestroy {
     public readonly state: WritableSignal<PublicRepertoireSongState> = signal({
         status: 'loading',
     });
+
+    /**
+     * Sygnał zarządzający widocznością akordów
+     * Domyślnie false (tylko tekst)
+     */
+    public readonly showChords: WritableSignal<boolean> = signal(false);
 
     /**
      * Pomocnicze gettery dla type narrowing w template
@@ -130,16 +147,6 @@ export class PublicRepertoireSongViewComponent implements OnInit, OnDestroy {
         };
     });
 
-    /**
-     * Computed signal - treść piosenki bez akordów (stripped)
-     */
-    public readonly strippedContent = computed<string>(() => {
-        const song = this.loadedSong;
-        if (!song || !song.content) {
-            return '';
-        }
-        return stripChords(song.content);
-    });
 
     ngOnInit(): void {
         // Reaktywne ładowanie danych przy każdej zmianie parametrów URL

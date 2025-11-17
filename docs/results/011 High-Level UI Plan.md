@@ -89,12 +89,12 @@ Zarządzanie stanem aplikacji będzie realizowane za pomocą serwisów Angulara 
 #### **4b. Publiczny Widok Piosenki (Public Song View)**
 
 *   **Ścieżka:** `/public/songs/:publicId` oraz `/public/repertoires/:publicId/songs/:songPublicId`
-*   **Główny cel:** Wyświetlenie tekstu piosenki Biesiadnikowi.
-*   **Kluczowe informacje:** Tytuł piosenki, treść piosenki (bez akordów), przyciski nawigacyjne "{tytuł_następnej}" / "{tytuł_poprzedniej}" (jeśli piosenka jest częścią repertuaru) wyświetlające tytuły sąsiednich piosenek.
-*   **Kluczowe komponenty:** Prosty kontener na tekst, `mat-button` dla nawigacji.
+*   **Główny cel:** Wyświetlenie tekstu piosenki Biesiadnikowi, z możliwością włączenia widoku akordów.
+*   **Kluczowe informacje:** Tytuł piosenki, treść piosenki w formacie ChordPro, przełącznik widoczności akordów (domyślnie wyłączony), przyciski nawigacyjne "{tytuł_następnej}" / "{tytuł_poprzedniej}" (jeśli piosenka jest częścią repertuaru).
+*   **Kluczowe komponenty:** `SongDisplayComponent` (nowy, reużywalny komponent), `mat-button` dla nawigacji, `mat-button-toggle-group` lub `mat-slide-toggle` dla przełącznika akordów.
 *   **UX, dostępność, bezpieczeństwo:**
-    *   **UX:** Minimalistyczny interfejs skupiony na tekście. Duża, czytelna czcionka, automatyczne dopasowanie do szerokości ekranu. Przyciski nawigacji są niewidoczne, jeśli użytkownik jest na pierwszej/ostatniej piosence w repertuarze. Wyświetlanie tytułów na przyciskach ułatwia orientację w repertuarze i zachęca do dalszego przeglądania.
-    *   **Dostępność:** Wysoki kontrast tekstu i tła. Etykiety `aria-label` dla przycisków powinny zawierać zarówno tytuł, jak i informację o akcji, np. "Przejdź do poprzedniej piosenki: [Tytuł piosenki]".
+    *   **UX:** Domyślnie interfejs jest minimalistyczny i skupiony na tekście (bez akordów). W lewym górnym rogu znajduje się przełącznik (np. z opcjami "Tekst" / "Akordy"), który pozwala na natychmiastowe przełączenie widoku. Przyciski nawigacji są niewidoczne, jeśli użytkownik jest na pierwszej/ostatniej piosence.
+    *   **Dostępność:** Wysoki kontrast tekstu i tła. Etykiety `aria-label` dla przycisków i przełącznika.
     *   **Bezpieczeństwo:** Jak w Publicznym Widoku Repertuaru.
 
 ---
@@ -219,9 +219,9 @@ Zarządzanie stanem aplikacji będzie realizowane za pomocą serwisów Angulara 
 *   **Ścieżka:** `/biesiada/repertoires/:id/songs/:songId`
 *   **Główny cel:** Wyświetlenie Organizatorowi piosenki z akordami podczas prowadzenia biesiady.
 *   **Kluczowe informacje:** Tytuł, treść piosenki z akordami, przyciski nawigacyjne "Następna" / "Poprzednia", przycisk "Pokaż kod QR". Przycisk nawigacji powrotnej do listy piosenek.
-*   **Kluczowe komponenty:** `mat-toolbar` z przyciskiem "wstecz", `mat-fab` (pływający przycisk akcji) do wyświetlania QR, `mat-dialog` do wyświetlania kodu QR.
+*   **Kluczowe komponenty:** `mat-toolbar` z przyciskiem "wstecz", `SongDisplayComponent` (ten sam co w widoku publicznym, z włączonymi akordami), `mat-fab` do wyświetlania QR, `mat-dialog` do wyświetlania kodu QR.
 *   **UX, dostępność, bezpieczeństwo:**
-    *   **UX:** Interfejs skupiony na czytelności tekstu. Pływający przycisk akcji (`FAB`) nie zasłania treści. Kliknięcie w niego otwiera modal z dużym, czytelnym kodem QR. Przycisk "wstecz" w nagłówku pozwala na powrót do listy piosenek w repertuarze (`/biesiada/repertoires/:id`).
+    *   **UX:** Interfejs skupiony na czytelności tekstu z akordami. Pływający przycisk akcji (`FAB`) nie zasłania treści. Kliknięcie w niego otwiera modal z dużym, czytelnym kodem QR. Przycisk "wstecz" w nagłówku pozwala na powrót do listy piosenek w repertuarze (`/biesiada/repertoires/:id`).
     *   **Dostępność:** Wysoki kontrast, duża czcionka.
     *   **Bezpieczeństwo:** Dostęp chroniony.
 
@@ -270,6 +270,10 @@ Zarządzanie stanem aplikacji będzie realizowane za pomocą serwisów Angulara 
 ## 5. Kluczowe komponenty
 
 Poniższe komponenty będą reużywalne i wykorzystywane w wielu miejscach aplikacji w celu zapewnienia spójności i unikania powielania kodu.
+
+*   **`SongDisplayComponent`:**
+    *   **Opis:** Nowy, reużywalny komponent odpowiedzialny za renderowanie treści piosenki. Przyjmuje jako dane wejściowe pełną treść w formacie ChordPro oraz flagę `showChords: boolean`. Na podstawie flagi, komponent renderuje sam tekst lub tekst z poprawnie sformatowanymi akordami.
+    *   **Użycie:** `Public Song View`, `Biesiada Song View`.
 
 *   **`EmptyStateComponent`:**
     *   **Opis:** Komponent wyświetlany, gdy lista (np. piosenek, repertuarów) jest pusta. Zawiera ikonę, komunikat (np. "Nie masz jeszcze żadnych piosenek") oraz przycisk z wezwaniem do akcji (np. "Dodaj pierwszą piosenkę").

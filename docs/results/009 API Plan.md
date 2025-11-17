@@ -416,12 +416,12 @@
 #### GET /public/songs/{publicId}
 - **Method:** GET
 - **Path:** `/public/songs/{publicId}`
-- **Description:** Return published song text with chords for anonymous viewers.
+- **Description:** Return published song text with chords for anonymous viewers. **Note:** The `content` field will now always return the full ChordPro content. The client is responsible for rendering it with or without chords.
 - **Response JSON:**
 ```json
 {
   "title": "Knockin' on Heaven's Door",
-  "content": "Mama, take this badge off of me...",
+  "content": "[G]Mama, take this badge [D]off of me...",
   "repertoireNavigation": null
 }
 ```
@@ -451,12 +451,12 @@
 #### GET /public/repertoires/{publicId}/songs/{songPublicId}
 - **Method:** GET
 - **Path:** `/public/repertoires/{publicId}/songs/{songPublicId}`
-- **Description:** Return a repertoire song view for anonymous users with navigation hints, including titles of adjacent songs.
+- **Description:** Return a repertoire song view for anonymous users with navigation hints, including titles of adjacent songs. **Note:** The `content` field will now always return the full ChordPro content. The client is responsible for rendering it with or without chords.
 - **Response JSON:**
 ```json
 {
   "title": "Knockin' on Heaven's Door",
-  "content": "Mama, take this badge off of me...",
+  "content": "[G]Mama, take this badge [D]off of me...",
   "order": {
     "position": 2,
     "total": 12,

@@ -1,0 +1,33 @@
+<div class="song-display">
+    @if (!content()) {
+        <div class="song-display__empty">
+            Brak tre\u015bci piosenki
+        </div>
+    } @else {
+        <div class="song-display__content">
+            @for (line of parsedLines(); track $index) {
+                <div class="song-display__line" [attr.data-type]="line.type">
+                    @if (line.type === 'lyrics') {
+                        <div class="song-display__lyrics-line">
+                            @if (showChords()) {
+                                <span class="song-display__chords">{{ line.chordLine }}</span>
+                            }
+                            <span class="song-display__lyrics">{{ line.textLine }}</span>
+                        </div>
+                    } @else if (line.type === 'directive') {
+                        <div class="song-display__directive">
+                            {{ '{' + line.content + '}' }}
+                        </div>
+                    } @else if (line.type === 'comment') {
+                        <div class="song-display__comment">
+                            {{ '# ' + line.content }}
+                        </div>
+                    } @else {
+                        <div class="song-display__spacer"></div>
+                    }
+                </div>
+            }
+        </div>
+    }
+</div>
+

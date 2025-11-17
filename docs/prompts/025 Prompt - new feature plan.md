@@ -12,8 +12,14 @@ Oto opis nowej funkcjonalności, którą należy dodać do projektu:
 
 <nowa_funkcjonalnosc>
 
-Aktualnie nowy użytkownik zakłąłdając konto musie podać email i hasło i od razu ma założone konto. 
-Chce aby system wymagał od uzytkownika potwierdzenie emaila aby konto zostało aktywowane
+widok piosenki dla organizatora w trybie biesiada wyświetla test wraz z akordami.
+publiczny widok piosenki dla anonimowego użytkownika zawiera tylko tekst (bez akordów)
+
+Cchę aby publiczny użytkownik mógł również przełczyć sie na tryb z akordami. 
+Publiczny użytkownk powinien meć na górze pol lewej stronie przycisk do właczenia wersji z akordami
+Najlepiej jakby widok piosenki zalogownego organizatora  oraz widok publiczny widok piosenki korzsytał ze wspólnego komponentu do wyświrtlania piosenki (sam tekst z akordmi).
+Dla użytkownkia publicznego domyslnym trybem jest tryb bez akordów, dla zalogowanego tryb z akordami. zewnętrzny przycisk na widopku publicznym steruje przełączaniem trybu.
+Endpoint adla użytkownika nie trzeba zmieniać bo zawiera on już akordy
 
 
 </nowa_funkcjonalnosc>
@@ -48,11 +54,11 @@ Twoja końcowa odpowiedź powinna zawierać trzy wyraźnie oznaczone sekcje:
 Sformatuj swoją odpowiedź używając odpowiednich nagłówków i zachowując czytelną strukturę.
 
 
-Stwórz jescze jeden dokument w doc/results/{nazwa-ficzera-po-angielsku}-change.md
+Dodatkowo  stwórz dokument w doc/results/changes/{nazwa-ficzera-po-angielsku}-changes.md
 W tym dokumence umieść 3 rozdziały:
 1. historyjki użytkownika
 2. API
 2. Widoki.
 
-W każdym rozdziale umiesc odpowiednio opisy historyjek, endpointów i widoków które są nowe lub zmienione. dla zmienionych dopisz notatkę co się zmieniło.
+W każdym rozdziale umieść odpowiednio opisy historyjek, endpointów i widoków które są nowe lub zmienione. dla zmienionych dopisz notatkę co się zmieniło.
 

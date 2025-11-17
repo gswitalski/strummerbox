@@ -18,29 +18,54 @@ Najpierw przejrzyj następujące informacje:
 
 3. Widok do implementacji
 <view>
-#### **3. Okno Modalne: Konto Niepotwierdzone (Dialog)**
+### Nowy komponent reużywalny
 
-*   **Kontekst:** Wyświetlane w ramach **Widoku Logowania**.
-*   **Główny cel:** Poinformowanie użytkownika, że jego konto nie jest jeszcze aktywne i umożliwienie ponownego wysłania linku aktywacyjnego.
-*   **Kluczowe informacje:** Komunikat "Konto nieaktywne. Sprawdź swoją skrzynkę e-mail, aby dokończyć rejestrację."
-*   **Kluczowe komponenty:** `mat-dialog`, `mat-button`.
-*   **UX, dostępność, bezpieczeństwo:**
-    *   **UX:** Dialog pojawia się po próbie logowania na niepotwierdzone konto, blokując dalsze akcje do czasu jego zamknięcia. Zawiera przyciski "Zamknij" oraz "Wyślij link ponownie".
-    *   **Dostępność:** Dialog jest modalny, fokus klawiatury jest poprawnie zarządzany.
-    *   **Bezpieczeństwo:** Akcja ponownego wysłania linku komunikuje się z bezpiecznym endpointem API.
-</view>
+-   **Nazwa**: `SongDisplayComponent`
+-   **Opis**: Nowy, reużywalny komponent odpowiedzialny za renderowanie treści piosenki. Przyjmuje jako dane wejściowe pełną treść w formacie ChordPro oraz flagę `showChords: boolean`. Na podstawie flagi, komponent renderuje sam tekst lub tekst z poprawnie sformatowanymi akordami.
+-   **Użycie**:
+    -   `Public Song View` (dla Biesiadnika)
+    -   `Biesiada Song View` (dla Organizatora)
+
+### Zmieniony widok
+
+-   **Nazwa**: `Publiczny Widok Piosenki (Public Song View)`
+-   **Ścieżka**: `/public/songs/:publicId` oraz `/public/repertoires/:publicId/songs/:songPublicId`
+-   **Opis zmiany**:
+    -   Widok będzie teraz używał nowego komponentu `SongDisplayComponent`.
+    -   W lewym górnym rogu zostanie dodany przełącznik (np. `mat-button-toggle-group` z opcjami "Tekst" / "Akordy"), który będzie sterował flagą `showChords` przekazywaną do `SongDisplayComponent`.
+    -   Domyślnym stanem będzie widok bez akordów (`showChords: false`).
+
+### Zmieniony widok
+
+-   **Nazwa**: `Tryb Biesiada - Widok Piosenki (Biesiada Song View)`
+-   **Ścieżka**: `/biesiada/repertoires/:id/songs/:songId`
+-   **Opis zmiany**:
+    -   Widok zostanie zrefaktoryzowany, aby również korzystać z nowego, reużywalnego komponentu `SongDisplayComponent`.
+    -   Flaga `showChords` będzie na stałe ustawiona na `true`, ponieważ Organizator w tym trybie zawsze widzi akordy.
 
 4. User Stories:
 <user_stories>
--   **ID:** US-002
--   **Title:** Logowanie Organizatora
--   **Description:** Jako zarejestrowany Organizator, chcę móc zalogować się na moje konto, aby uzyskać dostęp do moich piosenek i repertuarów.
--   **Acceptance Criteria:**
-    -   Formularz logowania zawiera pola na adres e-mail i hasło.
-    -   Po podaniu poprawnych danych jestem zalogowany i przekierowany do panelu zarządzania.
-    -   W przypadku podania błędnych danych, wyświetlany jest stosowny komunikat.
-    -   W przypadku próby logowania na konto, które nie zostało aktywowane przez e-mail, wyświetlany jest komunikat o konieczności aktywacji konta.
--   ***Notatka o zmianie:*** *Dodano nowe kryterium akceptacji, które obsługuje przypadek próby logowania na nieaktywowane (niepotwierdzone e-mailem) konto.*
+### Nowa historyjka użytkownika
+
+-   **ID**: US-024
+-   **Title**: Włączenie widoku akordów przez Biesiadnika
+-   **Description**: Jako Biesiadnik, który również gra na gitarze, przeglądając tekst piosenki w widoku publicznym, chcę mieć możliwość włączenia widoku akordów, aby móc zagrać utwór razem z innymi.
+-   **Acceptance Criteria**:
+    -   W publicznym widoku piosenki, w widocznym miejscu (np. w lewym górnym rogu) znajduje się przełącznik "Pokaż akordy".
+    -   Domyślnie widok jest w trybie "tylko tekst".
+    -   Po aktywacji przełącznika, tekst piosenki jest natychmiastowo przeliczany i wyświetlany w formacie z akordami (ChordPro), analogicznie do widoku Organizatora.
+    -   Mogę w dowolnym momencie wyłączyć widok akordów, wracając do trybu "tylko tekst".
+    -   Stan przełącznika jest zapamiętywany tylko na czas trwania sesji na danej stronie (nie musi być trwały).
+
+### Zmodyfikowana historyjka użytkownika
+
+-   **ID**: US-013
+-   **Title**: Dostęp Biesiadnika do piosenki
+-   **Opis zmiany**: Kryteria akceptacji zostały zaktualizowane, aby uwzględnić domyślny stan widoku oraz obecność nowego przełącznika.
+-   **Nowe Acceptance Criteria**:
+    -   Strona domyślnie wyświetla tylko tekst piosenki, bez akordów.
+    -   Czcionka jest duża i czytelna, a tekst dopasowany do szerokości ekranu mobilnego.
+    -   Strona nie zawiera żadnych elementów nawigacyjnych poza tekstem piosenki i przełącznikiem widoczności akordów.
 </user_stories>
 
 5. Endpoint Description:

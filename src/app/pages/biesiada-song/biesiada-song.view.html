@@ -8,16 +8,85 @@
     </div>
 }
 
-<!-- Treść piosenki z akordami -->
+<!-- Widok piosenki z akordami -->
 @if (!hasError) {
-    <stbo-song-viewer
-        [title]="title()"
-        [content]="content()"
-        [navigation]="navigation() ?? { previous: null, next: null, back: null }"
-        [isLoading]="isLoading"
-        [showChords]="true"
-        [showQrButton]="true"
-        (qrButtonClicked)="handleQrButtonClick()">
-    </stbo-song-viewer>
+    <!-- Wskaźnik ładowania -->
+    @if (isLoading) {
+        <div class="loading-container">
+            <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+        </div>
+    }
+
+    <!-- Główny kontener -->
+    @if (!isLoading && hasData && viewModel) {
+        <div class="biesiada-song-view">
+            <!-- Toolbar z przyciskiem powrotu -->
+            <mat-toolbar class="song-toolbar" color="primary">
+                <button
+                    mat-icon-button
+                    [routerLink]="viewModel.navigation.back"
+                    class="back-button"
+                    aria-label="Powrót do listy">
+                    <mat-icon>arrow_back</mat-icon>
+                </button>
+            </mat-toolbar>
+
+            <!-- Treść piosenki -->
+            <div class="song-content-wrapper">
+                <!-- Tytuł piosenki -->
+                <h1 class="song-title">{{ title() }}</h1>
+
+                <div class="song-lyrics-container">
+                    <!-- Renderowanie z akordami (zawsze true w trybie Biesiada) -->
+                    <stbo-song-display
+                        [content]="content()"
+                        [showChords]="true"
+                        class="song-content">
+                    </stbo-song-display>
+                </div>
+            </div>
+
+            <!-- Kontrolki nawigacyjne -->
+            @if (viewModel.navigation.previous || viewModel.navigation.next) {
+                <nav class="navigation-controls">
+                    @if (viewModel.navigation.previous) {
+                        <a
+                            mat-stroked-button
+                            [routerLink]="viewModel.navigation.previous.link"
+                            class="nav-button nav-previous">
+                            <mat-icon>chevron_left</mat-icon>
+                            <span class="nav-label">{{ viewModel.navigation.previous.title }}</span>
+                        </a>
+                    } @else {
+                        <div class="nav-spacer"></div>
+                    }
+
+                    @if (viewModel.navigation.next) {
+                        <a
+                            mat-stroked-button
+                            [routerLink]="viewModel.navigation.next.link"
+                            class="nav-button nav-next">
+                            <span class="nav-label">{{ viewModel.navigation.next.title }}</span>
+                            <mat-icon>chevron_right</mat-icon>
+                        </a>
+                    } @else {
+                        <div class="nav-spacer"></div>
+                    }
+                </nav>
+            }
+
+            <!-- Pływający przycisk akcji (FAB) do pokazywania QR kodu -->
+            <button
+                mat-fab
+                extended
+                color="primary"
+                class="qr-fab"
+                (click)="handleQrButtonClick()"
+                aria-label="Pokaż kod QR">
+                <mat-icon>qr_code</mat-icon>
+                Udostępnij
+            </button>
+        </div>
+    }
 }
 
