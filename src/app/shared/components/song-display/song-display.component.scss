@@ -31,35 +31,20 @@
 
     &__lyrics-line {
         display: flex;
-        flex-wrap: wrap;
-        line-height: 1.8;
-        min-height: 1.8em;
-
-        // Dodaj padding tylko gdy akordy są widoczne
-        &--with-chords {
-            padding-top: 1.5rem; // Przestrzeń dla akordów nad tekstem
-        }
-    }
-
-    &__segment {
-        display: inline-flex;
         flex-direction: column;
-        position: relative;
+        gap: 0.25rem;
     }
 
-    &__chord {
-        position: absolute;
-        top: -1.5rem;
-        left: 0;
+    &__chords {
+        min-height: 1rem;
         color: var(--mat-sys-primary);
         font-weight: 600;
-        font-size: 1.25rem;
-        white-space: nowrap;
-        line-height: 1.2;
+        white-space: pre;
     }
 
-    &__text {
-        white-space: pre;
+    &__lyrics {
+        white-space: pre-wrap;
+        word-wrap: break-word;
     }
 
     &__directive {

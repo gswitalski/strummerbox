@@ -7,31 +7,41 @@ import {
 } from '@angular/core';
 
 /**
- * Struktura reprezentująca pojedynczy segment linii (tekst z opcjonalnym akordem)
+ * Typ linii z tekstem piosenki
  */
-interface SongSegment {
-    chord: string | null;
-    text: string;
+interface LyricsLine {
+    type: 'lyrics';
+    chordLine: string;
+    textLine: string;
 }
 
 /**
- * Struktura reprezentująca ca\u0142\u0105 lini\u0119 piosenki
+ * Typ linii dyrektywy
  */
-type SongLine = SongSegment[];
-
-/**
- * G\u0142\u00f3wny ViewModel komponentu
- */
-type SongDisplayVm = SongLine[];
-
-/**
- * Typ linii w ChordPro
- */
-interface ParsedLine {
-    type: 'lyrics' | 'directive' | 'comment' | 'empty';
-    segments?: SongSegment[];
-    content?: string;
+interface DirectiveLine {
+    type: 'directive';
+    content: string;
 }
+
+/**
+ * Typ linii komentarza
+ */
+interface CommentLine {
+    type: 'comment';
+    content: string;
+}
+
+/**
+ * Typ pustej linii
+ */
+interface EmptyLine {
+    type: 'empty';
+}
+
+/**
+ * Wszystkie typy linii w ChordPro
+ */
+type ParsedLine = LyricsLine | DirectiveLine | CommentLine | EmptyLine;
 
 const NBSP = '\u00A0';
 
@@ -91,12 +101,13 @@ function parseChordPro(rawContent: string): ParsedLine[] {
     try {
         return rawContent.split(/\r?\n/).map((line) => parseLine(line));
     } catch (error) {
-        console.error('B\u0142\u0105d parsowania ChordPro:', error);
-        // W przypadku b\u0142\u0119du, zwracamy surowy tekst jako pojedyncz\u0105 lini\u0119
+        console.error('Błąd parsowania ChordPro:', error);
+        // W przypadku błędu, zwracamy surowy tekst jako pojedynczą linię
         return [
             {
                 type: 'lyrics',
-                segments: [{ chord: null, text: rawContent }],
+                chordLine: '',
+                textLine: rawContent,
             },
         ];
     }
@@ -130,81 +141,71 @@ function parseLine(line: string): ParsedLine {
     }
 
     // Linia z tekstem (i ewentualnie akordami)
-    const segments = parseLineSegments(line);
+    const chordLine = buildChordLine(line);
+    const textLine = line
+        .replace(/\[[^\]]*\]/g, '')
+        .replace(/\t/g, NBSP.repeat(4));
+
     return {
         type: 'lyrics',
-        segments,
+        chordLine,
+        textLine,
     };
 }
 
 /**
- * Parsuje lini\u0119 tekstu na segmenty (tekst + akordy)
+ * Buduje linię akordów z odpowiednimi spacjami
+ * Algorytm identyczny jak w ChordProPreviewComponent
  */
-function parseLineSegments(line: string): SongSegment[] {
-    const segments: SongSegment[] = [];
-    let currentText = '';
+function buildChordLine(line: string): string {
+    const chordChars: string[] = [];
+    let column = 0;
     let index = 0;
+
+    const ensureLength = (targetLength: number): void => {
+        while (chordChars.length < targetLength) {
+            chordChars.push(NBSP);
+        }
+    };
 
     while (index < line.length) {
         const char = line[index];
 
-        // Znaleziono pocz\u0105tek akordu
         if (char === '[') {
             const closingIndex = line.indexOf(']', index + 1);
-
-            // Niezamkni\u0119ty nawias - traktuj jako zwyk\u0142y tekst
             if (closingIndex === -1) {
-                currentText += char;
+                ensureLength(column + 1);
+                column += 1;
                 index += 1;
                 continue;
             }
 
-            // Wyci\u0105gnij akord
             const chord = line.slice(index + 1, closingIndex).trim();
 
-            // Dodaj poprzedni tekst (je\u015bli by\u0142) jako segment bez akordu
-            if (currentText) {
-                segments.push({
-                    chord: null,
-                    text: currentText.replace(/\t/g, NBSP.repeat(4)),
-                });
-                currentText = '';
+            ensureLength(column);
+            for (let chordIndex = 0; chordIndex < chord.length; chordIndex += 1) {
+                const writePosition = column + chordIndex;
+                ensureLength(writePosition + 1);
+                chordChars[writePosition] = chord[chordIndex];
             }
 
-            // Przygotuj si\u0119 na tekst po akordzie
             index = closingIndex + 1;
-
-            // Zbierz tekst po akordzie a\u017c do nast\u0119pnego akordu lub ko\u0144ca linii
-            let textAfterChord = '';
-            while (index < line.length && line[index] !== '[') {
-                textAfterChord += line[index];
-                index += 1;
-            }
-
-            // Dodaj segment z akordem i tekstem
-            segments.push({
-                chord,
-                text: textAfterChord.replace(/\t/g, NBSP.repeat(4)),
-            });
-        } else {
-            currentText += char;
-            index += 1;
+            continue;
         }
+
+        const TAB_SIZE = 4;
+        const width = char === '\t'
+            ? (() => {
+                  const remainder = column % TAB_SIZE;
+                  return remainder === 0 ? TAB_SIZE : TAB_SIZE - remainder;
+              })()
+            : 1;
+
+        column += width;
+        ensureLength(column);
+        index += 1;
     }
 
-    // Dodaj pozosta\u0142y tekst
-    if (currentText) {
-        segments.push({
-            chord: null,
-            text: currentText.replace(/\t/g, NBSP.repeat(4)),
-        });
-    }
-
-    // Je\u015bli nie ma \u017cadnych segment\u00f3w, dodaj pusty segment
-    if (segments.length === 0) {
-        segments.push({ chord: null, text: '' });
-    }
-
-    return segments;
+    return chordChars.join('');
 }
 
