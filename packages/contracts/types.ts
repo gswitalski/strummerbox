@@ -327,7 +327,7 @@ export type PublicSongNavigationDto = {
  */
 export type PublicSongDto = {
     title: SongRow['title'];
-    content: string; // Chord-stripped content
+    content: string; // Full ChordPro content
     repertoireNavigation: PublicSongNavigationDto | null;
 };
 
@@ -367,7 +367,7 @@ export type PublicRepertoireSongOrderDto = {
  */
 export type PublicRepertoireSongDto = {
     title: SongRow['title'];
-    content: string; // Chord-stripped content
+    content: string; // Full ChordPro content
     order: PublicRepertoireSongOrderDto;
 };
 
