@@ -47,33 +47,7 @@
             </div>
 
             <!-- Kontrolki nawigacyjne -->
-            @if (viewModel.navigation.previous || viewModel.navigation.next) {
-                <nav class="navigation-controls">
-                    @if (viewModel.navigation.previous) {
-                        <a
-                            mat-stroked-button
-                            [routerLink]="viewModel.navigation.previous.link"
-                            class="nav-button nav-previous">
-                            <mat-icon>chevron_left</mat-icon>
-                            <span class="nav-label">{{ viewModel.navigation.previous.title }}</span>
-                        </a>
-                    } @else {
-                        <div class="nav-spacer"></div>
-                    }
-
-                    @if (viewModel.navigation.next) {
-                        <a
-                            mat-stroked-button
-                            [routerLink]="viewModel.navigation.next.link"
-                            class="nav-button nav-next">
-                            <span class="nav-label">{{ viewModel.navigation.next.title }}</span>
-                            <mat-icon>chevron_right</mat-icon>
-                        </a>
-                    } @else {
-                        <div class="nav-spacer"></div>
-                    }
-                </nav>
-            }
+            <stbo-song-navigation [navigation]="viewModel.navigation"></stbo-song-navigation>
 
             <!-- Pływający przycisk akcji (FAB) do pokazywania QR kodu -->
             <button

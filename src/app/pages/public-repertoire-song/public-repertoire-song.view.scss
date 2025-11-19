@@ -75,67 +75,7 @@
     margin: 0 auto;
 }
 
-// Nawigacja
-.navigation-controls {
-    display: flex;
-    justify-content: space-between;
-    gap: 1rem;
-    padding: 1rem;
-    border-top: 1px solid var(--mat-sys-outline-variant);
-    position: sticky;
-    bottom: 0;
-    background-color: var(--mat-sys-surface);
-    box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.05);
-}
-
-.nav-button {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 0.5rem;
-    min-height: 48px;
-    flex: 1;
-    max-width: 300px;
-
-    mat-icon {
-        flex-shrink: 0;
-    }
-
-    &.nav-previous {
-        justify-content: flex-start;
-
-        mat-icon {
-            order: 0;
-        }
-
-        .nav-label {
-            order: 1;
-        }
-    }
-
-    &.nav-next {
-        justify-content: flex-end;
-
-        .nav-label {
-            order: 1;
-        }
-
-        mat-icon {
-            order: 2;
-        }
-    }
-}
-
-.nav-label {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.nav-spacer {
-    flex: 1;
-    max-width: 300px;
-}
+// Nawigacja (przeniesiona do SongNavigationComponent)
 
 // Responsive design dla tabletów
 @media (min-width: 768px) {
@@ -147,19 +87,6 @@
         padding: 2rem;
     }
 
-    .navigation-controls {
-        padding: 1.5rem;
-        justify-content: center;
-        gap: 2rem;
-    }
-
-    .nav-button {
-        flex: 0 1 250px;
-    }
-
-    .nav-spacer {
-        display: none;
-    }
 }
 
 // Responsive design dla desktopów
@@ -179,13 +106,5 @@
         padding: 0.75rem;
     }
 
-    .navigation-controls {
-        padding: 0.75rem;
-        gap: 0.5rem;
-    }
-
-    .nav-label {
-        font-size: 0.875rem;
-    }
 }
 

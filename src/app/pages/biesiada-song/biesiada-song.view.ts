@@ -19,6 +19,7 @@ import { Subject, switchMap, takeUntil, catchError, of, map } from 'rxjs';
 import { BiesiadaService } from '../../core/services/biesiada.service';
 import { ErrorDisplayComponent } from '../../shared/components/error-display/error-display.component';
 import { SongDisplayComponent } from '../../shared/components/song-display/song-display.component';
+import { SongNavigationComponent } from '../../shared/components/song-navigation/song-navigation.component';
 import { ShareDialogComponent } from '../../shared/components/share-dialog/share-dialog.component';
 import type { BiesiadaSongViewModel, BiesiadaSongState } from './biesiada-song.types';
 import type { BiesiadaRepertoireSongDetailDto } from '../../../../packages/contracts/types';
@@ -45,6 +46,7 @@ import type { ShareDialogData } from '../../shared/models/share-dialog.model';
         MatProgressBarModule,
         ErrorDisplayComponent,
         SongDisplayComponent,
+        SongNavigationComponent,
     ],
     templateUrl: './biesiada-song.view.html',
     styleUrl: './biesiada-song.view.scss',

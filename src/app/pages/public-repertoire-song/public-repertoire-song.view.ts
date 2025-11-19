@@ -20,6 +20,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { PublicRepertoireService } from '../public-repertoire/services/public-repertoire.service';
 import { ErrorDisplayComponent } from '../../shared/components/error-display/error-display.component';
 import { SongDisplayComponent } from '../../shared/components/song-display/song-display.component';
+import { SongNavigationComponent } from '../../shared/components/song-navigation/song-navigation.component';
 import type { PublicRepertoireSongState } from './public-repertoire-song.types';
 import type { PublicRepertoireSongDto } from '../../../../packages/contracts/types';
 import type { SongNavigation } from '../../shared/components/song-viewer/song-viewer.types';
@@ -46,6 +47,7 @@ import type { SongNavigation } from '../../shared/components/song-viewer/song-vi
         MatProgressBarModule,
         ErrorDisplayComponent,
         SongDisplayComponent,
+        SongNavigationComponent,
     ],
     templateUrl: './public-repertoire-song.view.html',
     styleUrl: './public-repertoire-song.view.scss',

@@ -50,33 +50,7 @@
             </div>
 
             <!-- Kontrolki nawigacyjne -->
-            @if (navigation().previous || navigation().next) {
-                <nav class="navigation-controls">
-                    @if (navigation().previous) {
-                        <a
-                            mat-stroked-button
-                            [routerLink]="navigation().previous!.link"
-                            class="nav-button nav-previous">
-                            <mat-icon>chevron_left</mat-icon>
-                            <span class="nav-label">{{ navigation().previous!.title }}</span>
-                        </a>
-                    } @else {
-                        <div class="nav-spacer"></div>
-                    }
-
-                    @if (navigation().next) {
-                        <a
-                            mat-stroked-button
-                            [routerLink]="navigation().next!.link"
-                            class="nav-button nav-next">
-                            <span class="nav-label">{{ navigation().next!.title }}</span>
-                            <mat-icon>chevron_right</mat-icon>
-                        </a>
-                    } @else {
-                        <div class="nav-spacer"></div>
-                    }
-                </nav>
-            }
+            <stbo-song-navigation [navigation]="navigation()"></stbo-song-navigation>
         </div>
     }
 }
