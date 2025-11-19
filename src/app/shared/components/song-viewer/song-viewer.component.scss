@@ -4,10 +4,21 @@
     background-color: var(--mat-sys-surface);
 }
 
+// Kontener błędu
+.error-container {
+    padding: 2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 50vh;
+}
+
+// Kontener ładowania
 .loading-container {
     padding: 1rem;
 }
 
+// Główny kontener widoku piosenki
 .song-viewer {
     display: flex;
     flex-direction: column;
@@ -24,13 +35,71 @@
     z-index: 10;
     display: flex;
     align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     min-height: 56px;
-    padding: 0 0.5rem;
+    padding: 0.5rem 1rem;
+
+    @media (max-width: 767px) {
+        gap: 0.5rem;
+        padding: 0.5rem 0.75rem;
+    }
 }
 
 .back-button {
     flex-shrink: 0;
+}
+
+.song-title {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+    min-width: 0;
+    color: var(--mat-sys-on-surface);
+    word-wrap: break-word;
+    line-height: 1.3;
+
+    @media (max-width: 767px) {
+        font-size: 1rem;
+    }
+
+    @media (min-width: 768px) {
+        font-size: 1.5rem;
+    }
+
+    @media (min-width: 1024px) {
+        font-size: 1.75rem;
+    }
+}
+
+// Tytuł w toolbarze ma inne style
+.song-toolbar .song-title {
+    margin: 0;
+    
+    @media (max-width: 767px) {
+        font-size: 1rem;
+    }
+
+    @media (min-width: 768px) {
+        font-size: 1.25rem;
+    }
+
+    @media (min-width: 1024px) {
+        font-size: 1.5rem;
+    }
+}
+
+.chord-toggle {
+    flex-shrink: 0;
+
+    @media (max-width: 767px) {
+        transform: scale(0.9);
+    }
 }
 
 // Treść piosenki
@@ -43,15 +112,24 @@
     margin: 0 auto;
     width: 100%;
     box-sizing: border-box;
+
+    @media (max-width: 767px) {
+        padding: 0.75rem;
+    }
+
+    @media (min-width: 768px) {
+        padding: 2rem;
+    }
+
+    @media (min-width: 1024px) {
+        padding: 3rem 2rem;
+    }
 }
 
-.song-title {
+// Tytuł poza toolbarem (w content-wrapper)
+.song-content-wrapper .song-title {
     font-size: 1.5rem;
-    font-weight: 500;
     margin: 0 0 1rem 0;
-    color: var(--mat-sys-on-surface);
-    word-wrap: break-word;
-    line-height: 1.3;
 
     @media (max-width: 767px) {
         font-size: 1.25rem;
@@ -64,7 +142,6 @@
     }
 }
 
-// Wspólny kontener dla obu widoków (z akordami i bez)
 .song-lyrics-container {
     background-color: var(--mat-sys-surface-container);
     padding: 1rem;
@@ -73,21 +150,17 @@
     font-size: 1.125rem;
     line-height: 1.6;
     color: var(--mat-sys-on-surface);
-
-    // Zapobieganie poziomemu scrollowaniu
     overflow-x: hidden;
     overflow-wrap: break-word;
     word-break: break-word;
     box-sizing: border-box;
     max-width: 100%;
 
-    // Mobile optimization
     @media (max-width: 767px) {
         font-size: 1rem;
         padding: 0.75rem;
     }
 
-    // Desktop enhancement
     @media (min-width: 1024px) {
         font-size: 1.25rem;
         padding: 1.5rem;
@@ -99,127 +172,6 @@
     width: 100%;
     max-width: 100%;
     overflow-x: hidden;
-
-    // Override ChordProPreviewComponent styles dla spójności
-    ::ng-deep .chord-pro-preview {
-        gap: 0.5rem;
-        width: 100%;
-        max-width: 100%;
-        overflow-wrap: break-word;
-        word-break: break-word;
-
-        &__content {
-            font-size: inherit;
-            font-family: inherit;
-            line-height: inherit;
-            gap: 0.5rem;
-            max-width: 100%;
-        }
-
-        &__chords {
-            color: var(--mat-sys-primary);
-            font-weight: 600;
-            line-height: 1.4;
-            overflow-wrap: break-word;
-            word-break: break-word;
-        }
-
-        &__lyrics {
-            line-height: inherit;
-            overflow-wrap: break-word;
-            word-break: break-word;
-        }
-
-        &__directive {
-            font-style: italic;
-            color: var(--mat-sys-on-surface-variant);
-            line-height: inherit;
-            overflow-wrap: break-word;
-        }
-
-        &__comment {
-            color: var(--mat-sys-primary);
-            opacity: 0.85;
-            line-height: inherit;
-            overflow-wrap: break-word;
-        }
-
-        &__spacer {
-            height: 1rem;
-        }
-    }
-}
-
-.song-lyrics-plain {
-    margin: 0;
-    white-space: pre-wrap;
-    word-wrap: break-word;
-    font-family: inherit;
-    font-size: inherit;
-    line-height: inherit;
-    color: inherit;
-}
-
-// Nawigacja
-.navigation-controls {
-    display: flex;
-    justify-content: space-between;
-    gap: 1rem;
-    padding: 1rem;
-    border-top: 1px solid var(--mat-sys-outline-variant);
-    position: sticky;
-    bottom: 0;
-    background-color: var(--mat-sys-surface);
-    box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.05);
-}
-
-.nav-button {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 0.5rem;
-    min-height: 48px;
-    flex: 1;
-    max-width: 300px;
-
-    mat-icon {
-        flex-shrink: 0;
-    }
-
-    &.nav-previous {
-        justify-content: flex-start;
-
-        mat-icon {
-            order: 0;
-        }
-
-        .nav-label {
-            order: 1;
-        }
-    }
-
-    &.nav-next {
-        justify-content: flex-end;
-
-        .nav-label {
-            order: 1;
-        }
-
-        mat-icon {
-            order: 2;
-        }
-    }
-}
-
-.nav-label {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.nav-spacer {
-    flex: 1;
-    max-width: 300px;
 }
 
 // Pływający przycisk akcji (FAB)
@@ -229,71 +181,18 @@
     right: 1rem;
     z-index: 5;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
 
-// Responsive design dla tabletów
-@media (min-width: 768px) {
-    .song-title {
-        font-size: 1.5rem;
-    }
-
-    .song-content-wrapper {
-        padding: 2rem;
-    }
-
-    .navigation-controls {
-        padding: 1.5rem;
-        justify-content: center;
-        gap: 2rem;
-    }
-
-    .nav-button {
-        flex: 0 1 250px;
-    }
-
-    .nav-spacer {
-        display: none;
-    }
-
-    .qr-fab {
-        bottom: 100px;
-        right: 2rem;
-    }
-}
-
-// Responsive design dla desktopów
-@media (min-width: 1024px) {
-    .song-content-wrapper {
-        padding: 3rem 2rem;
-    }
-
-    .qr-fab {
-        right: 3rem;
-    }
-}
-
-// Optymalizacja dla urządzeń mobilnych
-@media (max-width: 767px) {
-    .song-title {
-        font-size: 1.125rem;
-    }
-
-    .song-content-wrapper {
-        padding: 0.75rem;
-    }
-
-    .navigation-controls {
-        padding: 0.75rem;
-        gap: 0.5rem;
-    }
-
-    .nav-label {
-        font-size: 0.875rem;
-    }
-
-    .qr-fab {
+    @media (max-width: 767px) {
         bottom: 70px;
         right: 0.75rem;
     }
-}
 
+    @media (min-width: 768px) {
+        bottom: 100px;
+        right: 2rem;
+    }
+
+    @media (min-width: 1024px) {
+        right: 3rem;
+    }
+}
