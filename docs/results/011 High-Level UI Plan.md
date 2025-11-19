@@ -1,5 +1,9 @@
 # Architektura UI dla StrummerBox
 
+> **Uwaga:** Dokument zaktualizowany 19 listopada 2025 po refaktoryzacji widoków piosenek.  
+> Dodano dokumentację komponentów: `SongViewerComponent`, `SongNavigationComponent` oraz zaktualizowano sekcję 5 i 6.  
+> Zobacz: [Refaktoryzacja SongViewerComponent](./changes/song-viewer-component-refactoring.md)
+
 ## 1. Przegląd struktury UI
 
 Architektura interfejsu użytkownika (UI) aplikacji StrummerBox została zaprojektowana w oparciu o framework Angular 19 oraz bibliotekę komponentów Angular Material. Struktura jest w pełni responsywna i opiera się na dwóch głównych trybach pracy, które odpowiadają dwóm kluczowym rolom użytkowników:
@@ -91,9 +95,9 @@ Zarządzanie stanem aplikacji będzie realizowane za pomocą serwisów Angulara 
 *   **Ścieżka:** `/public/songs/:publicId` oraz `/public/repertoires/:publicId/songs/:songPublicId`
 *   **Główny cel:** Wyświetlenie tekstu piosenki Biesiadnikowi, z możliwością włączenia widoku akordów.
 *   **Kluczowe informacje:** Tytuł piosenki, treść piosenki w formacie ChordPro, przełącznik widoczności akordów (domyślnie wyłączony), przyciski nawigacyjne "{tytuł_następnej}" / "{tytuł_poprzedniej}" (jeśli piosenka jest częścią repertuaru).
-*   **Kluczowe komponenty:** `SongDisplayComponent` (nowy, reużywalny komponent), `mat-button` dla nawigacji, `mat-button-toggle-group` lub `mat-slide-toggle` dla przełącznika akordów.
+*   **Kluczowe komponenty:** `SongViewerComponent` (reużywalny komponent prezentacyjny), który wewnętrznie używa `SongDisplayComponent`, `SongNavigationComponent`, `mat-button-toggle-group`.
 *   **UX, dostępność, bezpieczeństwo:**
-    *   **UX:** Domyślnie interfejs jest minimalistyczny i skupiony na tekście (bez akordów). W lewym górnym rogu znajduje się przełącznik (np. z opcjami "Tekst" / "Akordy"), który pozwala na natychmiastowe przełączenie widoku. Przyciski nawigacji są niewidoczne, jeśli użytkownik jest na pierwszej/ostatniej piosence.
+    *   **UX:** Domyślnie interfejs jest minimalistyczny i skupiony na tekście (bez akordów). W prawym górnym rogu toolbara znajduje się przełącznik (z opcjami "Tekst" / "Akordy"), który pozwala na natychmiastowe przełączenie widoku. Przyciski nawigacji są niewidoczne, jeśli użytkownik jest na pierwszej/ostatniej piosence.
     *   **Dostępność:** Wysoki kontrast tekstu i tła. Etykiety `aria-label` dla przycisków i przełącznika.
     *   **Bezpieczeństwo:** Jak w Publicznym Widoku Repertuaru.
 
@@ -219,9 +223,9 @@ Zarządzanie stanem aplikacji będzie realizowane za pomocą serwisów Angulara 
 *   **Ścieżka:** `/biesiada/repertoires/:id/songs/:songId`
 *   **Główny cel:** Wyświetlenie Organizatorowi piosenki z akordami podczas prowadzenia biesiady.
 *   **Kluczowe informacje:** Tytuł, treść piosenki z akordami, przyciski nawigacyjne "Następna" / "Poprzednia", przycisk "Pokaż kod QR". Przycisk nawigacji powrotnej do listy piosenek.
-*   **Kluczowe komponenty:** `mat-toolbar` z przyciskiem "wstecz", `SongDisplayComponent` (ten sam co w widoku publicznym, z włączonymi akordami), `mat-fab` do wyświetlania QR, `mat-dialog` do wyświetlania kodu QR.
+*   **Kluczowe komponenty:** `SongViewerComponent` (reużywalny komponent prezentacyjny), który wewnętrznie używa `SongDisplayComponent`, `SongNavigationComponent`, `mat-fab` do wyświetlania QR, `ShareDialogComponent` do wyświetlania kodu QR.
 *   **UX, dostępność, bezpieczeństwo:**
-    *   **UX:** Interfejs skupiony na czytelności tekstu z akordami. Pływający przycisk akcji (`FAB`) nie zasłania treści. Kliknięcie w niego otwiera modal z dużym, czytelnym kodem QR. Przycisk "wstecz" w nagłówku pozwala na powrót do listy piosenek w repertuarze (`/biesiada/repertoires/:id`).
+    *   **UX:** Interfejs skupiony na czytelności tekstu z akordami. Tytuł piosenki wyświetlany jest poniżej toolbara (w content area). Pływający przycisk akcji (`FAB`) nie zasłania treści. Kliknięcie w niego otwiera modal z dużym, czytelnym kodem QR. Przycisk "wstecz" w nagłówku pozwala na powrót do listy piosenek w repertuarze (`/biesiada/repertoires/:id`).
     *   **Dostępność:** Wysoki kontrast, duża czcionka.
     *   **Bezpieczeństwo:** Dostęp chroniony.
 
@@ -269,22 +273,85 @@ Zarządzanie stanem aplikacji będzie realizowane za pomocą serwisów Angulara 
 
 ## 5. Kluczowe komponenty
 
-Poniższe komponenty będą reużywalne i wykorzystywane w wielu miejscach aplikacji w celu zapewnienia spójności i unikania powielania kodu.
+Poniższe komponenty są reużywalne i wykorzystywane w wielu miejscach aplikacji w celu zapewnienia spójności i unikania powielania kodu.
+
+### Komponenty prezentacyjne widoku piosenek
+
+*   **`SongViewerComponent`:** ⭐ *Komponent centralny*
+    *   **Opis:** Wysoce konfigurowalny komponent prezentacyjny odpowiedzialny za cały layout i UI widoku piosenki. Zarządza wyświetlaniem toolbara, stanów ładowania/błędu, treści piosenki oraz nawigacji. Przyjmuje konfigurację określającą, które elementy UI mają być widoczne (przycisk powrotu, przełącznik akordów, przycisk QR, nawigacja).
+    *   **API:** `@Input() status`, `@Input() title`, `@Input() content`, `@Input() showChords`, `@Input() navigation`, `@Input() config: SongViewerConfig`, `@Output() chordsToggled`, `@Output() qrButtonClicked`
+    *   **Użycie:** `Public Song View`, `Public Repertoire Song View`, `Biesiada Song View` - wszystkie widoki piosenek używają tego komponentu z różnymi konfiguracjami.
+    *   **Stan:** ✅ Zaimplementowany (listopad 2025)
+    *   **Dokumentacja:** `docs/results/changes/song-viewer-component-refactoring.md`
+
+*   **`SongNavigationComponent`:**
+    *   **Opis:** Komponent prezentacyjny odpowiedzialny za wyświetlanie dolnego paska nawigacyjnego z przyciskami "Poprzednia" i "Następna" między piosenkami w repertuarze. Przyjmuje obiekt nawigacyjny z danymi o linkach i tytułach piosenek.
+    *   **API:** `@Input() navigation: SongNavigation` (zawiera `previous`, `next`, `back`)
+    *   **Użycie:** Wewnętrznie używany przez `SongViewerComponent`. Widoczny w widokach z nawigacją między piosenkami w repertuarze.
+    *   **Stan:** ✅ Zaimplementowany (listopad 2025)
+    *   **Dokumentacja:** `docs/results/changes/song-navigation-component-refactoring.md`
 
 *   **`SongDisplayComponent`:**
-    *   **Opis:** Nowy, reużywalny komponent odpowiedzialny za renderowanie treści piosenki. Przyjmuje jako dane wejściowe pełną treść w formacie ChordPro oraz flagę `showChords: boolean`. Na podstawie flagi, komponent renderuje sam tekst lub tekst z poprawnie sformatowanymi akordami.
-    *   **Użycie:** `Public Song View`, `Biesiada Song View`.
+    *   **Opis:** Komponent odpowiedzialny za renderowanie treści piosenki. Przyjmuje jako dane wejściowe pełną treść w formacie ChordPro oraz flagę `showChords: boolean`. Na podstawie flagi, komponent renderuje sam tekst lub tekst z poprawnie sformatowanymi akordami.
+    *   **API:** `@Input() content: string`, `@Input() showChords: boolean`
+    *   **Użycie:** Wewnętrznie używany przez `SongViewerComponent` do wyświetlania treści piosenki.
+    *   **Stan:** ✅ Zaimplementowany
+
+### Komponenty pomocnicze i dialogowe
 
 *   **`EmptyStateComponent`:**
     *   **Opis:** Komponent wyświetlany, gdy lista (np. piosenek, repertuarów) jest pusta. Zawiera ikonę, komunikat (np. "Nie masz jeszcze żadnych piosenek") oraz przycisk z wezwaniem do akcji (np. "Dodaj pierwszą piosenkę").
     *   **Użycie:** `Song List View`, `Repertoire List View`.
+    *   **Stan:** ✅ Zaimplementowany
 
 *   **`ConfirmationDialogComponent`:**
     *   **Opis:** Generyczne okno modalne (`mat-dialog`) używane do potwierdzania akcji destrukcyjnych. Przyjmuje tytuł, treść i zwraca informację o decyzji użytkownika.
     *   **Użycie:** Przy usuwaniu piosenek i repertuarów.
+    *   **Stan:** ✅ Zaimplementowany
 
 *   **`ShareDialogComponent`:**
     *   **Opis:** Okno modalne wyświetlające publiczny link (z przyciskiem "kopiuj") oraz wygenerowany kod QR dla danej piosenki lub repertuaru.
-    *   **Użycie:** `Song List View`, `Repertoire List View`.
+    *   **Użycie:** `Song List View`, `Repertoire List View`, `Biesiada Song View` (przycisk FAB).
+    *   **Stan:** ✅ Zaimplementowany
 
-*   **`
+*   **`ErrorDisplayComponent`:**
+    *   **Opis:** Komponent do wyświetlania komunikatów o błędach w przyjazny dla użytkownika sposób. Przyjmuje kod błędu i wiadomość.
+    *   **API:** `@Input() code: number`, `@Input() message: string`
+    *   **Użycie:** Wewnętrznie używany przez `SongViewerComponent` oraz inne widoki do obsługi stanów błędów.
+    *   **Stan:** ✅ Zaimplementowany
+
+## 6. Architektura komponentów widoku piosenek
+
+Po refaktoryzacji przeprowadzonej w listopadzie 2025, architektura widoków piosenek opiera się na kompozycji trzech głównych komponentów prezentacyjnych:
+
+```
+SongViewerComponent (kontener UI)
+├── ErrorDisplayComponent (obsługa błędów)
+├── MatProgressBar (wskaźnik ładowania)
+├── MatToolbar (górny pasek)
+│   ├── Przycisk powrotu (opcjonalnie)
+│   ├── Tytuł piosenki (opcjonalnie w toolbarze)
+│   └── MatButtonToggleGroup (przełącznik akordów, opcjonalnie)
+├── Kontener treści
+│   ├── Tytuł piosenki (opcjonalnie poza toolbarem)
+│   └── SongDisplayComponent (renderowanie ChordPro)
+├── SongNavigationComponent (opcjonalnie)
+└── MatFab (przycisk QR, opcjonalnie)
+```
+
+**Smart Components** (widoki) odpowiadają tylko za:
+- Pobieranie danych z API
+- Zarządzanie stanem (loading, error, data)
+- Konfigurację komponentu `SongViewerComponent`
+- Obsługę eventów (`chordsToggled`, `qrButtonClicked`)
+
+**Presentation Components** odpowiadają tylko za:
+- Renderowanie UI
+- Emitowanie eventów
+- Brak logiki biznesowej
+
+To zapewnia:
+- ✅ Separację odpowiedzialności (SoC)
+- ✅ Łatwiejsze testowanie
+- ✅ Reużywalność komponentów
+- ✅ Spójność UI w całej aplikacji
