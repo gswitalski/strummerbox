@@ -8,21 +8,14 @@ import {
     OnDestroy,
     computed,
 } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { Title, Meta } from '@angular/platform-browser';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Subject, switchMap, takeUntil, catchError, of, map } from 'rxjs';
-import { MatToolbarModule } from '@angular/material/toolbar';
-import { MatButtonModule } from '@angular/material/button';
-import { MatButtonToggleModule } from '@angular/material/button-toggle';
-import { MatIconModule } from '@angular/material/icon';
-import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { PublicRepertoireService } from '../public-repertoire/services/public-repertoire.service';
-import { ErrorDisplayComponent } from '../../shared/components/error-display/error-display.component';
-import { SongDisplayComponent } from '../../shared/components/song-display/song-display.component';
-import { SongNavigationComponent } from '../../shared/components/song-navigation/song-navigation.component';
+import { SongViewerComponent } from '../../shared/components/song-viewer/song-viewer.component';
+import type { SongViewerConfig } from '../../shared/components/song-viewer/song-viewer.config';
 import type { PublicRepertoireSongState } from './public-repertoire-song.types';
-import type { PublicRepertoireSongDto } from '../../../../packages/contracts/types';
 import type { SongNavigation } from '../../shared/components/song-viewer/song-viewer.types';
 
 /**
@@ -38,17 +31,7 @@ import type { SongNavigation } from '../../shared/components/song-viewer/song-vi
 @Component({
     selector: 'stbo-public-repertoire-song-view',
     standalone: true,
-    imports: [
-        RouterLink,
-        MatToolbarModule,
-        MatButtonModule,
-        MatButtonToggleModule,
-        MatIconModule,
-        MatProgressBarModule,
-        ErrorDisplayComponent,
-        SongDisplayComponent,
-        SongNavigationComponent,
-    ],
+    imports: [SongViewerComponent],
     templateUrl: './public-repertoire-song.view.html',
     styleUrl: './public-repertoire-song.view.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -80,29 +63,31 @@ export class PublicRepertoireSongViewComponent implements OnInit, OnDestroy {
     public readonly showChords: WritableSignal<boolean> = signal(false);
 
     /**
-     * Pomocnicze gettery dla type narrowing w template
+     * Pomocniczy getter dla type narrowing
      */
-    get isLoading(): boolean {
-        return this.state().status === 'loading';
-    }
-
-    get isLoaded(): boolean {
-        return this.state().status === 'loaded';
-    }
-
-    get isError(): boolean {
-        return this.state().status === 'error';
-    }
-
-    get loadedSong(): PublicRepertoireSongDto | null {
+    get loadedSong() {
         const currentState = this.state();
         return currentState.status === 'loaded' ? currentState.song : null;
     }
 
-    get errorData() {
-        const currentState = this.state();
-        return currentState.status === 'error' ? currentState.error : null;
-    }
+    /**
+     * Konfiguracja dla komponentu SongViewer
+     * Będzie aktualizowana dynamicznie w computed signal
+     */
+    public readonly viewerConfig = computed<SongViewerConfig>(() => {
+        const repertoirePublicId = this.currentRepertoirePublicId();
+        return {
+            showBackButton: !!repertoirePublicId,
+            backLink: repertoirePublicId
+                ? ['/public/repertoires', repertoirePublicId]
+                : undefined,
+            titleInToolbar: true,
+            showChordsToggle: true,
+            showQrButton: false,
+            showNavigation: true,
+            backButtonAriaLabel: 'Powrót do repertuaru',
+        };
+    });
 
     /**
      * Computed signal - nawigacja dla SongViewerComponent.
@@ -252,6 +237,13 @@ export class PublicRepertoireSongViewComponent implements OnInit, OnDestroy {
         if (!url) return null;
         const segments = url.split('/');
         return segments[segments.length - 1] || null;
+    }
+
+    /**
+     * Obsługuje zmianę przełącznika akordów
+     */
+    onChordsToggled(value: boolean): void {
+        this.showChords.set(value);
     }
 }
 

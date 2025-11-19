@@ -1,57 +1,12 @@
-<!-- Komunikat błędu -->
-@if (isError && errorData) {
-    <div class="error-container">
-        <stbo-error-display
-            [code]="errorData.code"
-            [message]="errorData.message">
-        </stbo-error-display>
-    </div>
+@if (state(); as currentState) {
+    <stbo-song-viewer
+        [status]="currentState.status"
+        [error]="currentState.status === 'error' ? currentState.error : undefined"
+        [title]="currentState.status === 'loaded' ? currentState.song.title : undefined"
+        [content]="currentState.status === 'loaded' ? currentState.song.content : undefined"
+        [showChords]="showChords()"
+        [navigation]="navigation()"
+        [config]="viewerConfig()"
+        (chordsToggled)="onChordsToggled($event)">
+    </stbo-song-viewer>
 }
-
-<!-- Widok piosenki -->
-@if (!isError) {
-    <!-- Wskaźnik ładowania -->
-    @if (isLoading) {
-        <div class="loading-container">
-            <mat-progress-bar mode="indeterminate"></mat-progress-bar>
-        </div>
-    }
-
-    <!-- Główny kontener -->
-    @if (!isLoading && isLoaded && loadedSong) {
-        <div class="public-repertoire-song-view">
-            <!-- Toolbar z przyciskiem powrotu, tytułem i przełącznikiem -->
-            <mat-toolbar class="song-toolbar" color="primary">
-                @if (navigation().back) {
-                    <button
-                        mat-icon-button
-                        [routerLink]="navigation().back"
-                        class="back-button"
-                        aria-label="Powrót do repertuaru">
-                        <mat-icon>arrow_back</mat-icon>
-                    </button>
-                }
-                <h1 class="song-title">{{ loadedSong.title }}</h1>
-                <mat-button-toggle-group
-                    [value]="showChords() ? 'chords' : 'text'"
-                    (change)="showChords.set($event.value === 'chords')"
-                    class="chord-toggle">
-                    <mat-button-toggle value="text">Tekst</mat-button-toggle>
-                    <mat-button-toggle value="chords">Akordy</mat-button-toggle>
-                </mat-button-toggle-group>
-            </mat-toolbar>
-
-            <!-- Treść piosenki -->
-            <div class="song-content">
-                <stbo-song-display
-                    [content]="loadedSong.content"
-                    [showChords]="showChords()">
-                </stbo-song-display>
-            </div>
-
-            <!-- Kontrolki nawigacyjne -->
-            <stbo-song-navigation [navigation]="navigation()"></stbo-song-navigation>
-        </div>
-    }
-}
-

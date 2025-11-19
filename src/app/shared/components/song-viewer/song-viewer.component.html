@@ -1,82 +1,83 @@
-<!-- Wskaźnik ładowania -->
-@if (isLoading()) {
+<!-- Stan błędu -->
+@if (isError && error) {
+    <div class="error-container">
+        <stbo-error-display
+            [code]="error.code"
+            [message]="error.message">
+        </stbo-error-display>
+    </div>
+}
+
+<!-- Stan ładowania -->
+@if (isLoading) {
     <div class="loading-container">
         <mat-progress-bar mode="indeterminate"></mat-progress-bar>
     </div>
 }
 
-<!-- Główny kontener -->
-@if (!isLoading()) {
+<!-- Stan załadowany -->
+@if (isLoaded && title && content) {
     <div class="song-viewer">
-        <!-- Toolbar z przyciskiem powrotu -->
-        @if (navigation().back) {
-            <mat-toolbar class="song-toolbar" color="primary">
+        <!-- Toolbar -->
+        <mat-toolbar class="song-toolbar" color="primary">
+            <!-- Przycisk powrotu -->
+            @if (config.showBackButton && config.backLink) {
                 <button
                     mat-icon-button
-                    [routerLink]="navigation().back"
+                    [routerLink]="config.backLink"
                     class="back-button"
-                    aria-label="Powrót do listy">
+                    [attr.aria-label]="config.backButtonAriaLabel || 'Powrót'">
                     <mat-icon>arrow_back</mat-icon>
                 </button>
-            </mat-toolbar>
-        }
+            }
+
+            <!-- Tytuł w toolbarze (jeśli konfiguracja na to pozwala) -->
+            @if (config.titleInToolbar) {
+                <h1 class="song-title">{{ title }}</h1>
+            }
+
+            <!-- Przełącznik akordów -->
+            @if (config.showChordsToggle) {
+                <mat-button-toggle-group
+                    [value]="showChords ? 'chords' : 'text'"
+                    (change)="onChordsToggleChange($event.value)"
+                    class="chord-toggle"
+                    aria-label="Przełącznik widoku">
+                    <mat-button-toggle value="text">Tekst</mat-button-toggle>
+                    <mat-button-toggle value="chords">Akordy</mat-button-toggle>
+                </mat-button-toggle-group>
+            }
+        </mat-toolbar>
 
         <!-- Treść piosenki -->
         <div class="song-content-wrapper">
-            <!-- Tytuł piosenki -->
-            <h1 class="song-title">{{ title() }}</h1>
+            <!-- Tytuł poza toolbarem (jeśli konfiguracja na to pozwala) -->
+            @if (!config.titleInToolbar) {
+                <h1 class="song-title">{{ title }}</h1>
+            }
 
             <div class="song-lyrics-container">
-                @if (showChords()) {
-                    <!-- Renderowanie z akordami -->
-                    <stbo-chord-pro-preview
-                        [content]="content()"
-                        class="song-content">
-                    </stbo-chord-pro-preview>
-                } @else {
-                    <!-- Renderowanie tylko tekstu (bez akordów) -->
-                    <pre class="song-lyrics-plain">{{ content() }}</pre>
-                }
+                <stbo-song-display
+                    [content]="content"
+                    [showChords]="showChords"
+                    class="song-content">
+                </stbo-song-display>
             </div>
         </div>
 
-        <!-- Kontrolki nawigacyjne -->
-        @if (navigation().previous || navigation().next) {
-            <nav class="navigation-controls">
-                @if (navigation().previous) {
-                    <a
-                        mat-stroked-button
-                        [routerLink]="navigation().previous!.link"
-                        class="nav-button nav-previous">
-                        <mat-icon>chevron_left</mat-icon>
-                        <span class="nav-label">{{ navigation().previous!.title }}</span>
-                    </a>
-                } @else {
-                    <div class="nav-spacer"></div>
-                }
-
-                @if (navigation().next) {
-                    <a
-                        mat-stroked-button
-                        [routerLink]="navigation().next!.link"
-                        class="nav-button nav-next">
-                        <span class="nav-label">{{ navigation().next!.title }}</span>
-                        <mat-icon>chevron_right</mat-icon>
-                    </a>
-                } @else {
-                    <div class="nav-spacer"></div>
-                }
-            </nav>
+        <!-- Nawigacja między piosenkami -->
+        @if (config.showNavigation && navigation) {
+            <stbo-song-navigation [navigation]="navigation"></stbo-song-navigation>
         }
 
-        <!-- Pływający przycisk akcji (FAB) do pokazywania QR kodu -->
-        @if (showQrButton()) {
+        <!-- Pływający przycisk akcji (FAB) do udostępniania -->
+        @if (config.showQrButton) {
             <button
                 mat-fab
                 extended
                 color="primary"
                 class="qr-fab"
-                (click)="handleQrButtonClick()"
+                (click)="onQrButtonClick()"
                 aria-label="Pokaż kod QR">
                 <mat-icon>qr_code</mat-icon>
                 Udostępnij
@@ -84,4 +85,3 @@
         }
     </div>
 }
-

@@ -10,11 +10,9 @@ import { ActivatedRoute } from '@angular/router';
 import { Title, Meta } from '@angular/platform-browser';
 import { HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
-import { MatToolbarModule } from '@angular/material/toolbar';
-import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { PublicSongService } from './services/public-song.service';
-import { SongDisplayComponent } from '../../shared/components/song-display/song-display.component';
-import { ErrorDisplayComponent } from '../../shared/components/error-display/error-display.component';
+import { SongViewerComponent } from '../../shared/components/song-viewer/song-viewer.component';
+import type { SongViewerConfig } from '../../shared/components/song-viewer/song-viewer.config';
 import type { PublicSongState } from './public-song.types';
 import type { PublicSongDto } from '../../../../packages/contracts/types';
 
@@ -30,12 +28,7 @@ import type { PublicSongDto } from '../../../../packages/contracts/types';
 @Component({
     selector: 'stbo-public-song-view',
     standalone: true,
-    imports: [
-        MatToolbarModule,
-        MatButtonToggleModule,
-        SongDisplayComponent,
-        ErrorDisplayComponent,
-    ],
+    imports: [SongViewerComponent],
     templateUrl: './public-song.view.html',
     styleUrl: './public-song.view.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -60,29 +53,15 @@ export class PublicSongViewComponent implements OnInit {
     public readonly showChords: WritableSignal<boolean> = signal(false);
 
     /**
-     * Pomocnicze gettery dla type narrowing w template
+     * Konfiguracja dla komponentu SongViewer
      */
-    get isLoading(): boolean {
-        return this.state().status === 'loading';
-    }
-
-    get isLoaded(): boolean {
-        return this.state().status === 'loaded';
-    }
-
-    get isError(): boolean {
-        return this.state().status === 'error';
-    }
-
-    get loadedSong() {
-        const currentState = this.state();
-        return currentState.status === 'loaded' ? currentState.song : null;
-    }
-
-    get errorData() {
-        const currentState = this.state();
-        return currentState.status === 'error' ? currentState.error : null;
-    }
+    public readonly viewerConfig: SongViewerConfig = {
+        showBackButton: false,
+        titleInToolbar: true,
+        showChordsToggle: true,
+        showQrButton: false,
+        showNavigation: false,
+    };
 
     ngOnInit(): void {
         // Pobierz publicId z parametrów trasy
@@ -169,6 +148,13 @@ export class PublicSongViewComponent implements OnInit {
             name: 'robots',
             content: 'noindex, nofollow',
         });
+    }
+
+    /**
+     * Obsługuje zmianę przełącznika akordów
+     */
+    onChordsToggled(value: boolean): void {
+        this.showChords.set(value);
     }
 }
 

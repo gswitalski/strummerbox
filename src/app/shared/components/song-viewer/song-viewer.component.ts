@@ -1,27 +1,47 @@
 import {
     ChangeDetectionStrategy,
     Component,
-    input,
-    output,
+    EventEmitter,
+    Input,
+    Output,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { ChordProPreviewComponent } from '../../../pages/song-create/components/chord-pro-preview/chord-pro-preview.component';
+import { SongDisplayComponent } from '../song-display/song-display.component';
+import { SongNavigationComponent } from '../song-navigation/song-navigation.component';
+import { ErrorDisplayComponent } from '../error-display/error-display.component';
+import type {
+    SongViewerConfig,
+    SongViewerStatus,
+    SongViewerError,
+} from './song-viewer.config';
 import type { SongNavigation } from './song-viewer.types';
 
 /**
- * Reużywalny komponent prezentacyjny do wyświetlania treści piosenki.
- * Używany zarówno w publicznym widoku jak i w trybie Biesiada.
- *
- * Komponent odpowiedzialny za:
- * - Wyświetlanie tytułu piosenki w toolbar
- * - Renderowanie treści piosenki z akordami (lub bez)
- * - Nawigację między piosenkami (poprzednia/następna)
- * - Przycisk powrotu do listy
- * - Opcjonalny przycisk FAB do pokazywania QR kodu
+ * Reużywalny komponent prezentacyjny do wyświetlania widoku piosenki.
+ * 
+ * Ten komponent jest wysoce konfigurowalny i może być używany w różnych kontekstach:
+ * - Widok biesiady (z akordami, przyciskiem QR, nawigacją)
+ * - Widok publicznego repertuaru (z przełącznikiem akordów, nawigacją)
+ * - Widok publicznej piosenki (z przełącznikiem akordów, bez nawigacji)
+ * 
+ * @example
+ * ```html
+ * <stbo-song-viewer
+ *   [status]="status"
+ *   [title]="song.title"
+ *   [content]="song.content"
+ *   [showChords]="showChords"
+ *   [navigation]="navigation"
+ *   [config]="viewerConfig"
+ *   (chordsToggled)="onChordsToggled($event)"
+ *   (qrButtonClicked)="onQrButtonClicked()">
+ * </stbo-song-viewer>
+ * ```
  */
 @Component({
     selector: 'stbo-song-viewer',
@@ -30,9 +50,12 @@ import type { SongNavigation } from './song-viewer.types';
         RouterLink,
         MatToolbarModule,
         MatButtonModule,
+        MatButtonToggleModule,
         MatIconModule,
         MatProgressBarModule,
-        ChordProPreviewComponent,
+        SongDisplayComponent,
+        SongNavigationComponent,
+        ErrorDisplayComponent,
     ],
     templateUrl: './song-viewer.component.html',
     styleUrl: './song-viewer.component.scss',
@@ -40,47 +63,78 @@ import type { SongNavigation } from './song-viewer.types';
 })
 export class SongViewerComponent {
     /**
-     * Tytuł piosenki wyświetlany w toolbar
+     * Stan komponentu: ładowanie, załadowany lub błąd
      */
-    public readonly title = input.required<string>();
+    @Input({ required: true }) status!: SongViewerStatus;
 
     /**
-     * Treść piosenki w formacie ChordPro
+     * Obiekt błędu (wymagany tylko gdy status = 'error')
      */
-    public readonly content = input.required<string>();
+    @Input() error?: SongViewerError;
 
     /**
-     * Konfiguracja nawigacji (poprzednia, następna, powrót)
+     * Tytuł piosenki (wymagany gdy status = 'loaded')
      */
-    public readonly navigation = input.required<SongNavigation>();
+    @Input() title?: string;
 
     /**
-     * Określa, czy pokazywać akordy (true) czy tylko tekst (false)
-     * Gdy true - używa ChordProPreviewComponent do renderowania z akordami
-     * Gdy false - używa prostego <pre> tylko z tekstem
+     * Treść piosenki w formacie ChordPro (wymagany gdy status = 'loaded')
      */
-    public readonly showChords = input<boolean>(true);
+    @Input() content?: string;
 
     /**
-     * Określa, czy przycisk FAB do pokazywania QR kodu powinien być widoczny
+     * Czy wyświetlać akordy (true) czy tylko tekst (false)
      */
-    public readonly showQrButton = input<boolean>(false);
+    @Input() showChords = false;
 
     /**
-     * Włącza/wyłącza wyświetlanie wskaźnika ładowania
+     * Obiekt nawigacyjny z linkami do poprzedniej/następnej piosenki
+     * Wymagany tylko gdy config.showNavigation = true
      */
-    public readonly isLoading = input<boolean>(false);
+    @Input() navigation?: SongNavigation;
 
     /**
-     * Zdarzenie emitowane po kliknięciu przycisku udostępniania (QR)
+     * Konfiguracja określająca, które elementy UI mają być widoczne
      */
-    public readonly qrButtonClicked = output<void>();
+    @Input({ required: true }) config!: SongViewerConfig;
 
     /**
-     * Obsługuje kliknięcie przycisku QR
+     * Zdarzenie emitowane gdy użytkownik zmienia stan przełącznika akordów
      */
-    protected handleQrButtonClick(): void {
+    @Output() chordsToggled = new EventEmitter<boolean>();
+
+    /**
+     * Zdarzenie emitowane gdy użytkownik klika przycisk FAB (kod QR)
+     */
+    @Output() qrButtonClicked = new EventEmitter<void>();
+
+    /**
+     * Pomocnicze gettery dla czytelności w template
+     */
+    get isLoading(): boolean {
+        return this.status === 'loading';
+    }
+
+    get isLoaded(): boolean {
+        return this.status === 'loaded';
+    }
+
+    get isError(): boolean {
+        return this.status === 'error';
+    }
+
+    /**
+     * Obsługa zmiany przełącznika akordów
+     */
+    onChordsToggleChange(value: string): void {
+        const newValue = value === 'chords';
+        this.chordsToggled.emit(newValue);
+    }
+
+    /**
+     * Obsługa kliknięcia przycisku QR
+     */
+    onQrButtonClick(): void {
         this.qrButtonClicked.emit();
     }
 }
-

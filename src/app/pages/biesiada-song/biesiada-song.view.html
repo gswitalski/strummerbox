@@ -1,66 +1,10 @@
-<!-- Komunikat błędu -->
-@if (hasError) {
-    <div class="error-container">
-        <stbo-error-display
-            [code]="0"
-            [message]="errorMessage">
-        </stbo-error-display>
-    </div>
-}
-
-<!-- Widok piosenki z akordami -->
-@if (!hasError) {
-    <!-- Wskaźnik ładowania -->
-    @if (isLoading) {
-        <div class="loading-container">
-            <mat-progress-bar mode="indeterminate"></mat-progress-bar>
-        </div>
-    }
-
-    <!-- Główny kontener -->
-    @if (!isLoading && hasData && viewModel) {
-        <div class="biesiada-song-view">
-            <!-- Toolbar z przyciskiem powrotu -->
-            <mat-toolbar class="song-toolbar" color="primary">
-                <button
-                    mat-icon-button
-                    [routerLink]="viewModel.navigation.back"
-                    class="back-button"
-                    aria-label="Powrót do listy">
-                    <mat-icon>arrow_back</mat-icon>
-                </button>
-            </mat-toolbar>
-
-            <!-- Treść piosenki -->
-            <div class="song-content-wrapper">
-                <!-- Tytuł piosenki -->
-                <h1 class="song-title">{{ title() }}</h1>
-
-                <div class="song-lyrics-container">
-                    <!-- Renderowanie z akordami (zawsze true w trybie Biesiada) -->
-                    <stbo-song-display
-                        [content]="content()"
-                        [showChords]="true"
-                        class="song-content">
-                    </stbo-song-display>
-                </div>
-            </div>
-
-            <!-- Kontrolki nawigacyjne -->
-            <stbo-song-navigation [navigation]="viewModel.navigation"></stbo-song-navigation>
-
-            <!-- Pływający przycisk akcji (FAB) do pokazywania QR kodu -->
-            <button
-                mat-fab
-                extended
-                color="primary"
-                class="qr-fab"
-                (click)="handleQrButtonClick()"
-                aria-label="Pokaż kod QR">
-                <mat-icon>qr_code</mat-icon>
-                Udostępnij
-            </button>
-        </div>
-    }
-}
-
+<stbo-song-viewer
+    [status]="viewerStatus()"
+    [error]="viewerError()"
+    [title]="state().data?.title"
+    [content]="state().data?.content"
+    [showChords]="true"
+    [navigation]="navigation() ?? undefined"
+    [config]="viewerConfig()"
+    (qrButtonClicked)="onQrButtonClick()">
+</stbo-song-viewer>
