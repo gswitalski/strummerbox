@@ -51,6 +51,11 @@
     flex-shrink: 0;
 }
 
+// Spacer do wypychania elementów na prawą stronę
+.toolbar-spacer {
+    flex: 1 1 auto;
+}
+
 .song-title {
     margin: 0;
     font-size: 1.25rem;

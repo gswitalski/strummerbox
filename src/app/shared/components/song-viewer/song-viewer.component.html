@@ -34,6 +34,9 @@
             <!-- Tytuł w toolbarze (jeśli konfiguracja na to pozwala) -->
             @if (config.titleInToolbar) {
                 <h1 class="song-title">{{ title }}</h1>
+            } @else {
+                <!-- Spacer - wypycha elementy na prawą stronę gdy tytuł nie jest w toolbarze -->
+                <span class="toolbar-spacer"></span>
             }
 
             <!-- Przełącznik akordów -->

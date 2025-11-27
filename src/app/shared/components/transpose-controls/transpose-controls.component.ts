@@ -30,6 +30,7 @@ import { MatIconModule } from '@angular/material/icon';
                 mat-icon-button
                 type="button"
                 class="transpose-controls__button"
+                [disabled]="!canDecrement"
                 (click)="decrement()"
                 aria-label="Obniż tonację o półton">
                 <mat-icon>remove</mat-icon>
@@ -41,6 +42,7 @@ import { MatIconModule } from '@angular/material/icon';
                 mat-icon-button
                 type="button"
                 class="transpose-controls__button"
+                [disabled]="!canIncrement"
                 (click)="increment()"
                 aria-label="Podnieś tonację o półton">
                 <mat-icon>add</mat-icon>
@@ -69,6 +71,9 @@ import { MatIconModule } from '@angular/material/icon';
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TransposeControlsComponent {
+    private static readonly MIN_OFFSET = -11;
+    private static readonly MAX_OFFSET = 11;
+
     /**
      * Aktualna wartość przesunięcia tonacji
      */
@@ -90,17 +95,35 @@ export class TransposeControlsComponent {
     }
 
     /**
+     * Czy można zwiększyć offset (nie przekroczono maksimum)
+     */
+    get canIncrement(): boolean {
+        return this.offset < TransposeControlsComponent.MAX_OFFSET;
+    }
+
+    /**
+     * Czy można zmniejszyć offset (nie przekroczono minimum)
+     */
+    get canDecrement(): boolean {
+        return this.offset > TransposeControlsComponent.MIN_OFFSET;
+    }
+
+    /**
      * Zwiększa offset o 1 (transpozycja w górę o półton)
      */
     increment(): void {
-        this.offsetChange.emit(this.offset + 1);
+        if (this.canIncrement) {
+            this.offsetChange.emit(this.offset + 1);
+        }
     }
 
     /**
      * Zmniejsza offset o 1 (transpozycja w dół o półton)
      */
     decrement(): void {
-        this.offsetChange.emit(this.offset - 1);
+        if (this.canDecrement) {
+            this.offsetChange.emit(this.offset - 1);
+        }
     }
 }
 
