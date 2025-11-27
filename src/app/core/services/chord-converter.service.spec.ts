@@ -146,7 +146,7 @@ describe('ChordConverterService', () => {
 
             // Akord C powinien być na początku
             expect(result.indexOf('[C]')).toBe(0);
-            
+
             // Akord Am powinien być gdzieś w okolicy słowa "druga"
             const amIndex = result.indexOf('[Am]');
             const drugaIndex = result.indexOf('druga');
@@ -349,6 +349,102 @@ describe('ChordConverterService', () => {
             expect(result).toContain('[G]');
             expect(result).toContain('[e]');
             expect(result).toContain('[A]');
+        });
+
+        it('should not treat Polish word "a" at line start as chord line', () => {
+            // Ten test sprawdza przypadek, gdy linia tekstu zaczyna się od polskiego
+            // słowa "a" (spójnik), które nie powinno być traktowane jako akord
+            const input = [
+                'C    a     F   G',
+                'a witając zawołali'
+            ].join('\n');
+
+            const result = service.convertFromChordsOverText(input);
+
+            // Linia "a witając zawołali" powinna być połączona z akordami z poprzedniej linii
+            // NIE powinna być traktowana jako linia akordów
+            expect(result).toContain('[C]a');
+            expect(result).toContain('[a]');
+            expect(result).toContain('[F]');
+            expect(result).toContain('[G]');
+            // Słowa mogą być rozdzielone przez akordy (w zależności od pozycji akordów)
+            // więc sprawdzamy fragmenty słów
+            expect(result).toContain('wit');
+            expect(result).toContain('jąc'); // fragment "witając"
+            expect(result).toContain('awoł'); // fragment "zawołali"
+
+            // Upewnij się, że "witając" nie ma wewnątrz fałszywych akordów typu [c]
+            // (co by się stało gdyby 'c' w "witając" było wykryte jako akord przez stary kod)
+            expect(result).not.toContain('[c]');
+        });
+
+        it('should handle Polish diacritics in text without false chord detection', () => {
+            // Test sprawdza, że polskie znaki diakrytyczne (ą, ć, ę, ł, ń, ó, ś, ź, ż)
+            // nie powodują fałszywego wykrywania akordów w środku słów
+            const input = [
+                ' C   G      C       C     G        C',
+                'Poszli, znaleźli Dzieciątko w żłobie',
+                '     C   G     C      C  G     C',
+                'z wszystkimi znaki, danymi sobie.',
+                ' C    a     F       G',
+                'Jako Bogu cześć Mu dali,',
+                'C    a     F   G',
+                'a witając zawołali',
+                '    C       G    C      C       G    C',
+                'z wielkiej radości, z wielkiej radości'
+            ].join('\n');
+
+            const result = service.convertFromChordsOverText(input);
+
+            // Sprawdź poprawną konwersję akordów
+            expect(result).toContain('[C]');
+            expect(result).toContain('[G]');
+            expect(result).toContain('[a]');
+            expect(result).toContain('[F]');
+
+            // Sprawdź, że fragmenty polskich słów są zachowane (słowa mogą być rozdzielone akordami)
+            expect(result).toContain('znal'); // fragment "znaleźli"
+            expect(result).toContain('źli'); // fragment "znaleźli"
+            expect(result).toContain('Dzi'); // fragment "Dzieciątko" (może być rozdzielone)
+            expect(result).toContain('eciąt'); // fragment "Dzieciątko"
+            expect(result).toContain('żłobi'); // fragment "żłobie"
+            expect(result).toContain('eść'); // fragment "cześć"
+            expect(result).toContain('wit'); // fragment "witając"
+            expect(result).toContain('awoł'); // fragment "zawołali"
+            expect(result).toContain('adośc'); // fragment "radości"
+
+            // Upewnij się, że nie ma fałszywych akordów wykrytych w środku słów
+            // (np. 'c' z "witając" nie powinno być akordem)
+            const lines = result.split('\n');
+            for (const line of lines) {
+                // Żadna linia nie powinna zawierać sekwencji typu [a] [a] [c] [a] [a]
+                // która wskazywałaby na błędne wykrycie akordów w tekście
+                expect(line).not.toMatch(/\[.\] \[.\] \[.\] \[.\] \[.\]/);
+            }
+        });
+
+        it('should handle chord line followed by text starting with "a"', () => {
+            const input = [
+                'C    a     F   G',
+                'a witając zawołali'
+            ].join('\n');
+
+            const result = service.convertFromChordsOverText(input);
+            const lines = result.split('\n');
+
+            // Powinniśmy mieć tylko jedną linię wyniku (akordy połączone z tekstem)
+            expect(lines.length).toBe(1);
+
+            // Sprawdź, że tekst "a witając zawołali" jest obecny jako część wyniku
+            // Słowa mogą być rozdzielone akordami, więc sprawdzamy fragmenty
+            expect(lines[0]).toContain('wit'); // fragment "witając"
+            expect(lines[0]).toContain('awoł'); // fragment "zawołali"
+
+            // Sprawdź, że akordy są obecne
+            expect(lines[0]).toContain('[C]');
+            expect(lines[0]).toContain('[a]');
+            expect(lines[0]).toContain('[F]');
+            expect(lines[0]).toContain('[G]');
         });
     });
 });
