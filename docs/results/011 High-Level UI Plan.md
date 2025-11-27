@@ -93,11 +93,11 @@ Zarządzanie stanem aplikacji będzie realizowane za pomocą serwisów Angulara 
 #### **4b. Publiczny Widok Piosenki (Public Song View)**
 
 *   **Ścieżka:** `/public/songs/:publicId` oraz `/public/repertoires/:publicId/songs/:songPublicId`
-*   **Główny cel:** Wyświetlenie tekstu piosenki Biesiadnikowi, z możliwością włączenia widoku akordów.
-*   **Kluczowe informacje:** Tytuł piosenki, treść piosenki w formacie ChordPro, przełącznik widoczności akordów (domyślnie wyłączony), przyciski nawigacyjne "{tytuł_następnej}" / "{tytuł_poprzedniej}" (jeśli piosenka jest częścią repertuaru).
-*   **Kluczowe komponenty:** `SongViewerComponent` (reużywalny komponent prezentacyjny), który wewnętrznie używa `SongDisplayComponent`, `SongNavigationComponent`, `mat-button-toggle-group`.
+*   **Główny cel:** Wyświetlenie tekstu piosenki Biesiadnikowi, z możliwością włączenia widoku akordów i transpozycji.
+*   **Kluczowe informacje:** Tytuł piosenki, treść piosenki w formacie ChordPro, przełącznik widoczności akordów (domyślnie wyłączony), kontrolki do transpozycji (`+`/`-`), przyciski nawigacyjne "{tytuł_następnej}" / "{tytuł_poprzedniej}" (jeśli piosenka jest częścią repertuaru).
+*   **Kluczowe komponenty:** `SongViewerComponent` (reużywalny komponent prezentacyjny), który wewnętrznie używa `SongDisplayComponent`, `SongNavigationComponent`, `TransposeControlsComponent`, `mat-button-toggle-group`.
 *   **UX, dostępność, bezpieczeństwo:**
-    *   **UX:** Domyślnie interfejs jest minimalistyczny i skupiony na tekście (bez akordów). W prawym górnym rogu toolbara znajduje się przełącznik (z opcjami "Tekst" / "Akordy"), który pozwala na natychmiastowe przełączenie widoku. Przyciski nawigacji są niewidoczne, jeśli użytkownik jest na pierwszej/ostatniej piosence.
+    *   **UX:** Domyślnie interfejs jest minimalistyczny i skupiony na tekście (bez akordów). W prawym górnym rogu toolbara znajduje się przełącznik (z opcjami "Tekst" / "Akordy"). Po włączeniu widoku akordów, obok przełącznika pojawiają się kontrolki transpozycji (`+`, `-`, licznik), pozwalające na zmianę tonacji w locie. Wyłączenie akordów ukrywa kontrolki transpozycji.
     *   **Dostępność:** Wysoki kontrast tekstu i tła. Etykiety `aria-label` dla przycisków i przełącznika.
     *   **Bezpieczeństwo:** Jak w Publicznym Widoku Repertuaru.
 
@@ -221,11 +221,11 @@ Zarządzanie stanem aplikacji będzie realizowane za pomocą serwisów Angulara 
 #### **13. Tryb Biesiada - Widok Piosenki (Biesiada Song View)**
 
 *   **Ścieżka:** `/biesiada/repertoires/:id/songs/:songId`
-*   **Główny cel:** Wyświetlenie Organizatorowi piosenki z akordami podczas prowadzenia biesiady.
-*   **Kluczowe informacje:** Tytuł, treść piosenki z akordami, przyciski nawigacyjne "Następna" / "Poprzednia", przycisk "Pokaż kod QR". Przycisk nawigacji powrotnej do listy piosenek.
-*   **Kluczowe komponenty:** `SongViewerComponent` (reużywalny komponent prezentacyjny), który wewnętrznie używa `SongDisplayComponent`, `SongNavigationComponent`, `mat-fab` do wyświetlania QR, `ShareDialogComponent` do wyświetlania kodu QR.
+*   **Główny cel:** Wyświetlenie Organizatorowi piosenki z akordami podczas prowadzenia biesiady, z możliwością transpozycji.
+*   **Kluczowe informacje:** Tytuł, treść piosenki z akordami, kontrolki transpozycji, przyciski nawigacyjne "Następna" / "Poprzednia", przycisk "Pokaż kod QR". Przycisk nawigacji powrotnej do listy piosenek.
+*   **Kluczowe komponenty:** `SongViewerComponent` (reużywalny komponent prezentacyjny), który wewnętrznie używa `SongDisplayComponent`, `SongNavigationComponent`, `TransposeControlsComponent`, `mat-fab` do wyświetlania QR, `ShareDialogComponent` do wyświetlania kodu QR.
 *   **UX, dostępność, bezpieczeństwo:**
-    *   **UX:** Interfejs skupiony na czytelności tekstu z akordami. Tytuł piosenki wyświetlany jest poniżej toolbara (w content area). Pływający przycisk akcji (`FAB`) nie zasłania treści. Kliknięcie w niego otwiera modal z dużym, czytelnym kodem QR. Przycisk "wstecz" w nagłówku pozwala na powrót do listy piosenek w repertuarze (`/biesiada/repertoires/:id`).
+    *   **UX:** Interfejs skupiony na czytelności tekstu z akordami. W toolbarze na stałe widoczne są kontrolki transpozycji. Tytuł piosenki wyświetlany jest poniżej toolbara (w content area). Pływający przycisk akcji (`FAB`) nie zasłania treści. Kliknięcie w niego otwiera modal z dużym, czytelnym kodem QR. Przycisk "wstecz" w nagłówku pozwala na powrót do listy piosenek w repertuarze (`/biesiada/repertoires/:id`).
     *   **Dostępność:** Wysoki kontrast, duża czcionka.
     *   **Bezpieczeństwo:** Dostęp chroniony.
 
@@ -278,11 +278,11 @@ Poniższe komponenty są reużywalne i wykorzystywane w wielu miejscach aplikacj
 ### Komponenty prezentacyjne widoku piosenek
 
 *   **`SongViewerComponent`:** ⭐ *Komponent centralny*
-    *   **Opis:** Wysoce konfigurowalny komponent prezentacyjny odpowiedzialny za cały layout i UI widoku piosenki. Zarządza wyświetlaniem toolbara, stanów ładowania/błędu, treści piosenki oraz nawigacji. Przyjmuje konfigurację określającą, które elementy UI mają być widoczne (przycisk powrotu, przełącznik akordów, przycisk QR, nawigacja).
-    *   **API:** `@Input() status`, `@Input() title`, `@Input() content`, `@Input() showChords`, `@Input() navigation`, `@Input() config: SongViewerConfig`, `@Output() chordsToggled`, `@Output() qrButtonClicked`
+    *   **Opis:** Wysoce konfigurowalny komponent prezentacyjny odpowiedzialny za cały layout i UI widoku piosenki. Zarządza wyświetlaniem toolbara, stanów ładowania/błędu, treści piosenki, nawigacji oraz kontrolek transpozycji. Przyjmuje konfigurację określającą, które elementy UI mają być widoczne.
+    *   **API:** `@Input() status`, `@Input() title`, `@Input() content`, `@Input() showChords`, `@Input() transposeOffset: number`, `@Input() navigation`, `@Input() config: SongViewerConfig`, `@Output() chordsToggled`, `@Output() qrButtonClicked`, `@Output() transposeChanged`
     *   **Użycie:** `Public Song View`, `Public Repertoire Song View`, `Biesiada Song View` - wszystkie widoki piosenek używają tego komponentu z różnymi konfiguracjami.
-    *   **Stan:** ✅ Zaimplementowany (listopad 2025)
-    *   **Dokumentacja:** `docs/results/changes/song-viewer-component-refactoring.md`
+    *   **Stan:** ⚠️ Zaktualizowany (grudzień 2025)
+    *   **Dokumentacja:** `docs/results/changes/ad-hoc-transposition-changes.md`
 
 *   **`SongNavigationComponent`:**
     *   **Opis:** Komponent prezentacyjny odpowiedzialny za wyświetlanie dolnego paska nawigacyjnego z przyciskami "Poprzednia" i "Następna" między piosenkami w repertuarze. Przyjmuje obiekt nawigacyjny z danymi o linkach i tytułach piosenek.
@@ -292,12 +292,18 @@ Poniższe komponenty są reużywalne i wykorzystywane w wielu miejscach aplikacj
     *   **Dokumentacja:** `docs/results/changes/song-navigation-component-refactoring.md`
 
 *   **`SongDisplayComponent`:**
-    *   **Opis:** Komponent odpowiedzialny za renderowanie treści piosenki. Przyjmuje jako dane wejściowe pełną treść w formacie ChordPro oraz flagę `showChords: boolean`. Na podstawie flagi, komponent renderuje sam tekst lub tekst z poprawnie sformatowanymi akordami.
-    *   **API:** `@Input() content: string`, `@Input() showChords: boolean`
+    *   **Opis:** Komponent odpowiedzialny za renderowanie treści piosenki. Przyjmuje jako dane wejściowe pełną treść w formacie ChordPro, flagę `showChords: boolean` oraz numeryczny `transposeOffset`. Na podstawie tych danych, komponent najpierw transponuje akordy (jeśli offset jest różny od zera), a następnie renderuje sam tekst lub tekst z poprawnie sformatowanymi, przetransponowanymi akordami.
+    *   **API:** `@Input() content: string`, `@Input() showChords: boolean`, `@Input() transposeOffset: number`
     *   **Użycie:** Wewnętrznie używany przez `SongViewerComponent` do wyświetlania treści piosenki.
-    *   **Stan:** ✅ Zaimplementowany
+    *   **Stan:** ⚠️ Zaktualizowany (grudzień 2025)
 
 ### Komponenty pomocnicze i dialogowe
+
+*   **`TransposeControlsComponent`:** ⭐ *Nowy komponent*
+    *   **Opis:** Komponent prezentacyjny wyświetlający przyciski "-" i "+" oraz aktualną wartość transpozycji (np. "+2"). Jest w pełni sterowany z zewnątrz.
+    *   **API:** `@Input() offset: number`, `@Output() change = new EventEmitter<number>()`
+    *   **Użycie:** Wewnętrznie używany przez `SongViewerComponent` w toolbarze.
+    *   **Stan:** ✅ Do zaimplementowania
 
 *   **`EmptyStateComponent`:**
     *   **Opis:** Komponent wyświetlany, gdy lista (np. piosenek, repertuarów) jest pusta. Zawiera ikonę, komunikat (np. "Nie masz jeszcze żadnych piosenek") oraz przycisk z wezwaniem do akcji (np. "Dodaj pierwszą piosenkę").
@@ -331,19 +337,20 @@ SongViewerComponent (kontener UI)
 ├── MatToolbar (górny pasek)
 │   ├── Przycisk powrotu (opcjonalnie)
 │   ├── Tytuł piosenki (opcjonalnie w toolbarze)
-│   └── MatButtonToggleGroup (przełącznik akordów, opcjonalnie)
+│   ├── MatButtonToggleGroup (przełącznik akordów, opcjonalnie)
+│   └── TransposeControlsComponent (kontrola transpozycji, opcjonalnie)
 ├── Kontener treści
 │   ├── Tytuł piosenki (opcjonalnie poza toolbarem)
-│   └── SongDisplayComponent (renderowanie ChordPro)
+│   └── SongDisplayComponent (renderowanie ChordPro z transpozycją)
 ├── SongNavigationComponent (opcjonalnie)
 └── MatFab (przycisk QR, opcjonalnie)
 ```
 
 **Smart Components** (widoki) odpowiadają tylko za:
 - Pobieranie danych z API
-- Zarządzanie stanem (loading, error, data)
+- Zarządzanie stanem (loading, error, data, **transposeOffset**)
 - Konfigurację komponentu `SongViewerComponent`
-- Obsługę eventów (`chordsToggled`, `qrButtonClicked`)
+- Obsługę eventów (`chordsToggled`, `qrButtonClicked`, **`transposeChanged`**)
 
 **Presentation Components** odpowiadają tylko za:
 - Renderowanie UI

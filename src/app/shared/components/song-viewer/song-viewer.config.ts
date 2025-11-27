@@ -27,6 +27,11 @@ export interface SongViewerConfig {
     showChordsToggle: boolean;
 
     /**
+     * Czy wyświetlać kontrolki transpozycji akordów (+/-)
+     */
+    showTransposeControls: boolean;
+
+    /**
      * Czy wyświetlać pływający przycisk FAB do udostępniania (kod QR)
      */
     showQrButton: boolean;

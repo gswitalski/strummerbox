@@ -47,6 +47,14 @@
                     <mat-button-toggle value="chords">Akordy</mat-button-toggle>
                 </mat-button-toggle-group>
             }
+
+            <!-- Kontrolki transpozycji - widoczne gdy akordy są włączone -->
+            @if (config.showTransposeControls && showChords) {
+                <stbo-transpose-controls
+                    [offset]="transposeOffset"
+                    (offsetChange)="onTransposeChange($event)">
+                </stbo-transpose-controls>
+            }
         </mat-toolbar>
 
         <!-- Treść piosenki -->
@@ -60,6 +68,7 @@
                 <stbo-song-display
                     [content]="content"
                     [showChords]="showChords"
+                    [transposeOffset]="transposeOffset"
                     class="song-content">
                 </stbo-song-display>
             </div>

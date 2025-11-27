@@ -53,12 +53,19 @@ export class PublicSongViewComponent implements OnInit {
     public readonly showChords: WritableSignal<boolean> = signal(false);
 
     /**
+     * Sygnał zarządzający wartością transpozycji
+     * Domyślnie 0 (brak transpozycji)
+     */
+    public readonly transposeOffset: WritableSignal<number> = signal(0);
+
+    /**
      * Konfiguracja dla komponentu SongViewer
      */
     public readonly viewerConfig: SongViewerConfig = {
         showBackButton: false,
         titleInToolbar: true,
         showChordsToggle: true,
+        showTransposeControls: true,
         showQrButton: false,
         showNavigation: false,
     };
@@ -155,6 +162,13 @@ export class PublicSongViewComponent implements OnInit {
      */
     onChordsToggled(value: boolean): void {
         this.showChords.set(value);
+    }
+
+    /**
+     * Obsługuje zmianę wartości transpozycji
+     */
+    onTransposeChanged(newOffset: number): void {
+        this.transposeOffset.set(newOffset);
     }
 }
 
