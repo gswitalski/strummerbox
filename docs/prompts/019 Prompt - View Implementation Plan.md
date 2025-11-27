@@ -17,60 +17,64 @@ Najpierw przejrzyj następujące informacje:
 </ui_plan>
 
 3. Widok do implementacji
-<view>
-### Nowy komponent reużywalny
+<views>
 
--   **Nazwa**: `SongDisplayComponent`
--   **Opis**: Nowy, reużywalny komponent odpowiedzialny za renderowanie treści piosenki. Przyjmuje jako dane wejściowe pełną treść w formacie ChordPro oraz flagę `showChords: boolean`. Na podstawie flagi, komponent renderuje sam tekst lub tekst z poprawnie sformatowanymi akordami.
--   **Użycie**:
-    -   `Public Song View` (dla Biesiadnika)
-    -   `Biesiada Song View` (dla Organizatora)
+Zmiany w interfejsie użytkownika koncentrują się na istniejących widokach piosenek oraz wprowadzeniu nowego komponentu do obsługi transpozycji.
 
-### Zmieniony widok
+### Nowy Komponent: `TransposeControlsComponent`
 
--   **Nazwa**: `Publiczny Widok Piosenki (Public Song View)`
--   **Ścieżka**: `/public/songs/:publicId` oraz `/public/repertoires/:publicId/songs/:songPublicId`
--   **Opis zmiany**:
-    -   Widok będzie teraz używał nowego komponentu `SongDisplayComponent`.
-    -   W lewym górnym rogu zostanie dodany przełącznik (np. `mat-button-toggle-group` z opcjami "Tekst" / "Akordy"), który będzie sterował flagą `showChords` przekazywaną do `SongDisplayComponent`.
-    -   Domyślnym stanem będzie widok bez akordów (`showChords: false`).
+-   **Opis:** Mały, reużywalny komponent prezentacyjny, który renderuje interfejs do zmiany tonacji. Składa się z przycisków "-" i "+", które emitują zdarzenia zmiany, oraz wyświetlacza aktualnego przesunięcia (np. "+1", "-2").
+-   **API:** `@Input() offset: number`, `@Output() change: EventEmitter<number>`.
+-   **Użycie:** Wewnętrznie przez `SongViewerComponent`.
 
-### Zmieniony widok
+### Zmiany w `SongViewerComponent`
 
--   **Nazwa**: `Tryb Biesiada - Widok Piosenki (Biesiada Song View)`
--   **Ścieżka**: `/biesiada/repertoires/:id/songs/:songId`
--   **Opis zmiany**:
-    -   Widok zostanie zrefaktoryzowany, aby również korzystać z nowego, reużywalnego komponentu `SongDisplayComponent`.
-    -   Flaga `showChords` będzie na stałe ustawiona na `true`, ponieważ Organizator w tym trybie zawsze widzi akordy.
+-   **Opis:** Komponent został zaktualizowany, aby mógł zarządzać i wyświetlać `TransposeControlsComponent`.
+-   **Zmiany w API:**
+    -   Dodano `@Input() transposeOffset: number`, aby przyjąć aktualny stan transpozycji.
+    -   Dodano `@Input() config: SongViewerConfig`, w którym pojawiła się nowa flaga `showTransposeControls: boolean`, aby kontrolować widoczność narzędzia.
+    -   Dodano `@Output() transposeChanged: EventEmitter<number>`, aby informować komponent nadrzędny o żądaniu zmiany tonacji.
+-   **Logika:** `SongViewerComponent` będzie teraz warunkowo renderować `TransposeControlsComponent` na podstawie konfiguracji i stanu widoczności akordów.
+
+### Zmiany w Widokach Nadrzędnych
+
+-   **Publiczny Widok Piosenki (`Public Song View`):**
+    -   **Zmiana:** W tym widoku `SongViewerComponent` jest konfigurowany tak, aby `TransposeControlsComponent` pojawiał się tylko wtedy, gdy użytkownik włączy widoczność akordów. Stan transpozycji jest zarządzany lokalnie w tym widoku.
+-   **Tryb Biesiada - Widok Piosenki (`Biesiada Song View`):**
+    -   **Zmiana:** W tym widoku `SongViewerComponent` jest konfigurowany tak, aby `TransposeControlsComponent` był widoczny domyślnie, niezależnie od przełącznika akordów (który jest tu niewidoczny, bo akordy są zawsze włączone dla Organizatora).
+
+
+</views>
 
 4. User Stories:
 <user_stories>
-### Nowa historyjka użytkownika
 
--   **ID**: US-024
--   **Title**: Włączenie widoku akordów przez Biesiadnika
--   **Description**: Jako Biesiadnik, który również gra na gitarze, przeglądając tekst piosenki w widoku publicznym, chcę mieć możliwość włączenia widoku akordów, aby móc zagrać utwór razem z innymi.
--   **Acceptance Criteria**:
-    -   W publicznym widoku piosenki, w widocznym miejscu (np. w lewym górnym rogu) znajduje się przełącznik "Pokaż akordy".
-    -   Domyślnie widok jest w trybie "tylko tekst".
-    -   Po aktywacji przełącznika, tekst piosenki jest natychmiastowo przeliczany i wyświetlany w formacie z akordami (ChordPro), analogicznie do widoku Organizatora.
-    -   Mogę w dowolnym momencie wyłączyć widok akordów, wracając do trybu "tylko tekst".
-    -   Stan przełącznika jest zapamiętywany tylko na czas trwania sesji na danej stronie (nie musi być trwały).
+Do dokumentu PRD dodano następujące historyjki użytkownika, które definiują nową funkcjonalność z perspektywy użytkownika końcowego.
 
-### Zmodyfikowana historyjka użytkownika
+### ID: US-025
+-   **Title:** Transpozycja ad-hoc w widoku publicznym
+-   **Description:** Jako Biesiadnik grający na instrumencie, chcę móc tymczasowo zmienić tonację wyświetlanej piosenki, aby dopasować ją do stroju mojego instrumentu lub możliwości wokalnych grupy.
+-   **Acceptance Criteria:**
+    -   W widoku publicznym piosenki, kontrolki transpozycji pojawiają się tylko wtedy, gdy włączony jest tryb "Pokaż akordy".
+    -   Interfejs zawiera przyciski "-" i "+" oraz licznik przesunięcia (np. +2).
+    -   Zmiana tonacji następuje natychmiastowo bez przeładowania strony.
+    -   Wyłączenie widoku akordów ukrywa kontrolki transpozycji.
 
--   **ID**: US-013
--   **Title**: Dostęp Biesiadnika do piosenki
--   **Opis zmiany**: Kryteria akceptacji zostały zaktualizowane, aby uwzględnić domyślny stan widoku oraz obecność nowego przełącznika.
--   **Nowe Acceptance Criteria**:
-    -   Strona domyślnie wyświetla tylko tekst piosenki, bez akordów.
-    -   Czcionka jest duża i czytelna, a tekst dopasowany do szerokości ekranu mobilnego.
-    -   Strona nie zawiera żadnych elementów nawigacyjnych poza tekstem piosenki i przełącznikiem widoczności akordów.
+### ID: US-026
+-   **Title:** Transpozycja w trybie Organizatora (Biesiada)
+-   **Description:** Jako Organizator prowadzący śpiewanie, chcę mieć szybki dostęp do zmiany tonacji, aby zareagować na potrzeby grupy w trakcie imprezy.
+-   **Acceptance Criteria:**
+    -   W trybie 'Biesiada' kontrolki transpozycji są widoczne na stałe w widoku piosenki.
+    -   Transpozycja jest lokalna dla sesji przeglądarki i nie zmienia oryginalnego zapisu piosenki na serwerze.
+
 </user_stories>
 
 5. Endpoint Description:
 <endpoint_description>
 
+**Nie wprowadzono żadnych zmian w API.**
+
+Funkcjonalność transpozycji została zaimplementowana w całości po stronie klienta (w aplikacji Angular). Istniejące endpointy API dostarczają pełną treść piosenki w formacie ChordPro, co jest wystarczające do przeprowadzenia operacji transpozycji w przeglądarce. Takie podejście unika dodatkowych zapytań do serwera i zapewnia natychmiastową odpowiedź interfejsu.
 
 
 </endpoint_description>
