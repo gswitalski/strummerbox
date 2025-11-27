@@ -55,6 +55,12 @@ export class BiesiadaSongViewComponent implements OnInit, OnDestroy {
     });
 
     /**
+     * Sygnał zarządzający wartością transpozycji
+     * Domyślnie 0 (brak transpozycji)
+     */
+    public readonly transposeOffset = signal(0);
+
+    /**
      * Konfiguracja dla komponentu SongViewer
      * Będzie aktualizowana dynamicznie w computed signal
      */
@@ -65,6 +71,7 @@ export class BiesiadaSongViewComponent implements OnInit, OnDestroy {
             backLink: viewModel?.navigation.back || undefined,
             titleInToolbar: false, // Tytuł w content, nie w toolbarze
             showChordsToggle: false, // Zawsze pokazuj akordy w trybie biesiada
+            showTransposeControls: true, // Kontrolki transpozycji widoczne
             showQrButton: true,
             showNavigation: true,
             backButtonAriaLabel: 'Powrót do listy',
@@ -188,6 +195,13 @@ export class BiesiadaSongViewComponent implements OnInit, OnDestroy {
             width: '600px',
             maxWidth: '90vw',
         });
+    }
+
+    /**
+     * Obsługuje zmianę wartości transpozycji
+     */
+    onTransposeChanged(newOffset: number): void {
+        this.transposeOffset.set(newOffset);
     }
 
     /**

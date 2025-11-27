@@ -3,8 +3,10 @@ import {
     Component,
     Signal,
     computed,
+    inject,
     input,
 } from '@angular/core';
+import { TransposeService } from '../../../core/services/transpose.service';
 
 /**
  * Typ linii z tekstem piosenki
@@ -63,29 +65,43 @@ const NBSP = '\u00A0';
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SongDisplayComponent {
+    private readonly transposeService = inject(TransposeService);
+
     /**
-     * Tre\u015b\u0107 piosenki w formacie ChordPro
+     * Treść piosenki w formacie ChordPro
      */
     public readonly content = input<string | undefined | null>();
 
     /**
-     * Flaga decyduj\u0105ca o wy\u015bwietlaniu akord\u00f3w
+     * Flaga decydująca o wyświetlaniu akordów
      */
     public readonly showChords = input<boolean>(false);
 
     /**
-     * Sparsowana tre\u015b\u0107 piosenki - automatycznie przeliczana gdy zmieni si\u0119 content
+     * Wartość transpozycji (przesunięcie w półtonach)
+     */
+    public readonly transposeOffset = input<number>(0);
+
+    /**
+     * Sparsowana treść piosenki - automatycznie przeliczana gdy zmieni się content lub transposeOffset
      */
     protected readonly parsedLines: Signal<ParsedLine[]> = computed(() => {
         const contentValue = this.content();
         if (!contentValue) {
             return [];
         }
-        return parseChordPro(contentValue);
+
+        // Najpierw transponuj treść jeśli offset !== 0
+        const offset = this.transposeOffset();
+        const processedContent = offset !== 0
+            ? this.transposeService.transposeContent(contentValue, offset)
+            : contentValue;
+
+        return parseChordPro(processedContent);
     });
 
     /**
-     * Pomocnicza sta\u0142a dla non-breaking space
+     * Pomocnicza stała dla non-breaking space
      */
     protected readonly nbsp = NBSP;
 }

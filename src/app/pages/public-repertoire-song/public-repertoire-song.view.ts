@@ -63,6 +63,12 @@ export class PublicRepertoireSongViewComponent implements OnInit, OnDestroy {
     public readonly showChords: WritableSignal<boolean> = signal(false);
 
     /**
+     * Sygnał zarządzający wartością transpozycji
+     * Domyślnie 0 (brak transpozycji)
+     */
+    public readonly transposeOffset: WritableSignal<number> = signal(0);
+
+    /**
      * Pomocniczy getter dla type narrowing
      */
     get loadedSong() {
@@ -83,6 +89,7 @@ export class PublicRepertoireSongViewComponent implements OnInit, OnDestroy {
                 : undefined,
             titleInToolbar: true,
             showChordsToggle: true,
+            showTransposeControls: true,
             showQrButton: false,
             showNavigation: true,
             backButtonAriaLabel: 'Powrót do repertuaru',
@@ -244,6 +251,13 @@ export class PublicRepertoireSongViewComponent implements OnInit, OnDestroy {
      */
     onChordsToggled(value: boolean): void {
         this.showChords.set(value);
+    }
+
+    /**
+     * Obsługuje zmianę wartości transpozycji
+     */
+    onTransposeChanged(newOffset: number): void {
+        this.transposeOffset.set(newOffset);
     }
 }
 

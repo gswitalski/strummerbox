@@ -4,7 +4,9 @@
     [title]="state().data?.title"
     [content]="state().data?.content"
     [showChords]="true"
+    [transposeOffset]="transposeOffset()"
     [navigation]="navigation() ?? undefined"
     [config]="viewerConfig()"
-    (qrButtonClicked)="onQrButtonClick()">
+    (qrButtonClicked)="onQrButtonClick()"
+    (transposeChanged)="onTransposeChanged($event)">
 </stbo-song-viewer>

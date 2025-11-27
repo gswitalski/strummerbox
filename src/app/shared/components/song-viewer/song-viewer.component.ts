@@ -14,6 +14,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { SongDisplayComponent } from '../song-display/song-display.component';
 import { SongNavigationComponent } from '../song-navigation/song-navigation.component';
 import { ErrorDisplayComponent } from '../error-display/error-display.component';
+import { TransposeControlsComponent } from '../transpose-controls/transpose-controls.component';
 import type {
     SongViewerConfig,
     SongViewerStatus,
@@ -56,6 +57,7 @@ import type { SongNavigation } from './song-viewer.types';
         SongDisplayComponent,
         SongNavigationComponent,
         ErrorDisplayComponent,
+        TransposeControlsComponent,
     ],
     templateUrl: './song-viewer.component.html',
     styleUrl: './song-viewer.component.scss',
@@ -88,6 +90,11 @@ export class SongViewerComponent {
     @Input() showChords = false;
 
     /**
+     * Aktualna wartość transpozycji (przesunięcie w półtonach)
+     */
+    @Input() transposeOffset = 0;
+
+    /**
      * Obiekt nawigacyjny z linkami do poprzedniej/następnej piosenki
      * Wymagany tylko gdy config.showNavigation = true
      */
@@ -107,6 +114,11 @@ export class SongViewerComponent {
      * Zdarzenie emitowane gdy użytkownik klika przycisk FAB (kod QR)
      */
     @Output() qrButtonClicked = new EventEmitter<void>();
+
+    /**
+     * Zdarzenie emitowane gdy użytkownik zmienia wartość transpozycji
+     */
+    @Output() transposeChanged = new EventEmitter<number>();
 
     /**
      * Pomocnicze gettery dla czytelności w template
@@ -136,5 +148,12 @@ export class SongViewerComponent {
      */
     onQrButtonClick(): void {
         this.qrButtonClicked.emit();
+    }
+
+    /**
+     * Obsługa zmiany wartości transpozycji
+     */
+    onTransposeChange(newOffset: number): void {
+        this.transposeChanged.emit(newOffset);
     }
 }
