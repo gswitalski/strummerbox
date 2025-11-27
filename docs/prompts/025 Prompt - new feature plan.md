@@ -1,4 +1,4 @@
-Jesteś doświadczonym analitykiem produktowym i architektem oprogramowania. Twoim zadaniem jest przeanalizowanie dokumentów projektu aplikacji webowej i dodanie nowej funkcjonalności do istniejącego projektu.
+Jesteś doświadczonym analitykiem produktowym i architektem oprogramowania. Twoim zadaniem jest przeanalizowanie dokumentów projektu aplikacji webowej i dodanie dodanie do dokumentacji opisu nowej funkcjonalności do istniejącego projektu.
 
 Oto dokumenty projektu, które musisz przeanalizować:
 
@@ -12,14 +12,25 @@ Oto opis nowej funkcjonalności, którą należy dodać do projektu:
 
 <nowa_funkcjonalnosc>
 
-widok piosenki dla organizatora w trybie biesiada wyświetla test wraz z akordami.
-publiczny widok piosenki dla anonimowego użytkownika zawiera tylko tekst (bez akordów)
+W publicznym widoku piosenki, po włączeniu widoczności akordów, użytkownik ma dostęp do narzędzia transpozycji, pozwalającego na zmianę tonacji utworu (w górę/w dół o pół tonu) w czasie rzeczywistym.
+W trybie 'Biesiada' dla Organizatora, narzędzie transpozycji jest dostępne domyślnie w widoku piosenki.
 
-Cchę aby publiczny użytkownik mógł również przełczyć sie na tryb z akordami. 
-Publiczny użytkownk powinien meć na górze pol lewej stronie przycisk do właczenia wersji z akordami
-Najlepiej jakby widok piosenki zalogownego organizatora  oraz widok publiczny widok piosenki korzsytał ze wspólnego komponentu do wyświrtlania piosenki (sam tekst z akordmi).
-Dla użytkownkia publicznego domyslnym trybem jest tryb bez akordów, dla zalogowanego tryb z akordami. zewnętrzny przycisk na widopku publicznym steruje przełączaniem trybu.
-Endpoint adla użytkownika nie trzeba zmieniać bo zawiera on już akordy
+-   ID: US-025
+-   Title: Transpozycja ad-hoc w widoku publicznym
+-   Description: Jako Biesiadnik grający na instrumencie, chcę móc tymczasowo zmienić tonację wyświetlanej piosenki, aby dopasować ją do stroju mojego instrumentu lub możliwości wokalnych grupy.
+-   Acceptance Criteria:
+    -   W widoku publicznym piosenki, kontrolki transpozycji pojawiają się tylko wtedy, gdy włączony jest tryb "Pokaż akordy".
+    -   Interfejs zawiera przyciski "-" i "+" oraz licznik przesunięcia (np. +2).
+    -   Zmiana tonacji następuje natychmiastowo bez przeładowania strony.
+    -   Wyłączenie widoku akordów ukrywa kontrolki transpozycji.
+
+-   ID: US-026
+-   Title: Transpozycja w trybie Organizatora (Biesiada)
+-   Description: Jako Organizator prowadzący śpiewanie, chcę mieć szybki dostęp do zmiany tonacji, aby zareagować na potrzeby grupy w trakcie imprezy.
+-   Acceptance Criteria:
+    -   W trybie 'Biesiada' kontrolki transpozycji są widoczne na stałe w widoku piosenki.
+    -   Transpozycja jest lokalna dla sesji przeglądarki i nie zmienia oryginalnego zapisu piosenki na serwerze.
+
 
 
 </nowa_funkcjonalnosc>
@@ -61,4 +72,6 @@ W tym dokumence umieść 3 rozdziały:
 2. Widoki.
 
 W każdym rozdziale umieść odpowiednio opisy historyjek, endpointów i widoków które są nowe lub zmienione. dla zmienionych dopisz notatkę co się zmieniło.
+
+Pamiętaj: niczego nie implementujesz, uaktualniasz tylko dokumentację.
 

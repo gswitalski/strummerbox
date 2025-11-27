@@ -88,6 +88,8 @@
 
 > **Note on ChordPro Conversion:** The feature allowing users to import songs from "chords-above-text" format is implemented entirely on the client-side. The conversion logic resides within the frontend application, which then sends the fully-formed ChordPro content via the standard `POST /songs` or `PATCH /songs/{id}` endpoints. No dedicated API endpoints are required for this functionality.
 
+> **Note on Chord Transposition:** The feature allowing users to transpose chords in real-time is implemented entirely on the client-side. The API always returns the song content as it is stored in the database. The frontend application is responsible for applying the transposition logic before rendering the song to the user. This approach ensures instant UI feedback without requiring additional server round-trips.
+
 #### POST /songs
 - **Method:** POST
 - **Path:** `/songs`
