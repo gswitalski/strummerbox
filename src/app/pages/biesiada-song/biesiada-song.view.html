@@ -1,23 +1,12 @@
-<!-- Komunikat błędu -->
-@if (hasError) {
-    <div class="error-container">
-        <stbo-error-display
-            [code]="0"
-            [message]="errorMessage">
-        </stbo-error-display>
-    </div>
-}
-
-<!-- Treść piosenki z akordami -->
-@if (!hasError) {
-    <stbo-song-viewer
-        [title]="title()"
-        [content]="content()"
-        [navigation]="navigation() ?? { previous: null, next: null, back: null }"
-        [isLoading]="isLoading"
-        [showChords]="true"
-        [showQrButton]="true"
-        (qrButtonClicked)="handleQrButtonClick()">
-    </stbo-song-viewer>
-}
-
+<stbo-song-viewer
+    [status]="viewerStatus()"
+    [error]="viewerError()"
+    [title]="state().data?.title"
+    [content]="state().data?.content"
+    [showChords]="true"
+    [transposeOffset]="transposeOffset()"
+    [navigation]="navigation() ?? undefined"
+    [config]="viewerConfig()"
+    (qrButtonClicked)="onQrButtonClick()"
+    (transposeChanged)="onTransposeChanged($event)">
+</stbo-song-viewer>

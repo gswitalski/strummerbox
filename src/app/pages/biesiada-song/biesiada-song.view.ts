@@ -13,9 +13,9 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { MatDialog } from '@angular/material/dialog';
 import { Subject, switchMap, takeUntil, catchError, of, map } from 'rxjs';
 import { BiesiadaService } from '../../core/services/biesiada.service';
-import { ErrorDisplayComponent } from '../../shared/components/error-display/error-display.component';
 import { SongViewerComponent } from '../../shared/components/song-viewer/song-viewer.component';
 import { ShareDialogComponent } from '../../shared/components/share-dialog/share-dialog.component';
+import type { SongViewerConfig } from '../../shared/components/song-viewer/song-viewer.config';
 import type { BiesiadaSongViewModel, BiesiadaSongState } from './biesiada-song.types';
 import type { BiesiadaRepertoireSongDetailDto } from '../../../../packages/contracts/types';
 import type { SongNavigation } from '../../shared/components/song-viewer/song-viewer.types';
@@ -33,10 +33,7 @@ import type { ShareDialogData } from '../../shared/models/share-dialog.model';
 @Component({
     selector: 'stbo-biesiada-song-view',
     standalone: true,
-    imports: [
-        ErrorDisplayComponent,
-        SongViewerComponent,
-    ],
+    imports: [SongViewerComponent],
     templateUrl: './biesiada-song.view.html',
     styleUrl: './biesiada-song.view.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -58,51 +55,53 @@ export class BiesiadaSongViewComponent implements OnInit, OnDestroy {
     });
 
     /**
-     * Pomocnicze gettery dla type narrowing w template
+     * Sygnał zarządzający wartością transpozycji
+     * Domyślnie 0 (brak transpozycji)
      */
-    get isLoading(): boolean {
-        return this.state().isLoading;
-    }
-
-    get hasError(): boolean {
-        return this.state().error !== null;
-    }
-
-    get hasData(): boolean {
-        return this.state().data !== null;
-    }
-
-    get viewModel(): BiesiadaSongViewModel | null {
-        return this.state().data;
-    }
-
-    get errorMessage(): string {
-        const error = this.state().error;
-        return error ? error.message : '';
-    }
+    public readonly transposeOffset = signal(0);
 
     /**
-     * Computed signal - nawigacja dla SongViewerComponent
+     * Konfiguracja dla komponentu SongViewer
+     * Będzie aktualizowana dynamicznie w computed signal
+     */
+    public readonly viewerConfig = computed<SongViewerConfig>(() => {
+        const viewModel = this.state().data;
+        return {
+            showBackButton: !!viewModel?.navigation.back,
+            backLink: viewModel?.navigation.back || undefined,
+            titleInToolbar: false, // Tytuł w content, nie w toolbarze
+            showChordsToggle: false, // Zawsze pokazuj akordy w trybie biesiada
+            showTransposeControls: true, // Kontrolki transpozycji widoczne
+            showQrButton: true,
+            showNavigation: true,
+            backButtonAriaLabel: 'Powrót do listy',
+        };
+    });
+
+    /**
+     * Computed signal - nawigacja
      */
     public readonly navigation = computed<SongNavigation | null>(() => {
-        const viewModel = this.viewModel;
-        if (!viewModel) return null;
-
-        return viewModel.navigation;
+        const viewModel = this.state().data;
+        return viewModel?.navigation || null;
     });
 
     /**
-     * Computed signal - tytuł piosenki
+     * Computed signal - status dla SongViewer
      */
-    public readonly title = computed<string>(() => {
-        return this.viewModel?.title ?? '';
+    public readonly viewerStatus = computed<'loading' | 'loaded' | 'error'>(() => {
+        const state = this.state();
+        if (state.isLoading) return 'loading';
+        if (state.error) return 'error';
+        return 'loaded';
     });
 
     /**
-     * Computed signal - treść piosenki z akordami
+     * Computed signal - obiekt błędu
      */
-    public readonly content = computed<string>(() => {
-        return this.viewModel?.content ?? '';
+    public readonly viewerError = computed<{ code: number; message: string } | undefined>(() => {
+        const error = this.state().error;
+        return error ? { code: 0, message: error.message } : undefined;
     });
 
     ngOnInit(): void {
@@ -181,8 +180,8 @@ export class BiesiadaSongViewComponent implements OnInit, OnDestroy {
     /**
      * Obsługuje kliknięcie przycisku QR - otwiera dialog udostępniania
      */
-    public handleQrButtonClick(): void {
-        const viewModel = this.viewModel;
+    onQrButtonClick(): void {
+        const viewModel = this.state().data;
         if (!viewModel) return;
 
         const dialogData: ShareDialogData = {
@@ -196,6 +195,13 @@ export class BiesiadaSongViewComponent implements OnInit, OnDestroy {
             width: '600px',
             maxWidth: '90vw',
         });
+    }
+
+    /**
+     * Obsługuje zmianę wartości transpozycji
+     */
+    onTransposeChanged(newOffset: number): void {
+        this.transposeOffset.set(newOffset);
     }
 
     /**

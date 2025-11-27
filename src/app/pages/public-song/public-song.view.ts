@@ -5,36 +5,30 @@ import {
     WritableSignal,
     inject,
     signal,
-    computed,
 } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Title, Meta } from '@angular/platform-browser';
 import { HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { PublicSongService } from './services/public-song.service';
-import { stripChords } from './utils/chord-stripper';
 import { SongViewerComponent } from '../../shared/components/song-viewer/song-viewer.component';
-import { ErrorDisplayComponent } from '../../shared/components/error-display/error-display.component';
+import type { SongViewerConfig } from '../../shared/components/song-viewer/song-viewer.config';
 import type { PublicSongState } from './public-song.types';
 import type { PublicSongDto } from '../../../../packages/contracts/types';
-import type { SongNavigation } from '../../shared/components/song-viewer/song-viewer.types';
 
 /**
  * Główny komponent widoku publicznej piosenki (smart component).
  * Odpowiedzialny za:
  * - Odczytanie parametru publicId z URL
  * - Pobranie danych piosenki z API
- * - Usunięcie akordów z treści
- * - Zarządzanie stanem widoku
+ * - Zarządzanie stanem widoku (ładowanie, błąd, dane)
+ * - Obsługę przełącznika widoczności akordów
  * - Dynamiczne ustawianie metatagów
  */
 @Component({
     selector: 'stbo-public-song-view',
     standalone: true,
-    imports: [
-        SongViewerComponent,
-        ErrorDisplayComponent,
-    ],
+    imports: [SongViewerComponent],
     templateUrl: './public-song.view.html',
     styleUrl: './public-song.view.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -53,54 +47,28 @@ export class PublicSongViewComponent implements OnInit {
     });
 
     /**
-     * Pomocnicze gettery dla type narrowing w template
+     * Sygnał zarządzający widocznością akordów
+     * Domyślnie false (tylko tekst)
      */
-    get isLoading(): boolean {
-        return this.state().status === 'loading';
-    }
-
-    get isLoaded(): boolean {
-        return this.state().status === 'loaded';
-    }
-
-    get isError(): boolean {
-        return this.state().status === 'error';
-    }
-
-    get loadedSong() {
-        const currentState = this.state();
-        return currentState.status === 'loaded' ? currentState.song : null;
-    }
-
-    get errorData() {
-        const currentState = this.state();
-        return currentState.status === 'error' ? currentState.error : null;
-    }
+    public readonly showChords: WritableSignal<boolean> = signal(false);
 
     /**
-     * Computed signal - nawigacja dla SongViewerComponent (pusta, bez przycisków)
+     * Sygnał zarządzający wartością transpozycji
+     * Domyślnie 0 (brak transpozycji)
      */
-    public readonly navigation = computed<SongNavigation>(() => {
-        return {
-            previous: null,
-            next: null,
-            back: null,
-        };
-    });
+    public readonly transposeOffset: WritableSignal<number> = signal(0);
 
     /**
-     * Computed signal - tytuł piosenki
+     * Konfiguracja dla komponentu SongViewer
      */
-    public readonly title = computed<string>(() => {
-        return this.loadedSong?.title ?? '';
-    });
-
-    /**
-     * Computed signal - treść piosenki bez akordów
-     */
-    public readonly content = computed<string>(() => {
-        return this.loadedSong?.content ?? '';
-    });
+    public readonly viewerConfig: SongViewerConfig = {
+        showBackButton: false,
+        titleInToolbar: true,
+        showChordsToggle: true,
+        showTransposeControls: true,
+        showQrButton: false,
+        showNavigation: false,
+    };
 
     ngOnInit(): void {
         // Pobierz publicId z parametrów trasy
@@ -118,7 +86,7 @@ export class PublicSongViewComponent implements OnInit {
     }
 
     /**
-     * Pobiera dane piosenki z API i przetwarza treść
+     * Pobiera dane piosenki z API
      */
     private async loadSong(publicId: string): Promise<void> {
         this.state.set({ status: 'loading' });
@@ -128,15 +96,12 @@ export class PublicSongViewComponent implements OnInit {
                 this.publicSongService.getSongByPublicId(publicId)
             );
 
-            // Usuń akordy z treści
-            const processedContent = stripChords(dto.content);
-
-            // Zaktualizuj stan
+            // Zaktualizuj stan z pełną treścią ChordPro
             this.state.set({
                 status: 'loaded',
                 song: {
                     title: dto.title,
-                    content: processedContent,
+                    content: dto.content,
                 },
             });
 
@@ -190,6 +155,20 @@ export class PublicSongViewComponent implements OnInit {
             name: 'robots',
             content: 'noindex, nofollow',
         });
+    }
+
+    /**
+     * Obsługuje zmianę przełącznika akordów
+     */
+    onChordsToggled(value: boolean): void {
+        this.showChords.set(value);
+    }
+
+    /**
+     * Obsługuje zmianę wartości transpozycji
+     */
+    onTransposeChanged(newOffset: number): void {
+        this.transposeOffset.set(newOffset);
     }
 }
 

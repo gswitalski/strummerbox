@@ -9,6 +9,16 @@ import { Injectable } from '@angular/core';
 })
 export class ChordConverterService {
     /**
+     * Wzorzec dla kompletnego akordu muzycznego.
+     * Dopasowuje cały token jako akord (nie szuka wewnątrz słów).
+     *
+     * Format: [CDEFGAB lub cdefgab lub H/h][#/b opcjonalnie][modyfikator opcjonalnie][cyfra opcjonalnie]
+     *
+     * Przykłady poprawnych akordów: C, Am, G#, Bb, Dm7, Csus4, Fmaj7, a, e, H
+     */
+    private readonly CHORD_PATTERN = /^[A-Ga-gHh](#|b)?(m|maj|min|M|aug|dim|sus|add)?\d*(\/[A-Ga-gHh](#|b)?)?$/;
+
+    /**
      * Konwertuje tekst w formacie "akordy nad tekstem" do formatu ChordPro.
      *
      * Format wejściowy:
@@ -58,10 +68,25 @@ export class ChordConverterService {
     }
 
     /**
+     * Sprawdza, czy podany token jest poprawnym akordem muzycznym.
+     * Token musi w całości pasować do wzorca akordu.
+     *
+     * @param token - Token do sprawdzenia
+     * @returns true jeśli token jest akordem
+     */
+    private isChord(token: string): boolean {
+        return this.CHORD_PATTERN.test(token);
+    }
+
+    /**
      * Sprawdza, czy linia zawiera akordy.
      * Linia jest uznawana za linię z akordami, jeśli:
-     * - Zawiera przynajmniej jeden akord (A-G lub a-g z opcjonalnymi modyfikatorami)
-     * - Nie zawiera zbyt wielu zwykłych słów (stosunek akordów do słów jest wysoki)
+     * - Zawiera przynajmniej jeden kompletny token będący akordem
+     * - Stosunek tokenów-akordów do wszystkich tokenów jest wysoki (>= 60%)
+     * - Tokeny są sprawdzane jako całość (nie szukamy akordów wewnątrz słów)
+     *
+     * Ta metoda jest odporna na polskie znaki diakrytyczne, ponieważ
+     * sprawdza całe tokeny zamiast szukać wzorców wewnątrz słów.
      */
     private isChordLine(line: string): boolean {
         if (!line || line.trim().length === 0) {
@@ -70,20 +95,24 @@ export class ChordConverterService {
 
         const trimmed = line.trim();
 
-        // Regex dla akordów: litera A-G lub a-g (notacja europejska), po której może być #, b, m, cyfry, sus, dim, aug itp.
-        const chordPattern = /\b[A-Ga-g](#|b)?(m|maj|min|aug|dim|sus)?\d*\b/g;
-        const chords = trimmed.match(chordPattern);
+        // Podziel linię na tokeny (oddzielone spacjami)
+        const tokens = trimmed.split(/\s+/).filter(t => t.length > 0);
 
-        if (!chords || chords.length === 0) {
+        if (tokens.length === 0) {
             return false;
         }
 
-        // Sprawdź stosunek akordów do wszystkich tokenów
-        const tokens = trimmed.split(/\s+/).filter(t => t.length > 0);
+        // Policz ile tokenów to kompletne akordy
+        const chordCount = tokens.filter(token => this.isChord(token)).length;
 
-        // Jeśli więcej niż 40% tokenów to akordy, uznajemy to za linię akordową
-        const chordRatio = chords.length / tokens.length;
-        return chordRatio >= 0.4;
+        if (chordCount === 0) {
+            return false;
+        }
+
+        // Jeśli więcej niż 60% tokenów to akordy, uznajemy to za linię akordową
+        // Wyższy próg (60%) pomaga uniknąć fałszywych pozytywów
+        const chordRatio = chordCount / tokens.length;
+        return chordRatio >= 0.6;
     }
 
     /**
@@ -117,17 +146,25 @@ export class ChordConverterService {
 
     /**
      * Ekstraktuje pozycje i wartości akordów z linii akordowej.
+     * Iteruje przez linię szukając tokenów (ciągów znaków nie będących spacjami)
+     * i sprawdza każdy token metodą isChord().
      */
     private extractChordPositions(line: string): { position: number; chord: string }[] {
-        const chordPattern = /[A-Ga-g](#|b)?(m|maj|min|aug|dim|sus)?\d*/g;
         const positions: { position: number; chord: string }[] = [];
+
+        // Znajdź wszystkie tokeny (ciągi znaków nie będące spacjami) wraz z ich pozycjami
+        const tokenPattern = /\S+/g;
         let match: RegExpExecArray | null;
 
-        while ((match = chordPattern.exec(line)) !== null) {
-            positions.push({
-                position: match.index,
-                chord: match[0],
-            });
+        while ((match = tokenPattern.exec(line)) !== null) {
+            const token = match[0];
+            // Sprawdź czy token jest poprawnym akordem
+            if (this.isChord(token)) {
+                positions.push({
+                    position: match.index,
+                    chord: token,
+                });
+            }
         }
 
         return positions;
@@ -135,12 +172,13 @@ export class ChordConverterService {
 
     /**
      * Ekstraktuje same akordy z linii (gdy nie ma tekstu pod nią).
+     * Zwraca tylko tokeny będące poprawnymi akordami.
      */
     private extractChordsOnly(line: string): string {
-        const chordPattern = /[A-Ga-g](#|b)?(m|maj|min|aug|dim|sus)?\d*/g;
-        const chords = line.match(chordPattern);
+        const tokens = line.split(/\s+/).filter(t => t.length > 0);
+        const chords = tokens.filter(token => this.isChord(token));
 
-        if (!chords || chords.length === 0) {
+        if (chords.length === 0) {
             return line;
         }
 

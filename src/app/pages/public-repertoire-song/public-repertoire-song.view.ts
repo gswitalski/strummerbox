@@ -13,11 +13,9 @@ import { Title, Meta } from '@angular/platform-browser';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Subject, switchMap, takeUntil, catchError, of, map } from 'rxjs';
 import { PublicRepertoireService } from '../public-repertoire/services/public-repertoire.service';
-import { ErrorDisplayComponent } from '../../shared/components/error-display/error-display.component';
 import { SongViewerComponent } from '../../shared/components/song-viewer/song-viewer.component';
-import { stripChords } from '../public-song/utils/chord-stripper';
+import type { SongViewerConfig } from '../../shared/components/song-viewer/song-viewer.config';
 import type { PublicRepertoireSongState } from './public-repertoire-song.types';
-import type { PublicRepertoireSongDto } from '../../../../packages/contracts/types';
 import type { SongNavigation } from '../../shared/components/song-viewer/song-viewer.types';
 
 /**
@@ -25,17 +23,15 @@ import type { SongNavigation } from '../../shared/components/song-viewer/song-vi
  * Odpowiedzialny za:
  * - Odczytanie parametrów repertoirePublicId i songPublicId z URL
  * - Pobranie danych piosenki z API
- * - Zarządzanie stanem widoku
+ * - Zarządzanie stanem widoku (ładowanie, błąd, dane)
  * - Nawigację między piosenkami w repertuarze
+ * - Obsługę przełącznika widoczności akordów
  * - Dynamiczne ustawianie metatagów
  */
 @Component({
     selector: 'stbo-public-repertoire-song-view',
     standalone: true,
-    imports: [
-        ErrorDisplayComponent,
-        SongViewerComponent,
-    ],
+    imports: [SongViewerComponent],
     templateUrl: './public-repertoire-song.view.html',
     styleUrl: './public-repertoire-song.view.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -61,29 +57,44 @@ export class PublicRepertoireSongViewComponent implements OnInit, OnDestroy {
     });
 
     /**
-     * Pomocnicze gettery dla type narrowing w template
+     * Sygnał zarządzający widocznością akordów
+     * Domyślnie false (tylko tekst)
      */
-    get isLoading(): boolean {
-        return this.state().status === 'loading';
-    }
+    public readonly showChords: WritableSignal<boolean> = signal(false);
 
-    get isLoaded(): boolean {
-        return this.state().status === 'loaded';
-    }
+    /**
+     * Sygnał zarządzający wartością transpozycji
+     * Domyślnie 0 (brak transpozycji)
+     */
+    public readonly transposeOffset: WritableSignal<number> = signal(0);
 
-    get isError(): boolean {
-        return this.state().status === 'error';
-    }
-
-    get loadedSong(): PublicRepertoireSongDto | null {
+    /**
+     * Pomocniczy getter dla type narrowing
+     */
+    get loadedSong() {
         const currentState = this.state();
         return currentState.status === 'loaded' ? currentState.song : null;
     }
 
-    get errorData() {
-        const currentState = this.state();
-        return currentState.status === 'error' ? currentState.error : null;
-    }
+    /**
+     * Konfiguracja dla komponentu SongViewer
+     * Będzie aktualizowana dynamicznie w computed signal
+     */
+    public readonly viewerConfig = computed<SongViewerConfig>(() => {
+        const repertoirePublicId = this.currentRepertoirePublicId();
+        return {
+            showBackButton: !!repertoirePublicId,
+            backLink: repertoirePublicId
+                ? ['/public/repertoires', repertoirePublicId]
+                : undefined,
+            titleInToolbar: true,
+            showChordsToggle: true,
+            showTransposeControls: true,
+            showQrButton: false,
+            showNavigation: true,
+            backButtonAriaLabel: 'Powrót do repertuaru',
+        };
+    });
 
     /**
      * Computed signal - nawigacja dla SongViewerComponent.
@@ -130,16 +141,6 @@ export class PublicRepertoireSongViewComponent implements OnInit, OnDestroy {
         };
     });
 
-    /**
-     * Computed signal - treść piosenki bez akordów (stripped)
-     */
-    public readonly strippedContent = computed<string>(() => {
-        const song = this.loadedSong;
-        if (!song || !song.content) {
-            return '';
-        }
-        return stripChords(song.content);
-    });
 
     ngOnInit(): void {
         // Reaktywne ładowanie danych przy każdej zmianie parametrów URL
@@ -243,6 +244,20 @@ export class PublicRepertoireSongViewComponent implements OnInit, OnDestroy {
         if (!url) return null;
         const segments = url.split('/');
         return segments[segments.length - 1] || null;
+    }
+
+    /**
+     * Obsługuje zmianę przełącznika akordów
+     */
+    onChordsToggled(value: boolean): void {
+        this.showChords.set(value);
+    }
+
+    /**
+     * Obsługuje zmianę wartości transpozycji
+     */
+    onTransposeChanged(newOffset: number): void {
+        this.transposeOffset.set(newOffset);
     }
 }
 

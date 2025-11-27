@@ -1,13 +1,5 @@
+// Style przeniesione do SongViewerComponent
+// Ten widok wykorzystuje teraz reużywalny komponent prezentacyjny
 :host {
     display: block;
-    min-height: 100vh;
-    background-color: var(--mat-sys-surface);
-}
-
-.error-container {
-    padding: 2rem;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 50vh;
 }

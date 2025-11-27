@@ -1,22 +1,14 @@
-<!-- Komunikat błędu -->
-@if (isError && errorData) {
-    <div class="error-container">
-        <stbo-error-display
-            [code]="errorData.code"
-            [message]="errorData.message">
-        </stbo-error-display>
-    </div>
-}
-
-<!-- Treść piosenki -->
-@if (isLoaded || isLoading) {
+@if (state(); as currentState) {
     <stbo-song-viewer
-        [title]="loadedSong?.title ?? ''"
-        [content]="strippedContent()"
+        [status]="currentState.status"
+        [error]="currentState.status === 'error' ? currentState.error : undefined"
+        [title]="currentState.status === 'loaded' ? currentState.song.title : undefined"
+        [content]="currentState.status === 'loaded' ? currentState.song.content : undefined"
+        [showChords]="showChords()"
+        [transposeOffset]="transposeOffset()"
         [navigation]="navigation()"
-        [isLoading]="isLoading"
-        [showChords]="false"
-        [showQrButton]="false">
+        [config]="viewerConfig()"
+        (chordsToggled)="onChordsToggled($event)"
+        (transposeChanged)="onTransposeChanged($event)">
     </stbo-song-viewer>
 }
-

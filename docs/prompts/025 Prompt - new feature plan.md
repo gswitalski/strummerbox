@@ -1,4 +1,4 @@
-Jesteś doświadczonym analitykiem produktowym i architektem oprogramowania. Twoim zadaniem jest przeanalizowanie dokumentów projektu aplikacji webowej i dodanie nowej funkcjonalności do istniejącego projektu.
+Jesteś doświadczonym analitykiem produktowym i architektem oprogramowania. Twoim zadaniem jest przeanalizowanie dokumentów projektu aplikacji webowej i dodanie dodanie do dokumentacji opisu nowej funkcjonalności do istniejącego projektu.
 
 Oto dokumenty projektu, które musisz przeanalizować:
 
@@ -12,8 +12,25 @@ Oto opis nowej funkcjonalności, którą należy dodać do projektu:
 
 <nowa_funkcjonalnosc>
 
-Aktualnie nowy użytkownik zakłąłdając konto musie podać email i hasło i od razu ma założone konto. 
-Chce aby system wymagał od uzytkownika potwierdzenie emaila aby konto zostało aktywowane
+W publicznym widoku piosenki, po włączeniu widoczności akordów, użytkownik ma dostęp do narzędzia transpozycji, pozwalającego na zmianę tonacji utworu (w górę/w dół o pół tonu) w czasie rzeczywistym.
+W trybie 'Biesiada' dla Organizatora, narzędzie transpozycji jest dostępne domyślnie w widoku piosenki.
+
+-   ID: US-025
+-   Title: Transpozycja ad-hoc w widoku publicznym
+-   Description: Jako Biesiadnik grający na instrumencie, chcę móc tymczasowo zmienić tonację wyświetlanej piosenki, aby dopasować ją do stroju mojego instrumentu lub możliwości wokalnych grupy.
+-   Acceptance Criteria:
+    -   W widoku publicznym piosenki, kontrolki transpozycji pojawiają się tylko wtedy, gdy włączony jest tryb "Pokaż akordy".
+    -   Interfejs zawiera przyciski "-" i "+" oraz licznik przesunięcia (np. +2).
+    -   Zmiana tonacji następuje natychmiastowo bez przeładowania strony.
+    -   Wyłączenie widoku akordów ukrywa kontrolki transpozycji.
+
+-   ID: US-026
+-   Title: Transpozycja w trybie Organizatora (Biesiada)
+-   Description: Jako Organizator prowadzący śpiewanie, chcę mieć szybki dostęp do zmiany tonacji, aby zareagować na potrzeby grupy w trakcie imprezy.
+-   Acceptance Criteria:
+    -   W trybie 'Biesiada' kontrolki transpozycji są widoczne na stałe w widoku piosenki.
+    -   Transpozycja jest lokalna dla sesji przeglądarki i nie zmienia oryginalnego zapisu piosenki na serwerze.
+
 
 
 </nowa_funkcjonalnosc>
@@ -48,11 +65,13 @@ Twoja końcowa odpowiedź powinna zawierać trzy wyraźnie oznaczone sekcje:
 Sformatuj swoją odpowiedź używając odpowiednich nagłówków i zachowując czytelną strukturę.
 
 
-Stwórz jescze jeden dokument w doc/results/{nazwa-ficzera-po-angielsku}-change.md
+Dodatkowo  stwórz dokument w doc/results/changes/{nazwa-ficzera-po-angielsku}-changes.md
 W tym dokumence umieść 3 rozdziały:
 1. historyjki użytkownika
 2. API
 2. Widoki.
 
-W każdym rozdziale umiesc odpowiednio opisy historyjek, endpointów i widoków które są nowe lub zmienione. dla zmienionych dopisz notatkę co się zmieniło.
+W każdym rozdziale umieść odpowiednio opisy historyjek, endpointów i widoków które są nowe lub zmienione. dla zmienionych dopisz notatkę co się zmieniło.
+
+Pamiętaj: niczego nie implementujesz, uaktualniasz tylko dokumentację.
 

@@ -42,17 +42,48 @@ Zapoznaj się z następującymi materiałami:
 
 <aktualne_zachowanie>
 
-Widok Potwierdzenia E-mail (Email Confirmation View)** Ścieżka:`/auth/confirm-email`
-czeka na potwierdzenie maila po czym pisze, że linkt aktywacyjny wygasł, choć taknaprawde link został aktywowanyproawidłowo i możmna się logować
 
+import piosenki z formau 'akordy nad tekstem'
+gdy na początku tekstu jest sama litera a będąca poprawnym wyrazem w języku polskim, algorytm interpretuje to jako wiersz akordów w efekcie taki tekst
+<source_text>
+ C   G      C       C     G        C
+Poszli, znaleźli Dzieciątko w żłobie 
+     C   G     C      C  G     C
+z wszystkimi znaki, danymi sobie. 
+ C    a     F       G
+Jako Bogu cześć Mu dali, 
+C    a     F   G
+a witając zawołali 
+    C       G    C      C       G    C
+z wielkiej radości, z wielkiej radości
+</source_text>
+
+jest interpretowany:
+
+<result>
+
+P[C]oszl[G]i, znal[C]eźli Dzi[C]eciątk[G]o w żłobi[C]e 
+z wsz[C]ystk[G]imi zn[C]aki, da[C]nym[G]i sobi[C]e. 
+J[C]ako B[a]ogu cz[F]eść Mu d[G]ali, 
+[C] [a] [F] [G]
+[a] [a] [c] [a] [a]
+z wi[C]elkiej r[G]adośc[C]i, z wi[C]elkiej r[G]adośc[C]i
+</result>
 
 </aktualne_zachowanie>
 
 <oczekiwane_zachowanie>
 
-Na widok  
-Widok Potwierdzenia E-mail (Email Confirmation View)** Ścieżka:`/auth/confirm-email`
-Wyświela informację o poprawnym aktywowaniu maila
+<result>
+
+P[C]oszl[G]i, znal[C]eźli Dzi[C]eciątk[G]o w żłobi[C]e 
+z wsz[C]ystk[G]imi zn[C]aki, da[C]nym[G]i sobi[C]e. 
+J[C]ako B[a]ogu cz[F]eść Mu d[G]ali, 
+[C]a wit[a]ając z[F]awoł[G]ali 
+z wi[C]elkiej r[G]adośc[C]i, z wi[C]elkiej r[G]adośc[C]i
+
+
+</result>
 
 </oczekiwane_zachowanie>
 
