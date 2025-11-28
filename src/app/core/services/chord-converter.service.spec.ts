@@ -447,5 +447,167 @@ describe('ChordConverterService', () => {
             expect(lines[0]).toContain('[G]');
         });
     });
+
+    describe('convertToOverText', () => {
+        it('should return empty string for empty input', () => {
+            const result = service.convertToOverText('');
+            expect(result).toBe('');
+        });
+
+        it('should return empty string for whitespace-only input', () => {
+            const result = service.convertToOverText('   \n  \n  ');
+            expect(result).toBe('');
+        });
+
+        it('should convert simple ChordPro format', () => {
+            const input = '[C]To jest [Am]przykład [F]piosenki [G]z akordami';
+
+            const result = service.convertToOverText(input);
+            const lines = result.split('\n');
+
+            expect(lines.length).toBe(2);
+            // Linia akordów powinna zawierać akordy w odpowiednich pozycjach
+            expect(lines[0]).toContain('C');
+            expect(lines[0]).toContain('Am');
+            expect(lines[0]).toContain('F');
+            expect(lines[0]).toContain('G');
+            // Linia tekstu
+            expect(lines[1]).toBe('To jest przykład piosenki z akordami');
+        });
+
+        it('should handle multiple lines with chords', () => {
+            const input = [
+                '[C]Pierwsza [Am]zwrotka',
+                '',
+                '[F]Druga [G]zwrotka'
+            ].join('\n');
+
+            const result = service.convertToOverText(input);
+            const lines = result.split('\n');
+
+            // Każda linia z akordami staje się dwoma liniami
+            expect(lines.length).toBe(5);
+            expect(lines[0]).toContain('C');
+            expect(lines[0]).toContain('Am');
+            expect(lines[1]).toBe('Pierwsza zwrotka');
+            expect(lines[2]).toBe('');
+            expect(lines[3]).toContain('F');
+            expect(lines[3]).toContain('G');
+            expect(lines[4]).toBe('Druga zwrotka');
+        });
+
+        it('should preserve lines without chords', () => {
+            const input = [
+                'Refren:',
+                '[C]To jest [G]refren',
+                '',
+                'Zwrotka:'
+            ].join('\n');
+
+            const result = service.convertToOverText(input);
+            const lines = result.split('\n');
+
+            expect(lines[0]).toBe('Refren:');
+            // Linia z akordami rozdzielona na dwie
+            expect(lines[1]).toContain('C');
+            expect(lines[1]).toContain('G');
+            expect(lines[2]).toBe('To jest refren');
+            expect(lines[3]).toBe('');
+            expect(lines[4]).toBe('Zwrotka:');
+        });
+
+        it('should handle chords at the beginning of line', () => {
+            const input = '[Am]Kiedy pada deszcz';
+
+            const result = service.convertToOverText(input);
+            const lines = result.split('\n');
+
+            expect(lines.length).toBe(2);
+            expect(lines[0].startsWith('Am')).toBe(true);
+            expect(lines[1]).toBe('Kiedy pada deszcz');
+        });
+
+        it('should handle complex chord notations', () => {
+            const input = '[Am7]Tekst [Dm9]z [G#sus4]akordami [Cmaj7]złożonymi';
+
+            const result = service.convertToOverText(input);
+            const lines = result.split('\n');
+
+            expect(lines[0]).toContain('Am7');
+            expect(lines[0]).toContain('Dm9');
+            expect(lines[0]).toContain('G#sus4');
+            expect(lines[0]).toContain('Cmaj7');
+            expect(lines[1]).toBe('Tekst z akordami złożonymi');
+        });
+
+        it('should handle chords with sharps and flats', () => {
+            const input = '[C#]Tekst [Bb]z [F#m]akordami [Eb]chromatycznymi';
+
+            const result = service.convertToOverText(input);
+            const lines = result.split('\n');
+
+            expect(lines[0]).toContain('C#');
+            expect(lines[0]).toContain('Bb');
+            expect(lines[0]).toContain('F#m');
+            expect(lines[0]).toContain('Eb');
+        });
+
+        it('should handle consecutive chords without text between them', () => {
+            const input = '[C][Am][F][G]';
+
+            const result = service.convertToOverText(input);
+            const lines = result.split('\n');
+
+            expect(lines.length).toBe(2);
+            expect(lines[0]).toContain('C');
+            expect(lines[0]).toContain('Am');
+            expect(lines[0]).toContain('F');
+            expect(lines[0]).toContain('G');
+            expect(lines[1]).toBe('');
+        });
+
+        it('should handle unclosed bracket gracefully', () => {
+            const input = '[C]Tekst z [niezamkniętym nawiasem';
+
+            const result = service.convertToOverText(input);
+
+            // Powinien obsłużyć to bez crashu
+            expect(result).toBeTruthy();
+        });
+
+        it('should position chords correctly over text', () => {
+            const input = '[C]To jest [G]tekst';
+
+            const result = service.convertToOverText(input);
+            const lines = result.split('\n');
+
+            expect(lines.length).toBe(2);
+            // C powinien być na początku
+            expect(lines[0].trimStart().startsWith('C')).toBe(true);
+            // G powinien być po C
+            expect(lines[0].indexOf('G')).toBeGreaterThan(lines[0].indexOf('C'));
+            // Tekst powinien być zachowany
+            expect(lines[1]).toBe('To jest tekst');
+        });
+
+        it('should be inverse of convertFromChordsOverText for simple cases', () => {
+            const original = [
+                'C       Am      F       G',
+                'To jest przykładowy tekst'
+            ].join('\n');
+
+            // Konwertuj do ChordPro i z powrotem
+            const chordPro = service.convertFromChordsOverText(original);
+            const backToOverText = service.convertToOverText(chordPro);
+
+            // Wynikowy tekst powinien zawierać ten sam tekst
+            expect(backToOverText).toContain('To jest przykładowy tekst');
+            // I te same akordy
+            expect(backToOverText).toContain('C');
+            expect(backToOverText).toContain('Am');
+            expect(backToOverText).toContain('F');
+            expect(backToOverText).toContain('G');
+        });
+    });
 });
 

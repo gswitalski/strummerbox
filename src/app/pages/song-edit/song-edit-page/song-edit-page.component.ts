@@ -1,9 +1,6 @@
-import { BreakpointObserver, LayoutModule } from '@angular/cdk/layout';
-import { NgClass } from '@angular/common';
 import {
     ChangeDetectionStrategy,
     Component,
-    DestroyRef,
     OnInit,
     Signal,
     ViewChild,
@@ -12,50 +9,50 @@ import {
     inject,
     signal,
 } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatTabsModule } from '@angular/material/tabs';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
-import { map } from 'rxjs';
 
 import type {
     SongDto,
     SongPatchCommand,
 } from '../../../../../packages/contracts/types';
-import { SongFormComponent } from '../../song-create/components/song-form/song-form.component';
-import { ChordProPreviewComponent } from '../../song-create/components/chord-pro-preview/chord-pro-preview.component';
-import { ImportFromTextDialogComponent } from '../../song-create/components/import-from-text-dialog/import-from-text-dialog.component';
 import { SongsApiService } from '../../song-create/services/songs-api.service';
+import { ChordConverterService } from '../../../core/services/chord-converter.service';
+import {
+    SongEditFormComponent,
+    SongEditFormData,
+    SongEditFormInitialData,
+} from '../../../shared/components/song-edit-form/song-edit-form.component';
 
-interface SongEditFormViewModel {
-    title: string;
-    content: string;
-}
-
+/**
+ * Typy błędów możliwych do wystąpienia w komponencie.
+ */
 type SongEditError = 'load_failed' | 'not_found' | 'save_failed' | 'duplicate' | null;
 
-const LARGE_SCREEN_QUERY = '(min-width: 1024px)' as const;
-
+/**
+ * Komponent strony edycji piosenki.
+ * 
+ * Odpowiedzialności:
+ * - Pobieranie danych piosenki z API
+ * - Konwersja treści z ChordPro na format "akordy nad tekstem" przy ładowaniu
+ * - Konwersja treści z formatu "akordy nad tekstem" na ChordPro przy zapisie
+ * - Obsługa stanów ładowania, zapisu i błędów
+ * - Nawigacja po zakończeniu operacji
+ */
 @Component({
     selector: 'stbo-song-edit-page',
     standalone: true,
     imports: [
-        LayoutModule,
         MatButtonModule,
         MatIconModule,
         MatProgressBarModule,
         MatProgressSpinnerModule,
-        MatTabsModule,
         MatSnackBarModule,
-        MatDialogModule,
-        NgClass,
-        SongFormComponent,
-        ChordProPreviewComponent,
+        SongEditFormComponent,
     ],
     templateUrl: './song-edit-page.component.html',
     styleUrl: './song-edit-page.component.scss',
@@ -64,42 +61,28 @@ const LARGE_SCREEN_QUERY = '(min-width: 1024px)' as const;
 export class SongEditPageComponent implements OnInit {
     private readonly router = inject(Router);
     private readonly route = inject(ActivatedRoute);
-    private readonly breakpointObserver = inject(BreakpointObserver);
-    private readonly destroyRef = inject(DestroyRef);
     private readonly songsApiService = inject(SongsApiService);
+    private readonly chordConverter = inject(ChordConverterService);
     private readonly snackBar = inject(MatSnackBar);
-    private readonly dialog = inject(MatDialog);
 
-    @ViewChild(SongFormComponent)
-    private songFormComponent?: SongFormComponent;
+    @ViewChild(SongEditFormComponent)
+    private songEditFormComponent?: SongEditFormComponent;
 
     private songId: string | null = null;
 
-    private readonly formValueState: WritableSignal<SongEditFormViewModel> = signal({
-        title: '',
-        content: '',
-    });
+    // Stan komponentu
+    private readonly initialDataState: WritableSignal<SongEditFormInitialData | null> = signal(null);
     private readonly isLoadingState: WritableSignal<boolean> = signal(true);
     private readonly isSavingState: WritableSignal<boolean> = signal(false);
     private readonly errorState: WritableSignal<SongEditError> = signal(null);
-    private readonly layoutModeState: WritableSignal<'split' | 'tabs'> = signal('split');
     private readonly isFormValidState: WritableSignal<boolean> = signal(false);
 
-    // Osobne computed signals dla wartości używanych w template
-    public readonly formValue: Signal<SongEditFormViewModel> = computed(() => this.formValueState());
+    // Publiczne sygnały dla template
+    public readonly initialData: Signal<SongEditFormInitialData | null> = computed(() => this.initialDataState());
     public readonly isLoading: Signal<boolean> = computed(() => this.isLoadingState());
     public readonly isSaving: Signal<boolean> = computed(() => this.isSavingState());
     public readonly error: Signal<SongEditError> = computed(() => this.errorState());
-    public readonly layoutMode: Signal<'split' | 'tabs'> = computed(() => this.layoutModeState());
     public readonly isFormValid: Signal<boolean> = computed(() => this.isFormValidState());
-
-    public readonly currentContent: Signal<string> = computed(
-        () => this.formValueState().content
-    );
-
-    constructor() {
-        this.observeLayout();
-    }
 
     public ngOnInit(): void {
         this.songId = this.route.snapshot.paramMap.get('id');
@@ -113,63 +96,43 @@ export class SongEditPageComponent implements OnInit {
         void this.loadSong(this.songId);
     }
 
-    public onFormValueChange(value: SongEditFormViewModel): void {
-        this.formValueState.set(value);
+    /**
+     * Obsługuje zdarzenie zapisu z formularza.
+     * Konwertuje treść na ChordPro i wysyła do API.
+     */
+    public onSaveSong(formData: SongEditFormData): void {
+        void this.saveSong(formData);
+    }
 
-        if (this.errorState() === 'duplicate') {
+    /**
+     * Obsługuje zmianę statusu walidacji formularza.
+     */
+    public onFormValidityChange(isValid: boolean): void {
+        this.isFormValidState.set(isValid);
+
+        // Jeśli formularz stał się valid i był błąd duplicate, wyczyść go
+        if (isValid && this.errorState() === 'duplicate') {
             this.errorState.set(null);
-            this.songFormComponent?.clearUniqueError();
         }
     }
 
-    public onFormSubmit(value: SongEditFormViewModel): void {
-        this.formValueState.set(value);
-        void this.saveSong(value);
-    }
-
+    /**
+     * Nawiguje z powrotem do listy piosenek.
+     */
     public async onCancel(): Promise<void> {
         await this.router.navigate(['/management/songs']);
     }
 
-    public onFormStatusChange(isValid: boolean): void {
-        this.isFormValidState.set(isValid);
-    }
-
+    /**
+     * Wywołuje submit na formularzu.
+     */
     public onSubmit(): void {
-        this.songFormComponent?.submitForm();
+        this.songEditFormComponent?.submitForm();
     }
 
-    public onImportFromText(): void {
-        const dialogRef = this.dialog.open(ImportFromTextDialogComponent, {
-            width: '700px',
-            maxWidth: '90vw',
-            maxHeight: '90vh',
-        });
-
-        dialogRef.afterClosed().subscribe((convertedText: string | undefined) => {
-            if (!convertedText) {
-                return;
-            }
-
-            this.appendContentToForm(convertedText);
-        });
-    }
-
-    private appendContentToForm(newContent: string): void {
-        const currentValue = this.formValueState();
-        const currentContent = currentValue.content;
-
-        // Jeśli jest już jakaś treść, dodaj nową linię przed nową treścią
-        const updatedContent = currentContent
-            ? `${currentContent}\n${newContent}`
-            : newContent;
-
-        this.formValueState.update(value => ({
-            ...value,
-            content: updatedContent,
-        }));
-    }
-
+    /**
+     * Ładuje piosenkę z API i konwertuje treść na format "akordy nad tekstem".
+     */
     private async loadSong(id: string): Promise<void> {
         this.isLoadingState.set(true);
         this.errorState.set(null);
@@ -177,9 +140,12 @@ export class SongEditPageComponent implements OnInit {
         try {
             const song: SongDto = await this.songsApiService.getSong(id);
 
-            this.formValueState.set({
+            // Konwertuj treść z ChordPro na format "akordy nad tekstem"
+            const overTextContent = this.chordConverter.convertToOverText(song.content);
+
+            this.initialDataState.set({
                 title: song.title,
-                content: song.content,
+                content: overTextContent,
             });
 
             this.isLoadingState.set(false);
@@ -196,7 +162,10 @@ export class SongEditPageComponent implements OnInit {
         }
     }
 
-    private async saveSong(formValue: SongEditFormViewModel): Promise<void> {
+    /**
+     * Zapisuje piosenkę do API, konwertując treść na ChordPro.
+     */
+    private async saveSong(formData: SongEditFormData): Promise<void> {
         if (this.isSavingState() || !this.songId) {
             return;
         }
@@ -204,9 +173,12 @@ export class SongEditPageComponent implements OnInit {
         this.isSavingState.set(true);
         this.errorState.set(null);
 
+        // Konwertuj treść z formatu "akordy nad tekstem" na ChordPro
+        const chordProContent = this.chordConverter.convertFromChordsOverText(formData.content);
+
         const command: SongPatchCommand = {
-            title: formValue.title.trim(),
-            content: formValue.content,
+            title: formData.title.trim(),
+            content: chordProContent,
         };
 
         try {
@@ -219,7 +191,7 @@ export class SongEditPageComponent implements OnInit {
             console.error('SongEditPageComponent: save error', error);
 
             if (this.isConflictError(error)) {
-                this.songFormComponent?.markTitleAsUniqueError();
+                this.songEditFormComponent?.markTitleAsUniqueError();
                 this.snackBar.open(
                     'Piosenka o takim tytule już istnieje. Zmień tytuł i spróbuj ponownie.',
                     undefined,
@@ -266,18 +238,6 @@ export class SongEditPageComponent implements OnInit {
 
         const responseError = (error as { error?: { code?: string } }).error;
         return responseError?.code === 'conflict';
-    }
-
-    private observeLayout(): void {
-        this.breakpointObserver
-            .observe(LARGE_SCREEN_QUERY)
-            .pipe(
-                map((result) => (result.matches ? 'split' : 'tabs')),
-                takeUntilDestroyed(this.destroyRef)
-            )
-            .subscribe((mode) => {
-                this.layoutModeState.set(mode);
-            });
     }
 }
 

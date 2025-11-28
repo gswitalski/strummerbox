@@ -1,0 +1,24 @@
+@if (layoutMode() === 'split') {
+    <div class="song-editor-layout song-editor-layout--split">
+        <div class="song-editor-layout__editor">
+            <ng-content select="[editor]"></ng-content>
+        </div>
+        <div class="song-editor-layout__preview">
+            <ng-content select="[preview]"></ng-content>
+        </div>
+    </div>
+} @else {
+    <mat-tab-group class="song-editor-layout song-editor-layout--tabs">
+        <mat-tab label="Edytor">
+            <div class="song-editor-layout__tab-content">
+                <ng-content select="[editor-tab]"></ng-content>
+            </div>
+        </mat-tab>
+        <mat-tab label="Podgląd">
+            <div class="song-editor-layout__tab-content">
+                <ng-content select="[preview-tab]"></ng-content>
+            </div>
+        </mat-tab>
+    </mat-tab-group>
+}
+
