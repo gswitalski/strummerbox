@@ -12,24 +12,15 @@ Oto opis nowej funkcjonalności, którą należy dodać do projektu:
 
 <nowa_funkcjonalnosc>
 
-W publicznym widoku piosenki, po włączeniu widoczności akordów, użytkownik ma dostęp do narzędzia transpozycji, pozwalającego na zmianę tonacji utworu (w górę/w dół o pół tonu) w czasie rzeczywistym.
-W trybie 'Biesiada' dla Organizatora, narzędzie transpozycji jest dostępne domyślnie w widoku piosenki.
+Aktualnnie podczas edycji piosenki dane wprowadza się z lewej strony w formacie chordpro. jednocześnie z prawej strony jest prezentowany podgląd tej piosenki w formacie 'akordy nad tekstem'
+Chce żeby było na odwrót: użytkownik wprowadza tekst piosenki z akordami w formacie 'akordy nad tekstem' a po prawej stonie prezentowany jest podgląd w jaki sposób piosenka będzie zapisana w baxie cyli chordpro.
+Należy wykorzystać gotowe funkcje do konwertowanie z chordpro do 'akordy nad tekstem' (przy odczycie piosenkii z bazy i ładowaniu do edytora.) ora z formatu 'akordy nad tekstem' do chordpro do prezentowania podglądu i zapisu piosenki na backendzie.
+z chordpro do 'akordy nad tekstem wykorzystuje komponet do prezentcji piosenki
+z 'akordy nad tekstem' do chord pro wykorzystywany jest przy imporcie piosenk z formatu 'akordy nad tekstem'.
 
--   ID: US-025
--   Title: Transpozycja ad-hoc w widoku publicznym
--   Description: Jako Biesiadnik grający na instrumencie, chcę móc tymczasowo zmienić tonację wyświetlanej piosenki, aby dopasować ją do stroju mojego instrumentu lub możliwości wokalnych grupy.
--   Acceptance Criteria:
-    -   W widoku publicznym piosenki, kontrolki transpozycji pojawiają się tylko wtedy, gdy włączony jest tryb "Pokaż akordy".
-    -   Interfejs zawiera przyciski "-" i "+" oraz licznik przesunięcia (np. +2).
-    -   Zmiana tonacji następuje natychmiastowo bez przeładowania strony.
-    -   Wyłączenie widoku akordów ukrywa kontrolki transpozycji.
+Obie funkcjonalności nalezy wydzielić z komponentów i umieścić w serwisie.
 
--   ID: US-026
--   Title: Transpozycja w trybie Organizatora (Biesiada)
--   Description: Jako Organizator prowadzący śpiewanie, chcę mieć szybki dostęp do zmiany tonacji, aby zareagować na potrzeby grupy w trakcie imprezy.
--   Acceptance Criteria:
-    -   W trybie 'Biesiada' kontrolki transpozycji są widoczne na stałe w widoku piosenki.
-    -   Transpozycja jest lokalna dla sesji przeglądarki i nie zmienia oryginalnego zapisu piosenki na serwerze.
+Funcja importu zostanie wyłączona bo już nie będzie potrzebna.
 
 
 
@@ -75,3 +66,5 @@ W każdym rozdziale umieść odpowiednio opisy historyjek, endpointów i widokó
 
 Pamiętaj: niczego nie implementujesz, uaktualniasz tylko dokumentację.
 
+Zanim wygenerujesz wyniki zadaj klila pytań uszczegóławiających moje wymagania. Pod pytaniami napisz swoje sugestie jako odpowiedź.
+Dopiero gdy udzielę odpowiedzi przystąp do generowania dokumentów uwzględniając moje odpowiedzi.
