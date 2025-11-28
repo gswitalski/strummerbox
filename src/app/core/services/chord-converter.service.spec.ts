@@ -95,6 +95,85 @@ describe('ChordConverterService', () => {
             expect(result).toContain('[G]');
         });
 
+        it('should handle chord line followed by empty line (not merge with it)', () => {
+            // Bug fix: linia akordów po której następuje pusta linia
+            // nie powinna być łączona z pustą linią
+            const input = [
+                'A f# E',
+                '',
+                ' A                      f#',
+                'Nie płacz Ewka, bo tu miejsca brak'
+            ].join('\n');
+
+            const result = service.convertFromChordsOverText(input);
+            const lines = result.split('\n');
+
+            // Linia 1: akordy z podwójnymi spacjami
+            expect(lines[0]).toContain('[A]');
+            expect(lines[0]).toContain('[f#]');
+            expect(lines[0]).toContain('[E]');
+            // Akordy powinny być rozdzielone podwójnymi spacjami
+            expect(lines[0]).toMatch(/\[A\]\s{2,}\[f#\]\s{2,}\[E\]/);
+
+            // Linia 2: pusta linia zachowana (z inputu, NIE dodana automatycznie)
+            expect(lines[1]).toBe('');
+
+            // Linia 3: akordy połączone z tekstem
+            // Akordy są wstawiane w pozycjach z linii akordowej,
+            // więc słowa mogą być rozdzielone przez akordy
+            expect(lines[2]).toContain('[A]');
+            expect(lines[2]).toContain('[f#]');
+            // Sprawdzamy fragmenty słów bo akordy mogą być wstawione w środku
+            expect(lines[2]).toContain('ie płacz Ewka');
+            expect(lines[2]).toContain('ejsca brak'); // akord [f#] jest wstawiany w środku "miejsca"
+
+            // Sprawdzamy że mamy dokładnie 3 linie (nie 4!)
+            expect(lines.length).toBe(3);
+        });
+
+        it('should preserve empty line between standalone chord line and text', () => {
+            // Pusta linia jest w inputcie - powinna być zachowana (akordy NIE są łączone z tekstem)
+            const input = [
+                'C Am F G',
+                '',
+                'Tekst bez akordów'
+            ].join('\n');
+
+            const result = service.convertFromChordsOverText(input);
+            const lines = result.split('\n');
+
+            expect(lines.length).toBe(3);
+            // Linia 1: samodzielne akordy (bo pusta linia pod spodem)
+            expect(lines[0]).toContain('[C]');
+            expect(lines[0]).toContain('[Am]');
+            // Linia 2: pusta linia zachowana z inputu
+            expect(lines[1]).toBe('');
+            // Linia 3: tekst bez akordów
+            expect(lines[2]).toBe('Tekst bez akordów');
+        });
+
+        it('should merge chord line with text below when no empty line between them', () => {
+            // Brak pustej linii - linia akordów odnosi się do tekstu pod nią
+            // To jest podstawowe założenie formatu "akordy nad tekstem"
+            const input = [
+                'C Am F G',
+                'Tekst bez akordów'
+            ].join('\n');
+
+            const result = service.convertFromChordsOverText(input);
+            const lines = result.split('\n');
+
+            // Powinna być 1 linia - akordy połączone z tekstem
+            expect(lines.length).toBe(1);
+            expect(lines[0]).toContain('[C]');
+            expect(lines[0]).toContain('[Am]');
+            expect(lines[0]).toContain('[F]');
+            expect(lines[0]).toContain('[G]');
+            // Słowa mogą być rozdzielone przez akordy, sprawdzamy fragmenty
+            expect(lines[0]).toContain('kst'); // fragment "Tekst"
+            expect(lines[0]).toContain('akordów');
+        });
+
         it('should preserve plain text lines', () => {
             const input = [
                 'To jest zwykły tekst',
@@ -172,21 +251,69 @@ describe('ChordConverterService', () => {
             expect(lines[2]).toBe('');
         });
 
-        it('should handle consecutive chord lines', () => {
+        it('should handle consecutive chord lines as standalone (no text below)', () => {
+            // Dwie linie akordów pod sobą - obie są "akordami bez tekstu"
             const input = [
                 'C  Am  F  G',
                 'Dm Em  Am G'
             ].join('\n');
 
             const result = service.convertFromChordsOverText(input);
+            const lines = result.split('\n');
 
-            // Obie linie powinny zostać rozpoznane jako linie z akordami
-            expect(result).toContain('[C]');
-            expect(result).toContain('[Am]');
-            expect(result).toContain('[F]');
-            expect(result).toContain('[G]');
-            expect(result).toContain('[Dm]');
-            expect(result).toContain('[Em]');
+            // Obie linie powinny być samodzielnymi liniami akordów
+            expect(lines.length).toBe(2);
+            expect(lines[0]).toContain('[C]');
+            expect(lines[0]).toContain('[Am]');
+            expect(lines[1]).toContain('[Dm]');
+            expect(lines[1]).toContain('[Em]');
+        });
+
+        it('should handle two chord lines followed by empty line then text', () => {
+            // Dwie linie akordów, pusta linia, tekst
+            // Obie linie akordów są "bez tekstu", pusta linia zachowana, tekst bez zmian
+            const input = [
+                'A f# E',
+                'C Am F G',
+                '',
+                'Tekst bez akordów'
+            ].join('\n');
+
+            const result = service.convertFromChordsOverText(input);
+            const lines = result.split('\n');
+
+            // Oczekujemy 4 linie: akordy1, akordy2, pusta, tekst
+            expect(lines.length).toBe(4);
+            expect(lines[0]).toContain('[A]');
+            expect(lines[0]).toContain('[f#]');
+            expect(lines[0]).toContain('[E]');
+            expect(lines[1]).toContain('[C]');
+            expect(lines[1]).toContain('[Am]');
+            expect(lines[2]).toBe('');
+            expect(lines[3]).toBe('Tekst bez akordów');
+        });
+
+        it('should NOT add empty line between chord-only line and chord+text pair', () => {
+            // Linia akordów, potem linia akordów z tekstem pod spodem
+            // NIE dodawać pustej linii automatycznie!
+            const input = [
+                'A f# E',
+                ' A                      f#',
+                'Nie płacz Ewka, bo tu miejsca brak'
+            ].join('\n');
+
+            const result = service.convertFromChordsOverText(input);
+            const lines = result.split('\n');
+
+            // Oczekujemy 2 linie: samodzielne akordy, potem akordy+tekst
+            // BEZ automatycznej pustej linii między nimi!
+            expect(lines.length).toBe(2);
+            expect(lines[0]).toContain('[A]');
+            expect(lines[0]).toContain('[f#]');
+            expect(lines[0]).toContain('[E]');
+            expect(lines[1]).toContain('[A]');
+            expect(lines[1]).toContain('[f#]');
+            expect(lines[1]).toContain('ie płacz Ewka');
         });
 
         it('should handle mixed content with chords and regular text', () => {
@@ -552,18 +679,33 @@ describe('ChordConverterService', () => {
             expect(lines[0]).toContain('Eb');
         });
 
-        it('should handle consecutive chords without text between them', () => {
+        it('should handle standalone chords without text (no empty line added)', () => {
+            // Samodzielne akordy bez tekstu - NIE dodawać pustej linii pod spodem
             const input = '[C][Am][F][G]';
 
             const result = service.convertToOverText(input);
             const lines = result.split('\n');
 
-            expect(lines.length).toBe(2);
+            // Tylko 1 linia - same akordy, BEZ pustej linii pod spodem
+            expect(lines.length).toBe(1);
             expect(lines[0]).toContain('C');
             expect(lines[0]).toContain('Am');
             expect(lines[0]).toContain('F');
             expect(lines[0]).toContain('G');
-            expect(lines[1]).toBe('');
+        });
+
+        it('should handle standalone chords with spacing', () => {
+            // Samodzielne akordy z spacjami - NIE dodawać pustej linii pod spodem
+            const input = '[A]  [f#]  [E]';
+
+            const result = service.convertToOverText(input);
+            const lines = result.split('\n');
+
+            // Tylko 1 linia - same akordy, BEZ pustej linii pod spodem
+            expect(lines.length).toBe(1);
+            expect(lines[0]).toContain('A');
+            expect(lines[0]).toContain('f#');
+            expect(lines[0]).toContain('E');
         });
 
         it('should handle unclosed bracket gracefully', () => {

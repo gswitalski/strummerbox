@@ -50,19 +50,24 @@ export class ChordConverterService {
 
             // Sprawdź, czy aktualna linia to linia z akordami
             if (this.isChordLine(currentLine)) {
-                if (nextLine !== null && !this.isChordLine(nextLine)) {
+                // Sprawdź czy następna linia zawiera tekst (niepusta i nie jest linią akordów)
+                const nextLineHasText = nextLine !== null &&
+                    nextLine.trim().length > 0 &&
+                    !this.isChordLine(nextLine);
+
+                if (nextLineHasText) {
                     // Mamy parę: akordy + tekst
                     const merged = this.mergeChordLineWithText(currentLine, nextLine);
                     result.push(merged);
                     i += 2; // Przeskocz obie linie
                 } else {
-                    // Linia z akordami bez tekstu pod nią
+                    // Linia z akordami bez tekstu pod nią (lub pusta linia/kolejna linia akordów pod spodem)
                     const chords = this.extractChordsOnly(currentLine);
                     result.push(chords);
                     i += 1;
                 }
             } else {
-                // Zwykła linia tekstu
+                // Zwykła linia tekstu (w tym puste linie)
                 result.push(currentLine);
                 i += 1;
             }
@@ -177,6 +182,7 @@ export class ChordConverterService {
     /**
      * Ekstraktuje same akordy z linii (gdy nie ma tekstu pod nią).
      * Zwraca tylko tokeny będące poprawnymi akordami.
+     * Akordy są oddzielone co najmniej dwiema spacjami dla lepszej czytelności.
      */
     private extractChordsOnly(line: string): string {
         const tokens = line.split(/\s+/).filter(t => t.length > 0);
@@ -186,8 +192,8 @@ export class ChordConverterService {
             return line;
         }
 
-        // Zwróć akordy oddzielone spacjami w nawiasach kwadratowych
-        return chords.map(chord => `[${chord}]`).join(' ');
+        // Zwróć akordy oddzielone podwójnymi spacjami w nawiasach kwadratowych
+        return chords.map(chord => `[${chord}]`).join('  ');
     }
 
     // ============================================================================
@@ -219,9 +225,13 @@ export class ChordConverterService {
             const { chordLine, textLine, hasChords } = this.splitChordProLine(line);
 
             if (hasChords) {
-                // Linia zawiera akordy - dodaj linię akordów i linię tekstu
+                // Linia zawiera akordy - dodaj linię akordów
                 result.push(chordLine);
-                result.push(textLine);
+                // Dodaj linię tekstu tylko jeśli zawiera jakikolwiek tekst (nie same spacje)
+                // (samodzielne akordy bez tekstu nie potrzebują pustej linii pod spodem)
+                if (textLine.trim().length > 0) {
+                    result.push(textLine);
+                }
             } else {
                 // Linia bez akordów - dodaj bez zmian
                 result.push(line);
