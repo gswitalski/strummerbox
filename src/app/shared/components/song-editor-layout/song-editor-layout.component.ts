@@ -5,7 +5,6 @@ import {
     DestroyRef,
     Signal,
     inject,
-    signal,
 } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { MatTabsModule } from '@angular/material/tabs';

@@ -257,7 +257,7 @@ export class ChordConverterService {
         }
 
         // Najpierw zbierz wszystkie akordy i ich pozycje
-        const chordsWithPositions: Array<{ chord: string; textPosition: number }> = [];
+        const chordsWithPositions: { chord: string; textPosition: number }[] = [];
         const textChars: string[] = [];
         let textPosition = 0;
         let index = 0;
