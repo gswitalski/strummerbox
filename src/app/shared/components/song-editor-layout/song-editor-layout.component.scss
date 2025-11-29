@@ -1,0 +1,52 @@
+:host {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.song-editor-layout {
+    &--split {
+        display: flex;
+        gap: 24px;
+        height: 100%;
+        min-height: 400px;
+    }
+
+    &--tabs {
+        height: 100%;
+
+        ::ng-deep {
+            .mat-mdc-tab-body-wrapper {
+                flex: 1;
+                min-height: 400px;
+            }
+        }
+    }
+
+    &__editor,
+    &__preview {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+    }
+
+    &__editor {
+        // Edytor zajmuje więcej miejsca
+        flex: 1.2;
+    }
+
+    &__preview {
+        flex: 1;
+        background-color: var(--mat-sys-surface-container-low);
+        border-radius: 8px;
+        padding: 16px;
+        overflow: auto;
+    }
+
+    &__tab-content {
+        padding: 16px 0;
+        min-height: 400px;
+    }
+}
+

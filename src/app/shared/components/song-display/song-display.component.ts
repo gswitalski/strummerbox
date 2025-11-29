@@ -15,6 +15,7 @@ interface LyricsLine {
     type: 'lyrics';
     chordLine: string;
     textLine: string;
+    hasLyrics: boolean;
 }
 
 /**
@@ -50,7 +51,7 @@ const NBSP = '\u00A0';
 /**
  * Reu\u017cywalny komponent do renderowania tre\u015bci piosenki w formacie ChordPro.
  * Komponent jest "g\u0142upi" (presentational) - jego wygl\u0105d jest sterowany przez dane wej\u015bciowe.
- * 
+ *
  * Funkcjonalno\u015b\u0107:
  * - Parsowanie tre\u015bci ChordPro do struktury SongDisplayVm
  * - Wy\u015bwietlanie tekstu z akordami lub bez (kontrolowane przez showChords)
@@ -124,6 +125,7 @@ function parseChordPro(rawContent: string): ParsedLine[] {
                 type: 'lyrics',
                 chordLine: '',
                 textLine: rawContent,
+                hasLyrics: true,
             },
         ];
     }
@@ -156,16 +158,17 @@ function parseLine(line: string): ParsedLine {
         };
     }
 
-    // Linia z tekstem (i ewentualnie akordami)
-    const chordLine = buildChordLine(line);
     const textLine = line
         .replace(/\[[^\]]*\]/g, '')
         .replace(/\t/g, NBSP.repeat(4));
+    const hasLyrics = textLine.trim().length > 0;
+    const chordLine = hasLyrics ? buildChordLine(line) : buildChordOnlyLine(line);
 
     return {
         type: 'lyrics',
         chordLine,
         textLine,
+        hasLyrics,
     };
 }
 
@@ -223,5 +226,38 @@ function buildChordLine(line: string): string {
     }
 
     return chordChars.join('');
+}
+
+/**
+ * Buduje linię akordów dla przypadku, gdy linia nie zawiera tekstu.
+ * Zapewnia co najmniej podwójne odstępy między akordami.
+ */
+function buildChordOnlyLine(line: string): string {
+    const matches = Array.from(line.matchAll(/\[([^\]]+)\]/g));
+
+    if (matches.length === 0) {
+        return '';
+    }
+
+    let rendered = '';
+    let cursor = 0;
+
+    for (let index = 0; index < matches.length; index += 1) {
+        const match = matches[index];
+        const between = line.slice(cursor, match.index);
+
+        if (index === 0) {
+            rendered += between.replace(/\t/g, NBSP.repeat(4)).replace(/ /g, NBSP);
+        } else {
+            const normalized = between.replace(/\t/g, NBSP.repeat(4)).replace(/ /g, NBSP);
+            const gapSize = Math.max(2, normalized.length || 0);
+            rendered += NBSP.repeat(gapSize);
+        }
+
+        rendered += match[1].trim();
+        cursor = match.index + match[0].length;
+    }
+
+    return rendered;
 }
 

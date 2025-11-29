@@ -137,11 +137,10 @@ Zarządzanie stanem aplikacji będzie realizowane za pomocą serwisów Angulara 
 
 *   **Ścieżka:** `/management/songs/new`, `/management/songs/:id/edit`
 *   **Główny cel:** Dodawanie nowej lub modyfikacja istniejącej piosenki.
-*   **Kluczowe informacje:** Formularz z polem na tytuł piosenki, edytor tekstu dla treści w formacie ChordPro. Podgląd renderowanej piosenki na żywo. Przycisk "Importuj z tekstu" otwierający okno modalne.
-*   **Kluczowe komponenty:** `mat-form-field`, `textarea`, `mat-button`, niestandardowy komponent edytora "side-by-side", `mat-dialog` dla importu.
+*   **Kluczowe informacje:** Formularz z polem na tytuł piosenki, edytor tekstu dla treści w formacie "akordy nad tekstem". Podgląd na żywo piosenki skonwertowanej do formatu ChordPro.
+*   **Kluczowe komponenty:** `mat-form-field`, `textarea`, `mat-button`, niestandardowy komponent edytora "side-by-side".
 *   **UX, dostępność, bezpieczeństwo:**
-    *   **UX:** Na desktopie układ "side-by-side" (edycja po lewej, podgląd po prawej). Na mobile układ z zakładkami (`mat-tab-group`) do przełączania się między edycją a podglądem. Walidacja (np. unikalność tytułu, poprawność nawiasów `[]`) z komunikatami błędów.
-    *   **Import z tekstu:** Kliknięcie przycisku "Importuj z tekstu" otwiera okno modalne (`ImportFromTextDialogComponent`). Użytkownik może wkleić tekst w formacie "akordy nad tekstem". Po zatwierdzeniu, skonwertowany tekst w formacie ChordPro jest dołączany na końcu istniejącej treści w głównym edytorze.
+    *   **UX:** Na desktopie układ "side-by-side" (edycja w formacie "akordy nad tekstem" po lewej, podgląd w formacie ChordPro po prawej). Na mobile układ z zakładkami (`mat-tab-group`) do przełączania się między edycją a podglądem. Walidacja (np. unikalność tytułu) z komunikatami błędów.
     *   **Dostępność:** Etykiety pól formularza.
     *   **Bezpieczeństwo:** Dostęp chroniony.
 
