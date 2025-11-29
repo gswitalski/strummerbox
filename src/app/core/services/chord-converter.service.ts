@@ -290,6 +290,18 @@ export class ChordConverterService {
             index += 1;
         }
 
+        const textLine = textChars.join('');
+        const hasLyrics = textLine.trim().length > 0;
+
+        if (!hasLyrics) {
+            const standaloneChordLine = this.buildStandaloneChordLine(line);
+            return {
+                chordLine: standaloneChordLine,
+                textLine: '',
+                hasChords: standaloneChordLine.length > 0,
+            };
+        }
+
         // Teraz buduj linię akordów, rozwiązując nakładanie się
         const chordChars: string[] = [];
         let currentChordEndPosition = 0;
@@ -317,7 +329,6 @@ export class ChordConverterService {
 
         // Konwertuj tablice na stringi, zamieniając undefined na spacje
         const chordLine = chordChars.map(c => c || ' ').join('');
-        const textLine = textChars.join('');
 
         // Przytnij trailing spaces w linii akordów, ale zachowaj leading spaces
         const trimmedChordLine = chordLine.replace(/\s+$/, '');
@@ -336,6 +347,41 @@ export class ChordConverterService {
         while (chordChars.length < targetLength) {
             chordChars.push(' ');
         }
+    }
+
+    /**
+     * Buduje linię akordów dla przypadku, gdy wiersz nie zawiera żadnego tekstu.
+     * Zapewnia co najmniej podwójny odstęp pomiędzy akordami oraz zachowuje
+     * wiodące wcięcie jeśli występuje.
+     */
+    private buildStandaloneChordLine(line: string): string {
+        const matches = Array.from(line.matchAll(/\[([^\]]+)\]/g));
+
+        if (matches.length === 0) {
+            return '';
+        }
+
+        let rendered = '';
+        let cursor = 0;
+
+        for (let index = 0; index < matches.length; index += 1) {
+            const match = matches[index];
+            const between = line.slice(cursor, match.index);
+
+            if (index === 0) {
+                rendered += between.replace(/\t/g, '    ');
+            } else {
+                const normalized = between.replace(/\t/g, '    ');
+                const whitespaceLength = normalized.length;
+                const gapSize = Math.max(2, whitespaceLength);
+                rendered += ' '.repeat(gapSize);
+            }
+
+            rendered += match[1].trim();
+            cursor = match.index + match[0].length;
+        }
+
+        return rendered.trimEnd();
     }
 }
 

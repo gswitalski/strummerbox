@@ -692,10 +692,11 @@ describe('ChordConverterService', () => {
             expect(lines[0]).toContain('Am');
             expect(lines[0]).toContain('F');
             expect(lines[0]).toContain('G');
+            expect(lines[0]).toMatch(/C\s{2,}Am\s{2,}F\s{2,}G/);
         });
 
         it('should handle standalone chords with spacing', () => {
-            // Samodzielne akordy z spacjami - NIE dodawać pustej linii pod spodem
+            // Samodzielne akordy z spacjami - zachowaj co najmniej podwójny odstęp
             const input = '[A]  [f#]  [E]';
 
             const result = service.convertToOverText(input);
@@ -706,6 +707,7 @@ describe('ChordConverterService', () => {
             expect(lines[0]).toContain('A');
             expect(lines[0]).toContain('f#');
             expect(lines[0]).toContain('E');
+            expect(lines[0]).toMatch(/A\s{2,}f#\s{2,}E/);
         });
 
         it('should handle unclosed bracket gracefully', () => {

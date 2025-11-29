@@ -37,30 +37,58 @@ Zapoznaj się z następującymi materiałami:
 
 <aktualne_zachowanie>
 
-konwerter z formatu 'akordy nad tekstem' źle interpretuje linijkę z samimi akordami pod którą nie ma tekstu
+konwerter z formatu chord pro 'akordy nad tekstem' źle interpretuje linijkę z samymi akordami pod którą nie ma tekstu. dodatkowo nie dodaje spacji przed odtatnim akordem
 
 <input>
-A f# E
-
- A                      f#
-Nie płacz Ewka, bo tu miejsca brak
-
+[A]  [f#]  [E]
+[A]  [f#]  [E]
+[A]  [f#]  [E]
+[A]  [f#]  [E]
+    
+N[A]ie płacz Ewka, bo tu mi[f#]ejsca brak
+N[E]a twe babskie łzy
+P[A]o ulicy miłość h[f#]ula wiatr
+Wśr[E]ód rozbitych szyb
 </input>
 
 <output>
-[A][E[f#]]
-N[A]ie płacz Ewka, bo tu mi[f#]ejsca brak
-</output>
+A f#E
+     (pusta linia)
+A f#E
+    (pusta linia)
+A f#E
+    (pusta linia)
+A f#E
+    
+ A                      f#        
+Nie płacz Ewka, bo tu miejsca brak
+ E                
+Na twe babskie łzy
+ A               f#       
+Po ulicy miłość hula wiatr
+   E                
+Wśród rozbitych szyb
 
+</output>
 
 
 </aktualne_zachowanie>
 
 <oczekiwane_zachowanie>
 <output>
-[A]  [f#]  [E]
-
-N[A]ie płacz Ewka, bo tu mi[f#]ejsca brak
+A f# E
+A f# E
+A f# E
+A f# E
+    
+ A                      f#        
+Nie płacz Ewka, bo tu miejsca brak
+ E                
+Na twe babskie łzy
+ A               f#       
+Po ulicy miłość hula wiatr
+   E                
+Wśród rozbitych szyb
 </output>
 
 akordy poza tym mają mieć co najmniej dwie spacje odstępu i jedna linijkię odstępu pod spodem
