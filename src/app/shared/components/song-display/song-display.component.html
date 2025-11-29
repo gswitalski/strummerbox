@@ -9,10 +9,12 @@
                 <div class="song-display__line" [attr.data-type]="line.type">
                     @if (line.type === 'lyrics') {
                         <div class="song-display__lyrics-line">
-                            @if (showChords()) {
+                            @if (showChords() && line.chordLine) {
                                 <span class="song-display__chords">{{ line.chordLine }}</span>
                             }
-                            <span class="song-display__lyrics">{{ line.textLine }}</span>
+                            @if (line.hasLyrics) {
+                                <span class="song-display__lyrics">{{ line.textLine }}</span>
+                            }
                         </div>
                     } @else if (line.type === 'directive') {
                         <div class="song-display__directive">

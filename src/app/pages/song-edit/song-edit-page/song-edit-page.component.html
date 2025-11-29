@@ -1,4 +1,4 @@
-<div class="song-edit" [ngClass]="['song-edit--' + layoutMode()]">
+<div class="song-edit">
     <header class="song-edit__header">
         <div class="song-edit__header-title">
             <button mat-icon-button type="button" class="song-edit__back" (click)="onCancel()" aria-label="Powrót do listy piosenek">
@@ -8,24 +8,12 @@
         </div>
         @if (!isLoading() && error() !== 'not_found' && error() !== 'load_failed') {
             <div class="song-edit__actions">
-                <button 
-                    mat-stroked-button 
-                    type="button" 
-                    (click)="onImportFromText()" 
-                    [disabled]="isSaving()"
-                    class="song-edit__import-btn"
-                >
-                    <mat-icon>file_upload</mat-icon>
-                    Importuj z tekstu
+                <button mat-stroked-button type="button" (click)="onCancel()" [disabled]="isSaving()">
+                    Anuluj
                 </button>
-                <div class="song-edit__actions-right">
-                    <button mat-stroked-button type="button" (click)="onCancel()" [disabled]="isSaving()">
-                        Anuluj
-                    </button>
-                    <button mat-flat-button color="primary" type="button" (click)="onSubmit()" [disabled]="!isFormValid() || isSaving()">
-                        Zapisz
-                    </button>
-                </div>
+                <button mat-flat-button color="primary" type="button" (click)="onSubmit()" [disabled]="!isFormValid() || isSaving()">
+                    Zapisz
+                </button>
             </div>
         }
     </header>
@@ -64,36 +52,12 @@
             </div>
         }
 
-        @if (layoutMode() === 'split') {
-            <div class="song-edit__content song-edit__content--split">
-                <stbo-song-form
-                    class="song-edit__form"
-                    [initialState]="formValue()"
-                    [isSaving]="isSaving()"
-                    (formValueChange)="onFormValueChange($event)"
-                    (formStatusChange)="onFormStatusChange($event)"
-                    (formSubmit)="onFormSubmit($event)"
-                ></stbo-song-form>
-
-                <stbo-chord-pro-preview class="song-edit__preview" [content]="currentContent()"></stbo-chord-pro-preview>
-            </div>
-        } @else {
-            <mat-tab-group class="song-edit__tabs">
-                <mat-tab label="Formularz">
-                    <stbo-song-form
-                        class="song-edit__form"
-                        [initialState]="formValue()"
-                        [isSaving]="isSaving()"
-                        (formValueChange)="onFormValueChange($event)"
-                        (formStatusChange)="onFormStatusChange($event)"
-                        (formSubmit)="onFormSubmit($event)"
-                    ></stbo-song-form>
-                </mat-tab>
-                <mat-tab label="Podgląd">
-                    <stbo-chord-pro-preview class="song-edit__preview" [content]="currentContent()"></stbo-chord-pro-preview>
-                </mat-tab>
-            </mat-tab-group>
-        }
+        <stbo-song-edit-form
+            class="song-edit__form"
+            [initialData]="initialData()"
+            [isSaving]="isSaving()"
+            (saveSong)="onSaveSong($event)"
+            (formValidityChange)="onFormValidityChange($event)"
+        ></stbo-song-edit-form>
     }
 </div>
-

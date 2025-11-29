@@ -9,7 +9,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatFabButton } from '@angular/material/button';
 import { BiesiadaRepertoireSongDetailDto } from '../../../../../../packages/contracts/types';
-import { ChordProPreviewComponent } from '../../../song-create/components/chord-pro-preview/chord-pro-preview.component';
+import { SongDisplayComponent } from '../../../../shared/components/song-display/song-display.component';
 
 /**
  * Komponent prezentacyjny wyświetlający piosenkę w trybie Biesiada.
@@ -27,7 +27,7 @@ import { ChordProPreviewComponent } from '../../../song-create/components/chord-
         MatButtonModule,
         MatIconModule,
         MatFabButton,
-        ChordProPreviewComponent,
+        SongDisplayComponent,
     ],
     templateUrl: './biesiada-song-view.component.html',
     styleUrl: './biesiada-song-view.component.scss',

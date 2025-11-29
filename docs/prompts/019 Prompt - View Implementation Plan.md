@@ -19,53 +19,51 @@ Najpierw przejrzyj następujące informacje:
 3. Widok do implementacji
 <views>
 
-Zmiany w interfejsie użytkownika koncentrują się na istniejących widokach piosenek oraz wprowadzeniu nowego komponentu do obsługi transpozycji.
+### Zmodyfikowany widok: Tworzenie / Edycja Piosenki (Song Create/Edit View)
 
-### Nowy Komponent: `TransposeControlsComponent`
+-   **Ścieżka:** `/management/songs/new`, `/management/songs/:id/edit`
+-   **Notatka o zmianach:**
+    -   Logika edytora została odwrócona. Główne pole tekstowe (`textarea`) służy teraz do wprowadzania danych w formacie "akordy nad tekstem".
+    -   Panel podglądu wyświetla na żywo wynik konwersji do formatu ChordPro.
+    -   Usunięto przycisk "Importuj z tekstu" oraz powiązane z nim okno modalne (`ImportFromTextDialogComponent`), ponieważ funkcjonalność ta została zintegrowana bezpośrednio z edytorem.
 
--   **Opis:** Mały, reużywalny komponent prezentacyjny, który renderuje interfejs do zmiany tonacji. Składa się z przycisków "-" i "+", które emitują zdarzenia zmiany, oraz wyświetlacza aktualnego przesunięcia (np. "+1", "-2").
--   **API:** `@Input() offset: number`, `@Output() change: EventEmitter<number>`.
--   **Użycie:** Wewnętrznie przez `SongViewerComponent`.
+#### Zaktualizowany opis widoku:
 
-### Zmiany w `SongViewerComponent`
+-   **Główny cel:** Dodawanie nowej lub modyfikacja istniejącej piosenki.
+-   **Kluczowe informacje:** Formularz z polem na tytuł piosenki, edytor tekstu dla treści w formacie "akordy nad tekstem". Podgląd na żywo piosenki skonwertowanej do formatu ChordPro.
+-   **Kluczowe komponenty:** `mat-form-field`, `textarea`, `mat-button`, niestandardowy komponent edytora "side-by-side".
+-   **UX, dostępność, bezpieczeństwo:**
+    -   **UX:** Na desktopie układ "side-by-side" (edycja w formacie "akordy nad tekstem" po lewej, podgląd w formacie ChordPro po prawej). Na mobile układ z zakładkami (`mat-tab-group`) do przełączania się między edycją a podglądem. Walidacja (np. unikalność tytułu) z komunikatami błędów.
+    -   **Dostępność:** Etykiety pól formularza.
+    -   **Bezpieczeństwo:** Dostęp chroniony.
 
--   **Opis:** Komponent został zaktualizowany, aby mógł zarządzać i wyświetlać `TransposeControlsComponent`.
--   **Zmiany w API:**
-    -   Dodano `@Input() transposeOffset: number`, aby przyjąć aktualny stan transpozycji.
-    -   Dodano `@Input() config: SongViewerConfig`, w którym pojawiła się nowa flaga `showTransposeControls: boolean`, aby kontrolować widoczność narzędzia.
-    -   Dodano `@Output() transposeChanged: EventEmitter<number>`, aby informować komponent nadrzędny o żądaniu zmiany tonacji.
--   **Logika:** `SongViewerComponent` będzie teraz warunkowo renderować `TransposeControlsComponent` na podstawie konfiguracji i stanu widoczności akordów.
-
-### Zmiany w Widokach Nadrzędnych
-
--   **Publiczny Widok Piosenki (`Public Song View`):**
-    -   **Zmiana:** W tym widoku `SongViewerComponent` jest konfigurowany tak, aby `TransposeControlsComponent` pojawiał się tylko wtedy, gdy użytkownik włączy widoczność akordów. Stan transpozycji jest zarządzany lokalnie w tym widoku.
--   **Tryb Biesiada - Widok Piosenki (`Biesiada Song View`):**
-    -   **Zmiana:** W tym widoku `SongViewerComponent` jest konfigurowany tak, aby `TransposeControlsComponent` był widoczny domyślnie, niezależnie od przełącznika akordów (który jest tu niewidoczny, bo akordy są zawsze włączone dla Organizatora).
 
 
 </views>
 
 4. User Stories:
 <user_stories>
+### Zaktualizowana historyjka
 
-Do dokumentu PRD dodano następujące historyjki użytkownika, które definiują nową funkcjonalność z perspektywy użytkownika końcowego.
+Poniższa historyjka użytkownika zastępuje poprzednią wersję `US-004`.
 
-### ID: US-025
--   **Title:** Transpozycja ad-hoc w widoku publicznym
--   **Description:** Jako Biesiadnik grający na instrumencie, chcę móc tymczasowo zmienić tonację wyświetlanej piosenki, aby dopasować ją do stroju mojego instrumentu lub możliwości wokalnych grupy.
+-   **ID:** US-004
+-   **Title:** Tworzenie i edycja piosenki z intuicyjnym edytorem
+-   **Description:** Jako Organizator, chcę móc dodawać i edytować piosenki w mojej bazie, wpisując tekst w naturalnym formacie "akordy nad tekstem" i jednocześnie widzieć podgląd, jak zostanie on zapisany w formacie ChordPro.
 -   **Acceptance Criteria:**
-    -   W widoku publicznym piosenki, kontrolki transpozycji pojawiają się tylko wtedy, gdy włączony jest tryb "Pokaż akordy".
-    -   Interfejs zawiera przyciski "-" i "+" oraz licznik przesunięcia (np. +2).
-    -   Zmiana tonacji następuje natychmiastowo bez przeładowania strony.
-    -   Wyłączenie widoku akordów ukrywa kontrolki transpozycji.
+    -   Formularz dodawania/edycji piosenki zawiera pole na tytuł oraz duży edytor tekstu.
+    -   Do edytora wprowadzam tekst piosenki w formacie, gdzie linia z akordami znajduje się bezpośrednio nad linią z tekstem.
+    -   Obok edytora (w widoku "side-by-side") wyświetlany jest podgląd piosenki w czasie rzeczywistym, pokazujący skonwertowaną treść w formacie ChordPro (np. `[G]Idę sobie [D]ulicą...`).
+    -   System nie pozwala na zapisanie piosenki bez tytułu.
+    -   System nie pozwala na zapisanie piosenki o tytule, który już istnieje w mojej bazie.
+    -   Podczas edycji istniejącej piosenki, jej zawartość (zapisana w ChordPro) jest automatycznie konwertowana do formtu "akordy nad tekstem" i umieszczana w edytorze.
+    -   Po zapisaniu, piosenka jest widoczna na liście moich piosenek.
 
-### ID: US-026
--   **Title:** Transpozycja w trybie Organizatora (Biesiada)
--   **Description:** Jako Organizator prowadzący śpiewanie, chcę mieć szybki dostęp do zmiany tonacji, aby zareagować na potrzeby grupy w trakcie imprezy.
--   **Acceptance Criteria:**
-    -   W trybie 'Biesiada' kontrolki transpozycji są widoczne na stałe w widoku piosenki.
-    -   Transpozycja jest lokalna dla sesji przeglądarki i nie zmienia oryginalnego zapisu piosenki na serwerze.
+### Usunięta historyjka
+
+-   **ID:** US-021
+-   **Title:** Importowanie piosenki z formatu "akordy nad tekstem"
+-   **Notatka:** Ta historyjka została usunięta, ponieważ nowy edytor natywnie obsługuje format "akordy nad tekstem", co czyni dedykowaną funkcję importu zbędną.
 
 </user_stories>
 
@@ -73,9 +71,6 @@ Do dokumentu PRD dodano następujące historyjki użytkownika, które definiują
 <endpoint_description>
 
 **Nie wprowadzono żadnych zmian w API.**
-
-Funkcjonalność transpozycji została zaimplementowana w całości po stronie klienta (w aplikacji Angular). Istniejące endpointy API dostarczają pełną treść piosenki w formacie ChordPro, co jest wystarczające do przeprowadzenia operacji transpozycji w przeglądarce. Takie podejście unika dodatkowych zapytań do serwera i zapewnia natychmiastową odpowiedź interfejsu.
-
 
 </endpoint_description>
 
@@ -100,6 +95,16 @@ Funkcjonalność transpozycji została zaimplementowana w całości po stronie k
 
 
 </rules>
+
+<dodatkowe_wskazówki>
+Należy wykorzystać gotowe funkcje do konwertowanie z chordpro do 'akordy nad tekstem' (przy odczycie piosenkii z bazy i ładowaniu do edytora.) ora z formatu 'akordy nad tekstem' do chordpro do prezentowania podglądu i zapisu piosenki na backendzie.
+z chordpro do 'akordy nad tekstem wykorzystuje komponet do prezentcji piosenki
+z 'akordy nad tekstem' do chord pro wykorzystywany jest przy imporcie piosenk z formatu 'akordy nad tekstem'.
+
+Obie funkcjonalności nalezy wydzielić z komponentów i umieścić w serwisie.
+
+</dodatkowe_wskazówki>
+
 
 Przed utworzeniem ostatecznego planu wdrożenia przeprowadź analizę i planowanie wewnątrz tagów <implementation_breakdown> w swoim bloku myślenia. Ta sekcja może być dość długa, ponieważ ważne jest, aby być dokładnym.
 

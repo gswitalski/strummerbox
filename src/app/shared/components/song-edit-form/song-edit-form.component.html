@@ -1,0 +1,70 @@
+<form class="song-edit-form" [formGroup]="form" (ngSubmit)="submitForm()" autocomplete="off">
+    <mat-form-field appearance="outline" class="song-edit-form__title-field" subscriptSizing="dynamic">
+        <mat-label>Tytuł</mat-label>
+        <input
+            matInput
+            formControlName="title"
+            type="text"
+            maxlength="180"
+            placeholder="Wprowadź tytuł piosenki"
+        />
+        <mat-hint align="end">{{ form.controls.title.value.length }}/180</mat-hint>
+        @if (form.controls.title.hasError('required') && form.controls.title.touched) {
+            <mat-error>Tytuł jest wymagany.</mat-error>
+        }
+        @if (form.controls.title.hasError('maxlength') && form.controls.title.touched) {
+            <mat-error>Tytuł może mieć maksymalnie 180 znaków.</mat-error>
+        }
+        @if (form.controls.title.hasError('unique') && form.controls.title.touched) {
+            <mat-error>Piosenka o takim tytule już istnieje.</mat-error>
+        }
+    </mat-form-field>
+
+    <stbo-song-editor-layout class="song-edit-form__editor-layout">
+        <!-- Wersja dla trybu split (desktop) -->
+        <mat-form-field editor appearance="outline" class="song-edit-form__content-field" subscriptSizing="dynamic">
+            <mat-label>Treść (akordy nad tekstem)</mat-label>
+            <textarea
+                matInput
+                formControlName="content"
+                rows="20"
+                cdkTextareaAutosize
+                cdkAutosizeMinRows="20"
+                placeholder="Wprowadź treść piosenki w formacie 'akordy nad tekstem'.&#10;&#10;Przykład:&#10;C       Am      F       G&#10;To jest przykładowy tekst piosenki"
+                class="song-edit-form__textarea"
+            ></textarea>
+            @if (form.controls.content.hasError('required') && form.controls.content.touched) {
+                <mat-error>Treść piosenki jest wymagana.</mat-error>
+            }
+        </mat-form-field>
+
+        <div preview class="song-edit-form__preview">
+            <div class="song-edit-form__preview-header">
+                <span class="song-edit-form__preview-title">Podgląd (ChordPro)</span>
+            </div>
+            <pre class="song-edit-form__preview-content song-edit-form__chordpro-raw">{{ previewContent() || 'Wprowadź treść, aby zobaczyć podgląd w formacie ChordPro...' }}</pre>
+        </div>
+
+        <!-- Wersja dla trybu tabs (mobile) -->
+        <mat-form-field editor-tab appearance="outline" class="song-edit-form__content-field" subscriptSizing="dynamic">
+            <mat-label>Treść (akordy nad tekstem)</mat-label>
+            <textarea
+                matInput
+                formControlName="content"
+                rows="20"
+                cdkTextareaAutosize
+                cdkAutosizeMinRows="20"
+                placeholder="Wprowadź treść piosenki w formacie 'akordy nad tekstem'.&#10;&#10;Przykład:&#10;C       Am      F       G&#10;To jest przykładowy tekst piosenki"
+                class="song-edit-form__textarea"
+            ></textarea>
+            @if (form.controls.content.hasError('required') && form.controls.content.touched) {
+                <mat-error>Treść piosenki jest wymagana.</mat-error>
+            }
+        </mat-form-field>
+
+        <div preview-tab class="song-edit-form__preview song-edit-form__preview--tab">
+            <pre class="song-edit-form__preview-content song-edit-form__chordpro-raw">{{ previewContent() || 'Wprowadź treść, aby zobaczyć podgląd w formacie ChordPro...' }}</pre>
+        </div>
+    </stbo-song-editor-layout>
+</form>
+

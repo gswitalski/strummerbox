@@ -1,9 +1,6 @@
-import { BreakpointObserver, LayoutModule } from '@angular/cdk/layout';
-import { NgClass } from '@angular/common';
 import {
     ChangeDetectionStrategy,
     Component,
-    DestroyRef,
     Signal,
     ViewChild,
     WritableSignal,
@@ -11,48 +8,43 @@ import {
     inject,
     signal,
 } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { MatTabsModule } from '@angular/material/tabs';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { Router } from '@angular/router';
-import { map } from 'rxjs';
 
-import type {
-    SongCreateError,
-    SongCreateState,
-} from '../models/song-create-state.model';
-import type { SongCreateFormViewModel } from '../models/song-create-form-view.model';
-import { SongFormComponent } from '../components/song-form/song-form.component';
-import { ChordProPreviewComponent } from '../components/chord-pro-preview/chord-pro-preview.component';
-import { ImportFromTextDialogComponent } from '../components/import-from-text-dialog/import-from-text-dialog.component';
 import type { SongCreateCommand } from '../../../../../packages/contracts/types';
 import { SongsApiService } from '../services/songs-api.service';
+import { ChordConverterService } from '../../../core/services/chord-converter.service';
+import {
+    SongEditFormComponent,
+    SongEditFormData,
+} from '../../../shared/components/song-edit-form/song-edit-form.component';
 
-const INITIAL_FORM_VALUE: SongCreateFormViewModel = {
-    title: '',
-    content: '',
-};
+/**
+ * Typy błędów możliwych do wystąpienia w komponencie.
+ */
+type SongCreateError = 'save_failed' | 'duplicate' | null;
 
-const LARGE_SCREEN_QUERY = '(min-width: 1024px)' as const;
-
+/**
+ * Komponent strony tworzenia nowej piosenki.
+ * 
+ * Odpowiedzialności:
+ * - Konwersja treści z formatu "akordy nad tekstem" na ChordPro przy zapisie
+ * - Wysyłanie nowej piosenki do API
+ * - Obsługa stanów zapisu i błędów
+ * - Nawigacja po zakończeniu operacji
+ */
 @Component({
     selector: 'stbo-song-create-page',
     standalone: true,
     imports: [
-        LayoutModule,
         MatButtonModule,
         MatIconModule,
         MatProgressBarModule,
-        MatTabsModule,
         MatSnackBarModule,
-        MatDialogModule,
-        NgClass,
-        SongFormComponent,
-        ChordProPreviewComponent,
+        SongEditFormComponent,
     ],
     templateUrl: './song-create-page.component.html',
     styleUrl: './song-create-page.component.scss',
@@ -60,97 +52,61 @@ const LARGE_SCREEN_QUERY = '(min-width: 1024px)' as const;
 })
 export class SongCreatePageComponent {
     private readonly router = inject(Router);
-    private readonly breakpointObserver = inject(BreakpointObserver);
-    private readonly destroyRef = inject(DestroyRef);
     private readonly songsApiService = inject(SongsApiService);
+    private readonly chordConverter = inject(ChordConverterService);
     private readonly snackBar = inject(MatSnackBar);
-    private readonly dialog = inject(MatDialog);
 
-    @ViewChild(SongFormComponent)
-    private songFormComponent?: SongFormComponent;
+    @ViewChild(SongEditFormComponent)
+    private songEditFormComponent?: SongEditFormComponent;
 
-    private readonly formValueState: WritableSignal<SongCreateFormViewModel> = signal(
-        { ...INITIAL_FORM_VALUE }
-    );
+    // Stan komponentu
     private readonly isSavingState: WritableSignal<boolean> = signal(false);
-    private readonly errorState: WritableSignal<SongCreateError | null> = signal(null);
-    private readonly layoutModeState: WritableSignal<'split' | 'tabs'> = signal('split');
+    private readonly errorState: WritableSignal<SongCreateError> = signal(null);
     private readonly isFormValidState: WritableSignal<boolean> = signal(false);
 
-    public readonly viewState: Signal<SongCreateState> = computed(() => ({
-        formValue: this.formValueState(),
-        isSaving: this.isSavingState(),
-        error: this.errorState(),
-        layoutMode: this.layoutModeState(),
-        isFormValid: this.isFormValidState(),
-    }));
+    // Publiczne sygnały dla template
+    public readonly isSaving: Signal<boolean> = computed(() => this.isSavingState());
+    public readonly error: Signal<SongCreateError> = computed(() => this.errorState());
+    public readonly isFormValid: Signal<boolean> = computed(() => this.isFormValidState());
 
-    public readonly currentContent: Signal<string> = computed(
-        () => this.viewState().formValue.content
-    );
-
-    constructor() {
-        this.observeLayout();
+    /**
+     * Obsługuje zdarzenie zapisu z formularza.
+     * Konwertuje treść na ChordPro i wysyła do API.
+     */
+    public onSaveSong(formData: SongEditFormData): void {
+        void this.saveSong(formData);
     }
 
-    public onFormValueChange(value: SongCreateFormViewModel): void {
-        this.formValueState.set(value);
+    /**
+     * Obsługuje zmianę statusu walidacji formularza.
+     */
+    public onFormValidityChange(isValid: boolean): void {
+        this.isFormValidState.set(isValid);
 
-        if (this.errorState() === 'duplicate') {
+        // Jeśli formularz stał się valid i był błąd duplicate, wyczyść go
+        if (isValid && this.errorState() === 'duplicate') {
             this.errorState.set(null);
-            this.songFormComponent?.clearUniqueError();
         }
     }
 
-    public onFormSubmit(value: SongCreateFormViewModel): void {
-        this.formValueState.set(value);
-        void this.saveSong(value);
-    }
-
+    /**
+     * Nawiguje z powrotem do listy piosenek.
+     */
     public async onCancel(): Promise<void> {
         await this.router.navigate(['/management/songs']);
     }
 
-    public onFormStatusChange(isValid: boolean): void {
-        this.isFormValidState.set(isValid);
-    }
-
+    /**
+     * Wywołuje submit na formularzu.
+     */
     public onSubmit(): void {
-        this.songFormComponent?.submitForm();
+        this.songEditFormComponent?.submitForm();
     }
 
-    public onImportFromText(): void {
-        const dialogRef = this.dialog.open(ImportFromTextDialogComponent, {
-            width: '700px',
-            maxWidth: '90vw',
-            maxHeight: '90vh',
-        });
-
-        dialogRef.afterClosed().subscribe((convertedText: string | undefined) => {
-            if (!convertedText) {
-                return;
-            }
-
-            this.appendContentToForm(convertedText);
-        });
-    }
-
-    private appendContentToForm(newContent: string): void {
-        const currentValue = this.formValueState();
-        const currentContent = currentValue.content;
-
-        // Jeśli jest już jakaś treść, dodaj nową linię przed nową treścią
-        const updatedContent = currentContent
-            ? `${currentContent}\n${newContent}`
-            : newContent;
-
-        this.formValueState.update(value => ({
-            ...value,
-            content: updatedContent,
-        }));
-    }
-
-    private async saveSong(formValue: SongCreateFormViewModel): Promise<void> {
+    /**
+     * Zapisuje nową piosenkę do API, konwertując treść na ChordPro.
+     */
+    private async saveSong(formData: SongEditFormData): Promise<void> {
         if (this.isSavingState()) {
             return;
         }
@@ -158,9 +114,12 @@ export class SongCreatePageComponent {
         this.isSavingState.set(true);
         this.errorState.set(null);
 
+        // Konwertuj treść z formatu "akordy nad tekstem" na ChordPro
+        const chordProContent = this.chordConverter.convertFromChordsOverText(formData.content);
+
         const command: SongCreateCommand = {
-            title: formValue.title.trim(),
-            content: formValue.content,
+            title: formData.title.trim(),
+            content: chordProContent,
             published: false,
         };
 
@@ -174,7 +133,7 @@ export class SongCreatePageComponent {
             console.error('SongCreatePageComponent: save error', error);
 
             if (this.isConflictError(error)) {
-                this.songFormComponent?.markTitleAsUniqueError();
+                this.songEditFormComponent?.markTitleAsUniqueError();
                 this.snackBar.open(
                     'Piosenka o takim tytule już istnieje. Zmień tytuł i spróbuj ponownie.',
                     undefined,
@@ -207,18 +166,6 @@ export class SongCreatePageComponent {
 
         const responseError = (error as { error?: { code?: string } }).error;
         return responseError?.code === 'conflict';
-    }
-
-    private observeLayout(): void {
-        this.breakpointObserver
-            .observe(LARGE_SCREEN_QUERY)
-            .pipe(
-                map((result) => (result.matches ? 'split' : 'tabs')),
-                takeUntilDestroyed(this.destroyRef)
-            )
-            .subscribe((mode) => {
-                this.layoutModeState.set(mode);
-            });
     }
 }
 
