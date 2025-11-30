@@ -16,6 +16,8 @@ interface LyricsLine {
     chordLine: string;
     textLine: string;
     hasLyrics: boolean;
+    /** Liczba powtórzeń (z dyrektywy {c: xN}), undefined jeśli brak */
+    repetitionCount?: number;
 }
 
 /**
@@ -47,6 +49,12 @@ interface EmptyLine {
 type ParsedLine = LyricsLine | DirectiveLine | CommentLine | EmptyLine;
 
 const NBSP = '\u00A0';
+
+/**
+ * Wzorzec dla dyrektywy repetycji w formacie ChordPro.
+ * Dopasowuje {c: xN} lub {c:xN} gdzie N to liczba.
+ */
+const REPETITION_DIRECTIVE_PATTERN = /\{c:\s*x(\d+)\s*\}/i;
 
 /**
  * Reu\u017cywalny komponent do renderowania tre\u015bci piosenki w formacie ChordPro.
@@ -132,7 +140,7 @@ function parseChordPro(rawContent: string): ParsedLine[] {
 }
 
 /**
- * Parsuje pojedyncz\u0105 lini\u0119 tekstu ChordPro
+ * Parsuje pojedynczą linię tekstu ChordPro
  */
 function parseLine(line: string): ParsedLine {
     const trimmed = line.trim();
@@ -150,26 +158,56 @@ function parseLine(line: string): ParsedLine {
         };
     }
 
-    // Dyrektywa
+    // Dyrektywa (ale NIE dyrektywa repetycji {c: xN} - ta jest obsługiwana w liniach lyrics)
     if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+        // Sprawdź czy to dyrektywa repetycji - jeśli tak, traktuj jako lyrics
+        const repetitionMatch = trimmed.match(REPETITION_DIRECTIVE_PATTERN);
+        if (repetitionMatch) {
+            return {
+                type: 'lyrics',
+                chordLine: '',
+                textLine: '',
+                hasLyrics: false,
+                repetitionCount: parseInt(repetitionMatch[1], 10),
+            };
+        }
         return {
             type: 'directive',
             content: trimmed.slice(1, -1).trim(),
         };
     }
 
-    const textLine = line
+    // Wyodrębnij dyrektywę repetycji z końca linii (jeśli istnieje)
+    const { lineWithoutRepetition, repetitionCount } = extractRepetitionDirective(line);
+
+    const textLine = lineWithoutRepetition
         .replace(/\[[^\]]*\]/g, '')
         .replace(/\t/g, NBSP.repeat(4));
     const hasLyrics = textLine.trim().length > 0;
-    const chordLine = hasLyrics ? buildChordLine(line) : buildChordOnlyLine(line);
+    const chordLine = hasLyrics ? buildChordLine(lineWithoutRepetition) : buildChordOnlyLine(lineWithoutRepetition);
 
     return {
         type: 'lyrics',
         chordLine,
         textLine,
         hasLyrics,
+        repetitionCount,
     };
+}
+
+/**
+ * Wyodrębnia dyrektywę repetycji {c: xN} z linii.
+ * Zwraca linię bez dyrektywy oraz liczbę powtórzeń (lub undefined).
+ */
+function extractRepetitionDirective(line: string): { lineWithoutRepetition: string; repetitionCount?: number } {
+    const match = line.match(REPETITION_DIRECTIVE_PATTERN);
+    if (match) {
+        return {
+            lineWithoutRepetition: line.replace(REPETITION_DIRECTIVE_PATTERN, '').trimEnd(),
+            repetitionCount: parseInt(match[1], 10),
+        };
+    }
+    return { lineWithoutRepetition: line };
 }
 
 /**

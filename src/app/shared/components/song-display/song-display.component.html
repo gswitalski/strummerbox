@@ -10,10 +10,10 @@
                     @if (line.type === 'lyrics') {
                         <div class="song-display__lyrics-line">
                             @if (showChords() && line.chordLine) {
-                                <span class="song-display__chords">{{ line.chordLine }}</span>
+                                <span class="song-display__chords">{{ line.chordLine }}@if (!line.hasLyrics && line.repetitionCount) {<span class="song-display__repetition-marker">× {{ line.repetitionCount }}</span>}</span>
                             }
                             @if (line.hasLyrics) {
-                                <span class="song-display__lyrics">{{ line.textLine }}</span>
+                                <span class="song-display__lyrics">{{ line.textLine }}@if (line.repetitionCount) {<span class="song-display__repetition-marker">× {{ line.repetitionCount }}</span>}</span>
                             }
                         </div>
                     } @else if (line.type === 'directive') {

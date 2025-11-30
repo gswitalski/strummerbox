@@ -62,5 +62,10 @@
     &__spacer {
         height: 1rem;
     }
+
+    &__repetition-marker {
+        color: var(--mat-sys-on-surface-variant);
+        margin-left: 0.5em;
+    }
 }
 

@@ -24,6 +24,19 @@ export class ChordConverterService {
     private readonly CHORD_PATTERN = /^[A-Ga-gHh](#|b)?(m|maj|min|M|aug|dim|sus|add)?\d*\*?(\/[A-Ga-gHh](#|b)?)?$/;
 
     /**
+     * Wzorzec dla znacznika repetycji na końcu linii.
+     * Dopasowuje spację (lub więcej) + "x" + jedna lub więcej cyfr na końcu linii.
+     * Przykłady: "tekst x2", "akordy x3"
+     */
+    private readonly REPETITION_MARKER_PATTERN = /\s+(x\d+)$/i;
+
+    /**
+     * Wzorzec dla dyrektywy repetycji w formacie ChordPro.
+     * Dopasowuje {c: xN} gdzie N to liczba.
+     */
+    private readonly REPETITION_DIRECTIVE_PATTERN = /\{c:\s*x(\d+)\s*\}/i;
+
+    /**
      * Konwertuje tekst w formacie "akordy nad tekstem" do formatu ChordPro.
      *
      * Format wejściowy:
@@ -32,6 +45,9 @@ export class ChordConverterService {
      *
      * Format wyjściowy ChordPro:
      * - Akordy umieszczone w nawiasach kwadratowych [akord] w odpowiednich miejscach tekstu
+     *
+     * Obsługuje również znacznik repetycji xN (np. x2) na końcu linii,
+     * konwertując go do dyrektywy ChordPro {c: xN}.
      *
      * @param text - Tekst piosenki w formacie "akordy nad tekstem"
      * @returns Tekst piosenki w formacie ChordPro
@@ -58,23 +74,65 @@ export class ChordConverterService {
 
                 if (nextLineHasText) {
                     // Mamy parę: akordy + tekst
-                    const merged = this.mergeChordLineWithText(currentLine, nextLine);
-                    result.push(merged);
+                    // Najpierw wyodrębnij znacznik repetycji z linii tekstu
+                    const { line: textWithoutRepetition, repetitionDirective } = this.extractRepetitionMarker(nextLine);
+                    const merged = this.mergeChordLineWithText(currentLine, textWithoutRepetition);
+                    result.push(merged + repetitionDirective);
                     i += 2; // Przeskocz obie linie
                 } else {
                     // Linia z akordami bez tekstu pod nią (lub pusta linia/kolejna linia akordów pod spodem)
-                    const chords = this.extractChordsOnly(currentLine);
-                    result.push(chords);
+                    // Najpierw wyodrębnij znacznik repetycji z linii akordów
+                    const { line: chordsWithoutRepetition, repetitionDirective } = this.extractRepetitionMarker(currentLine);
+                    const chords = this.extractChordsOnly(chordsWithoutRepetition);
+                    result.push(chords + repetitionDirective);
                     i += 1;
                 }
             } else {
                 // Zwykła linia tekstu (w tym puste linie)
-                result.push(currentLine);
+                result.push(this.convertRepetitionMarker(currentLine));
                 i += 1;
             }
         }
 
         return result.join('\n');
+    }
+
+    /**
+     * Konwertuje znacznik repetycji xN na końcu linii do dyrektywy ChordPro {c: xN}.
+     *
+     * @param line - Linia tekstu
+     * @returns Linia z przekonwertowanym znacznikiem repetycji
+     */
+    private convertRepetitionMarker(line: string): string {
+        const match = line.match(this.REPETITION_MARKER_PATTERN);
+        if (match) {
+            const marker = match[1]; // np. "x2"
+            return line.replace(this.REPETITION_MARKER_PATTERN, ` {c: ${marker}}`);
+        }
+        return line;
+    }
+
+    /**
+     * Wyodrębnia znacznik repetycji xN z końca linii i zwraca linię bez znacznika
+     * oraz dyrektywę ChordPro do dodania na końcu.
+     *
+     * @param line - Linia tekstu
+     * @returns Obiekt z linią bez znacznika i dyrektywą repetycji (lub pustym stringiem)
+     */
+    private extractRepetitionMarker(line: string): { line: string; repetitionDirective: string } {
+        const match = line.match(this.REPETITION_MARKER_PATTERN);
+        if (match) {
+            const marker = match[1]; // np. "x2"
+            const lineWithoutMarker = line.replace(this.REPETITION_MARKER_PATTERN, '');
+            return {
+                line: lineWithoutMarker,
+                repetitionDirective: ` {c: ${marker}}`,
+            };
+        }
+        return {
+            line: line,
+            repetitionDirective: '',
+        };
     }
 
     /**
@@ -211,6 +269,9 @@ export class ChordConverterService {
      * - Linia z akordami (umieszczone nad odpowiednimi pozycjami w tekście)
      * - Linia z tekstem (bezpośrednio pod akordami)
      *
+     * Obsługuje również dyrektywę repetycji {c: xN},
+     * konwertując ją z powrotem do znacznika xN.
+     *
      * @param chordProContent - Tekst piosenki w formacie ChordPro
      * @returns Tekst piosenki w formacie "akordy nad tekstem"
      */
@@ -223,23 +284,61 @@ export class ChordConverterService {
         const result: string[] = [];
 
         for (const line of lines) {
-            const { chordLine, textLine, hasChords } = this.splitChordProLine(line);
+            // Najpierw wyodrębnij dyrektywę repetycji (jeśli istnieje)
+            const { lineWithoutDirective, repetitionMarker } = this.extractRepetitionDirectiveForOverText(line);
+
+            const { chordLine, textLine, hasChords } = this.splitChordProLine(lineWithoutDirective);
 
             if (hasChords) {
-                // Linia zawiera akordy - dodaj linię akordów
-                result.push(chordLine);
-                // Dodaj linię tekstu tylko jeśli zawiera jakikolwiek tekst (nie same spacje)
-                // (samodzielne akordy bez tekstu nie potrzebują pustej linii pod spodem)
+                // Linia zawiera akordy
                 if (textLine.trim().length > 0) {
-                    result.push(textLine);
+                    // Jest tekst - dodaj linię akordów, potem linię tekstu z markerem
+                    result.push(chordLine);
+                    result.push(textLine + repetitionMarker);
+                } else {
+                    // Brak tekstu (same akordy) - dodaj linię akordów z markerem
+                    result.push(chordLine + repetitionMarker);
                 }
             } else {
-                // Linia bez akordów - dodaj bez zmian
-                result.push(line);
+                // Linia bez akordów - dodaj bez zmian (z markerem jeśli był)
+                result.push(lineWithoutDirective + repetitionMarker);
             }
         }
 
         return result.join('\n');
+    }
+
+    /**
+     * Wyodrębnia dyrektywę repetycji {c: xN} z linii i zwraca linię bez dyrektywy
+     * oraz znacznik do dodania (np. " x2").
+     *
+     * @param line - Linia tekstu w formacie ChordPro
+     * @returns Obiekt z linią bez dyrektywy i znacznikiem repetycji
+     */
+    private extractRepetitionDirectiveForOverText(line: string): { lineWithoutDirective: string; repetitionMarker: string } {
+        // Reset lastIndex bo wzorzec jest globalny
+        this.REPETITION_DIRECTIVE_PATTERN.lastIndex = 0;
+        const match = line.match(this.REPETITION_DIRECTIVE_PATTERN);
+        if (match) {
+            const lineWithoutDirective = line.replace(this.REPETITION_DIRECTIVE_PATTERN, '').trimEnd();
+            return {
+                lineWithoutDirective,
+                repetitionMarker: ` x${match[1]}`,
+            };
+        }
+        return { lineWithoutDirective: line, repetitionMarker: '' };
+    }
+
+    /**
+     * Konwertuje dyrektywę repetycji {c: xN} z powrotem do znacznika xN.
+     *
+     * @param line - Linia tekstu w formacie ChordPro
+     * @returns Linia z przekonwertowaną dyrektywą repetycji
+     */
+    private convertRepetitionDirective(line: string): string {
+        // Reset lastIndex bo wzorzec jest globalny
+        this.REPETITION_DIRECTIVE_PATTERN.lastIndex = 0;
+        return line.replace(this.REPETITION_DIRECTIVE_PATTERN, (_, num) => `x${num}`);
     }
 
     /**
