@@ -365,6 +365,48 @@ describe('ChordConverterService', () => {
             expect(result).toContain('[Ddim]');
         });
 
+        it('should handle chords with asterisk notation (G*)', () => {
+            // Gwiazdka jest używana do oznaczania szczególnych wariacji akordu
+            const input = [
+                'G*       C        D*       A',
+                'Tekst z akordami z gwiazdką'
+            ].join('\n');
+
+            const result = service.convertFromChordsOverText(input);
+
+            expect(result).toContain('[G*]');
+            expect(result).toContain('[C]');
+            expect(result).toContain('[D*]');
+            expect(result).toContain('[A]');
+            expect(result).toContain('Tekst');
+            expect(result).toContain('gwiazdką');
+        });
+
+        it('should handle mixed asterisk chords with modifiers (Am7*, C#*)', () => {
+            const input = [
+                'Am7*     C#*      Dm*      Gsus4*',
+                'Tekst z różnymi akordami z gwiazdką'
+            ].join('\n');
+
+            const result = service.convertFromChordsOverText(input);
+
+            expect(result).toContain('[Am7*]');
+            expect(result).toContain('[C#*]');
+            expect(result).toContain('[Dm*]');
+            expect(result).toContain('[Gsus4*]');
+        });
+
+        it('should handle standalone chord line with asterisks', () => {
+            const input = 'G*  Am*  D*  C';
+
+            const result = service.convertFromChordsOverText(input);
+
+            expect(result).toContain('[G*]');
+            expect(result).toContain('[Am*]');
+            expect(result).toContain('[D*]');
+            expect(result).toContain('[C]');
+        });
+
         it('should handle real-world example', () => {
             const input = [
                 'Intro:',

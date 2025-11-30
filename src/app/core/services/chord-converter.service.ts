@@ -16,11 +16,12 @@ export class ChordConverterService {
      * Wzorzec dla kompletnego akordu muzycznego.
      * Dopasowuje cały token jako akord (nie szuka wewnątrz słów).
      *
-     * Format: [CDEFGAB lub cdefgab lub H/h][#/b opcjonalnie][modyfikator opcjonalnie][cyfra opcjonalnie]
+     * Format: [CDEFGAB lub cdefgab lub H/h][#/b opcjonalnie][modyfikator opcjonalnie][cyfra opcjonalnie][* opcjonalnie]
      *
-     * Przykłady poprawnych akordów: C, Am, G#, Bb, Dm7, Csus4, Fmaj7, a, e, H
+     * Przykłady poprawnych akordów: C, Am, G#, Bb, Dm7, Csus4, Fmaj7, a, e, H, G*, Am7*
+     * Gwiazdka (*) jest używana do oznaczania szczególnych wariacji akordu (np. muted chords).
      */
-    private readonly CHORD_PATTERN = /^[A-Ga-gHh](#|b)?(m|maj|min|M|aug|dim|sus|add)?\d*(\/[A-Ga-gHh](#|b)?)?$/;
+    private readonly CHORD_PATTERN = /^[A-Ga-gHh](#|b)?(m|maj|min|M|aug|dim|sus|add)?\d*\*?(\/[A-Ga-gHh](#|b)?)?$/;
 
     /**
      * Konwertuje tekst w formacie "akordy nad tekstem" do formatu ChordPro.
