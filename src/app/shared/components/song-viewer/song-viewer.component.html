@@ -19,51 +19,53 @@
 @if (isLoaded && title && content) {
     <div class="song-viewer">
         <!-- Toolbar -->
-        <mat-toolbar class="song-toolbar" color="primary">
-            <!-- Przycisk powrotu -->
-            @if (config.showBackButton && config.backLink) {
-                <button
-                    mat-icon-button
-                    [routerLink]="config.backLink"
-                    class="back-button"
-                    [attr.aria-label]="config.backButtonAriaLabel || 'Powrót'">
-                    <mat-icon>arrow_back</mat-icon>
-                </button>
-            }
+        @if (showHeader) {
+            <mat-toolbar class="song-toolbar" color="primary">
+                <!-- Przycisk powrotu -->
+                @if (config.showBackButton && config.backLink) {
+                    <button
+                        mat-icon-button
+                        [routerLink]="config.backLink"
+                        class="back-button"
+                        [attr.aria-label]="config.backButtonAriaLabel || 'Powrót'">
+                        <mat-icon>arrow_back</mat-icon>
+                    </button>
+                }
 
-            <!-- Tytuł w toolbarze (jeśli konfiguracja na to pozwala) -->
-            @if (config.titleInToolbar) {
-                <h1 class="song-title">{{ title }}</h1>
-            } @else {
-                <!-- Spacer - wypycha elementy na prawą stronę gdy tytuł nie jest w toolbarze -->
-                <span class="toolbar-spacer"></span>
-            }
+                <!-- Tytuł w toolbarze (jeśli konfiguracja na to pozwala) -->
+                @if (config.titleInToolbar) {
+                    <h1 class="song-title">{{ title }}</h1>
+                } @else {
+                    <!-- Spacer - wypycha elementy na prawą stronę gdy tytuł nie jest w toolbarze -->
+                    <span class="toolbar-spacer"></span>
+                }
 
-            <!-- Przełącznik akordów -->
-            @if (config.showChordsToggle) {
-                <mat-button-toggle-group
-                    [value]="showChords ? 'chords' : 'text'"
-                    (change)="onChordsToggleChange($event.value)"
-                    class="chord-toggle"
-                    aria-label="Przełącznik widoku">
-                    <mat-button-toggle value="text">Tekst</mat-button-toggle>
-                    <mat-button-toggle value="chords">Akordy</mat-button-toggle>
-                </mat-button-toggle-group>
-            }
+                <!-- Przełącznik akordów -->
+                @if (config.showChordsToggle) {
+                    <mat-button-toggle-group
+                        [value]="showChords ? 'chords' : 'text'"
+                        (change)="onChordsToggleChange($event.value)"
+                        class="chord-toggle"
+                        aria-label="Przełącznik widoku">
+                        <mat-button-toggle value="text">Tekst</mat-button-toggle>
+                        <mat-button-toggle value="chords">Akordy</mat-button-toggle>
+                    </mat-button-toggle-group>
+                }
 
-            <!-- Kontrolki transpozycji - widoczne gdy akordy są włączone -->
-            @if (config.showTransposeControls && showChords) {
-                <stbo-transpose-controls
-                    [offset]="transposeOffset"
-                    (offsetChange)="onTransposeChange($event)">
-                </stbo-transpose-controls>
-            }
-        </mat-toolbar>
+                <!-- Kontrolki transpozycji - widoczne gdy akordy są włączone -->
+                @if (config.showTransposeControls && showChords) {
+                    <stbo-transpose-controls
+                        [offset]="transposeOffset"
+                        (offsetChange)="onTransposeChange($event)">
+                    </stbo-transpose-controls>
+                }
+            </mat-toolbar>
+        }
 
         <!-- Treść piosenki -->
         <div class="song-content-wrapper">
             <!-- Tytuł poza toolbarem (jeśli konfiguracja na to pozwala) -->
-            @if (!config.titleInToolbar) {
+            @if (!config.titleInToolbar && showHeader) {
                 <h1 class="song-title">{{ title }}</h1>
             }
 

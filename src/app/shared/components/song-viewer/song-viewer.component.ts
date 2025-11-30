@@ -24,12 +24,12 @@ import type { SongNavigation } from './song-viewer.types';
 
 /**
  * Reużywalny komponent prezentacyjny do wyświetlania widoku piosenki.
- * 
+ *
  * Ten komponent jest wysoce konfigurowalny i może być używany w różnych kontekstach:
  * - Widok biesiady (z akordami, przyciskiem QR, nawigacją)
  * - Widok publicznego repertuaru (z przełącznikiem akordów, nawigacją)
  * - Widok publicznej piosenki (z przełącznikiem akordów, bez nawigacji)
- * 
+ *
  * @example
  * ```html
  * <stbo-song-viewer
@@ -104,6 +104,12 @@ export class SongViewerComponent {
      * Konfiguracja określająca, które elementy UI mają być widoczne
      */
     @Input({ required: true }) config!: SongViewerConfig;
+
+    /**
+     * Czy wyświetlać toolbar
+     */
+    @Input() showHeader = true;
+
 
     /**
      * Zdarzenie emitowane gdy użytkownik zmienia stan przełącznika akordów
