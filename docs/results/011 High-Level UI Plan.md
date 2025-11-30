@@ -143,6 +143,7 @@ Zarządzanie stanem aplikacji będzie realizowane za pomocą serwisów Angulara 
     *   **UX:** Nad panelem podglądu znajduje się przełącznik (`mat-button-toggle-group`) pozwalający na wybór jednego z dwóch trybów:
         *   **Podgląd ChordPro:** Domyślny tryb, działający jak dotychczas. Na desktopie układ "side-by-side" (edycja po lewej, surowy podgląd ChordPro po prawej). Na mobile zakładki.
         *   **Podgląd Biesiada:** Renderuje piosenkę przy użyciu `SongViewerComponent` (bez kontrolek transpozycji), pokazując, jak będzie wyglądać w trybie Biesiada. Dane do tego podglądu są pobierane z dynamicznie generowanego formatu ChordPro.
+    *   **UX:** Edytor tekstu wspiera uproszczoną składnię do definiowania powtórzeń (np. `x2` na końcu linii). Podgląd na żywo w trybach 'ChordPro' i 'Biesiada' natychmiastowo odzwierciedla interpretację tej składni.
     *   **UX:** Wybór trybu podglądu jest zapamiętywany w `localStorage`, dzięki czemu preferencja użytkownika jest zachowana przy edycji kolejnych piosenek. Walidacja (np. unikalność tytułu) z komunikatami błędów.
     *   **Dostępność:** Etykiety pól formularza i kontrolek przełącznika.
     *   **Bezpieczeństwo:** Dostęp chroniony.
@@ -307,7 +308,7 @@ Poniższe komponenty są reużywalne i wykorzystywane w wielu miejscach aplikacj
     *   **Dokumentacja:** `docs/results/changes/song-navigation-component-refactoring.md`
 
 *   **`SongDisplayComponent`:**
-    *   **Opis:** Komponent odpowiedzialny za renderowanie treści piosenki. Przyjmuje jako dane wejściowe pełną treść w formacie ChordPro, flagę `showChords: boolean` oraz numeryczny `transposeOffset`. Na podstawie tych danych, komponent najpierw transponuje akordy (jeśli offset jest różny od zera), a następnie renderuje sam tekst lub tekst z poprawnie sformatowanymi, przetransponowanymi akordami.
+    *   **Opis:** Komponent odpowiedzialny za renderowanie treści piosenki. Przyjmuje jako dane wejściowe pełną treść w formacie ChordPro, flagę `showChords: boolean` oraz numeryczny `transposeOffset`. Na podstawie tych danych, komponent najpierw transponuje akordy (jeśli offset jest różny od zera), a następnie renderuje sam tekst lub tekst z poprawnie sformatowanymi, przetransponowanymi akordami. Dodatkowo, komponent jest odpowiedzialny za parsowanie i renderowanie dyrektywy powtórzeń ChordPro (`{c: xN}`). Wskaźnik powtórzenia jest wyświetlany na końcu linii jako `× N` i stylizowany zgodnie z wytycznymi (ten sam rozmiar czcionki, kolor drugorzędny z palety Material).
     *   **API:** `@Input() content: string`, `@Input() showChords: boolean`, `@Input() transposeOffset: number`
     *   **Użycie:** Wewnętrznie używany przez `SongViewerComponent` do wyświetlania treści piosenki.
     *   **Stan:** ⚠️ Zaktualizowany (grudzień 2025)

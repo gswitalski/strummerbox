@@ -92,6 +92,8 @@
 
 > **Note on Editor Preview Modes:** The feature allowing the user to switch between ChordPro and "Biesiada" (chords-above-text) preview modes in the song editor is implemented entirely on the client-side. The frontend application reuses its existing ChordPro generation logic and rendering components to provide this functionality. This does not require any changes to the API.
 
+> **Note on Repeats Handling:** The feature allowing users to define repeating sections using simplified syntax (e.g., `x2`) which translates to the ChordPro `{c: xN}` directive is implemented entirely on the client-side. The API is not aware of this syntax and treats the song `content` as an opaque string, requiring no changes to backend endpoints.
+
 #### POST /songs
 - **Method:** POST
 - **Path:** `/songs`

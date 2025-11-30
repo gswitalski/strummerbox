@@ -19,34 +19,33 @@ Najpierw przejrzyj następujące informacje:
 3. Widok do implementacji
 <views>
 
-### Zmodyfikowane widoki
+### Zmiany w istniejących komponentach
 
-#### **Widok 7. Tworzenie / Edycja Piosenki (Song Create/Edit View)**
+#### **Widok Tworzenia / Edycji Piosenki (`Song Create/Edit View`)**
+-   **Zmiana**: Edytor tekstu został rozszerzony o wsparcie dla uproszczonej składni powtórzeń. Użytkownik może dodać na końcu linii znacznik `xN` (np. `x2`), który jest na żywo interpretowany i wyświetlany w panelu podglądu.
 
--   **Ścieżka:** `/management/songs/new`, `/management/songs/:id/edit`
--   **Opis zmian:**
-    -   Do panelu podglądu dodano przełącznik (`mat-button-toggle-group`) umożliwiający wybór jednego z dwóch trybów: "Podgląd ChordPro" i "Podgląd Biesiada".
-    -   Tryb "Podgląd ChordPro" zachowuje dotychczasową funkcjonalność.
-    -   Tryb "Podgląd Biesiada" renderuje piosenkę przy użyciu istniejącego komponentu `SongViewerComponent`, aby pokazać finalny wygląd utworu, tak jak w trybie Biesiada, ale bez opcji transpozycji.
-    -   Wprowadzono mechanizm zapamiętywania wybranego trybu podglądu w `localStorage`, aby poprawić komfort pracy użytkownika przy edycji wielu piosenek.
+#### **`SongDisplayComponent`**
+-   **Zmiana**: Komponent ten jest teraz odpowiedzialny za parsowanie dyrektywy ChordPro `{c: xN}` znajdującej się w treści piosenki.
+-   **Nowe zachowanie**: Po wykryciu dyrektywy, komponent renderuje na końcu odpowiedniej linii wizualny wskaźnik powtórzenia w formacie `× N` (np. `× 2`).
+-   **Styling**: Wskaźnik jest stylizowany zgodnie z nowymi wymaganiami: rozmiar czcionki jest identyczny jak tekst piosenki, a kolor pochodzi z palety tematycznej Angular Material (np. kolor dla tekstu drugorzędnego/podpowiedzi), aby zapewnić wizualne odróżnienie przy zachowaniu czytelności.
+
 
 </views>
 
 4. User Stories:
 <user_stories>
-
-### Nowe historyjki
-
--   **ID:** US-028
--   **Title:** Podgląd piosenki w trybie 'Biesiada' podczas edycji
--   **Description:** Jako Organizator, podczas edycji piosenki, chcę mieć możliwość przełączenia podglądu, aby zobaczyć, jak piosenka będzie wyglądać w docelowym formacie "akordy nad tekstem", tak jak zobaczą ją Biesiadnicy.
--   **Acceptance Criteria:**
-    -   W widoku edycji piosenki, nad panelem podglądu, znajduje się przełącznik z opcjami "Podgląd ChordPro" i "Podgląd Biesiada".
-    -   Domyślnie wybrany jest tryb "Podgląd ChordPro", który działa tak jak dotychczas, pokazując na żywo wygenerowany format ChordPro.
-    -   Po przełączeniu na "Podgląd Biesiada", panel podglądu renderuje piosenkę przy użyciu komponentu `SongViewerComponent`, wyświetlając ją w formacie "akordy nad tekstem".
-    -   Dane wejściowe dla "Podglądu Biesiada" pochodzą z dynamicznie generowanego w tle formatu ChordPro.
-    -   W "Podglądzie Biesiada" nie są widoczne kontrolki transpozycji.
-    -   Wybór trybu podglądu jest zapamiętywany w `localStorage` i jest zachowywany pomiędzy sesjami edycji różnych piosenek.
+### US-029: Definiowanie powtórzeń w tekście piosenki
+-   **ID**: US-029
+-   **Title**: Definiowanie powtórzeń w tekście piosenki
+-   **Description**: Jako Organizator, podczas edycji piosenki, chcę móc w prosty sposób oznaczać powtarzające się linie tekstu lub sekwencje akordów, aby tworzyć bardziej zwięzłe i czytelne zapisy.
+-   **Acceptance Criteria**:
+    -   W edytorze piosenek, dodanie na końcu linii z akordami i/lub tekstem znacznika w formacie `xN` (gdzie N to liczba, np. `x2`, `x4`) jest interpretowane jako dyrektywa powtórzenia.
+    -   W podglądzie "ChordPro", taka linia jest automatycznie konwertowana do standardowej dyrektywy ChordPro, np. `... {c: x2}`.
+    -   W podglądzie "Biesiada" oraz w publicznym widoku piosenki, powtórzenie jest renderowane na końcu linii jako czytelny wskaźnik, np. `× 2`.
+    -   Wskaźnik powtórzenia (`× 2`) jest wyświetlany czcionką o tym samym rozmiarze co tekst piosenki, ale w kolorze drugorzędnym z palety Angular Material (np. `secondary-text` lub `hint-text`), aby wizualnie odróżniał się od treści.
+    -   Funkcjonalność działa zarówno dla linii zawierających tylko akordy (np. `C a d G x2`), jak i dla linii z tekstem i akordami (np. `Pieski małe dwa x2`).
+    -   Podczas konwersji z formatu ChordPro do edytora, dyrektywa `{c: xN}` jest z powrotem zamieniana na prosty zapis `xN` na końcu linii.
+    -   Niepoprawna składnia (np. brak liczby po `x`) jest traktowana jako zwykły tekst i nie jest konwertowana.
 
 
 </user_stories>
