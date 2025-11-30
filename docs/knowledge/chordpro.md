@@ -87,6 +87,30 @@ lub
 {cb: Solo na saksofonie}
 ```
 
+### Powtarzające się ciągi akordów (bez tekstu)
+Gdy chcesz zapisać sekwencję akordów instrumentalnych, która ma się powtórzyć określoną liczbę razy, umieść komentarz z informacją o powtórzeniach na końcu linii lub w osobnej linii przed/po akordach.
+
+```text
+[C]   [A]   [G]   [D]   {c: x2}
+```
+
+Ten zapis oznacza: "zagraj sekwencję C → A → G → D dwa razy".
+
+### Powtarzające się linie tekstu z akordami
+
+**Sposób 1 – pojedyncza linijka:**
+```text
+Pi[C]eski małe [A]dwa {c: x2}
+```
+
+**Sposób 2 – kilka linijek w bloku:**
+```text
+{block_start: x2}
+Pi[C]eski małe [A]dwa
+Chci[D]ały przejść przez rz[G]eczkę
+{block_end}
+```
+
 ## 5. Definiowanie akordów
 
 Jeśli utwór wymaga nietypowego chwytu, możesz zdefiniować go na dole lub górze pliku.
