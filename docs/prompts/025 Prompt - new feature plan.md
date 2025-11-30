@@ -12,17 +12,7 @@ Oto opis nowej funkcjonalności, którą należy dodać do projektu:
 
 <nowa_funkcjonalnosc>
 
-Aktualnnie podczas edycji piosenki dane wprowadza się z lewej strony w formacie chordpro. jednocześnie z prawej strony jest prezentowany podgląd tej piosenki w formacie 'akordy nad tekstem'
-Chce żeby było na odwrót: użytkownik wprowadza tekst piosenki z akordami w formacie 'akordy nad tekstem' a po prawej stonie prezentowany jest podgląd w jaki sposób piosenka będzie zapisana w baxie cyli chordpro.
-Należy wykorzystać gotowe funkcje do konwertowanie z chordpro do 'akordy nad tekstem' (przy odczycie piosenkii z bazy i ładowaniu do edytora.) ora z formatu 'akordy nad tekstem' do chordpro do prezentowania podglądu i zapisu piosenki na backendzie.
-z chordpro do 'akordy nad tekstem wykorzystuje komponet do prezentcji piosenki
-z 'akordy nad tekstem' do chord pro wykorzystywany jest przy imporcie piosenk z formatu 'akordy nad tekstem'.
-
-Obie funkcjonalności nalezy wydzielić z komponentów i umieścić w serwisie.
-
-Funcja importu zostanie wyłączona bo już nie będzie potrzebna.
-
-
+Jako organizator zarządzający piosenkami chce aby w w widoku tabli piosenek w kolumnie, akce, obok ikonki educji była też ikonka podglądu. kliknię cie na nią spowoduje wyświetlenie widoku z podglądem piosenki do grania. odpowiedni komponent reuzywalny jż jest, powrót do tabli ma być przyciskiem 'Zamknij'.
 
 </nowa_funkcjonalnosc>
 

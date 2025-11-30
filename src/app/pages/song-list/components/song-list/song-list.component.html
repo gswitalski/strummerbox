@@ -54,6 +54,14 @@
                         <button
                             mat-icon-button
                             type="button"
+                            [routerLink]="['/management/songs', song.id, 'preview']"
+                            [attr.aria-label]="'Podgląd piosenki ' + song.title"
+                        >
+                            <mat-icon>visibility</mat-icon>
+                        </button>
+                        <button
+                            mat-icon-button
+                            type="button"
                             (click)="handleEditSong(song.id)"
                             [attr.aria-label]="'Edytuj piosenkę ' + song.title"
                         >
@@ -130,6 +138,15 @@
                     </div>
                 </mat-card-content>
                 <mat-card-actions>
+                    <button
+                        mat-button
+                        type="button"
+                        [routerLink]="['/management/songs', song.id, 'preview']"
+                        [attr.aria-label]="'Podgląd piosenki ' + song.title"
+                    >
+                        <mat-icon>visibility</mat-icon>
+                        Podgląd
+                    </button>
                     <button
                         mat-button
                         type="button"
