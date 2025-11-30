@@ -615,6 +615,106 @@ describe('ChordConverterService', () => {
             expect(lines[0]).toContain('[F]');
             expect(lines[0]).toContain('[G]');
         });
+
+        // ========== Testy konwersji znacznika repetycji xN → {c: xN} ==========
+
+        describe('repetition marker conversion (xN → {c: xN})', () => {
+            it('should convert x2 at end of text line to ChordPro directive', () => {
+                const input = 'La la la x2';
+
+                const result = service.convertFromChordsOverText(input);
+
+                expect(result).toBe('La la la {c: x2}');
+            });
+
+            it('should convert x3 at end of chord+text line', () => {
+                const input = [
+                    'C        Am',
+                    'Tekst piosenki x3'
+                ].join('\n');
+
+                const result = service.convertFromChordsOverText(input);
+
+                expect(result).toContain('[C]');
+                expect(result).toContain('[Am]');
+                expect(result).toContain('{c: x3}');
+                // Sprawdź poprawny format dyrektywy ze spacją
+                expect(result).toMatch(/\{c: x3\}$/);
+            });
+
+            it('should convert x2 at end of standalone chord line', () => {
+                const input = 'C  Am  F  G x2';
+
+                const result = service.convertFromChordsOverText(input);
+
+                expect(result).toContain('[C]');
+                expect(result).toContain('[Am]');
+                expect(result).toContain('[F]');
+                expect(result).toContain('[G]');
+                expect(result).toContain('{c: x2}');
+            });
+
+            it('should handle multiple digit repetition like x10', () => {
+                const input = 'Refren x10';
+
+                const result = service.convertFromChordsOverText(input);
+
+                expect(result).toBe('Refren {c: x10}');
+            });
+
+            it('should NOT convert "extra" (word ending with x) as repetition', () => {
+                const input = 'This is extra';
+
+                const result = service.convertFromChordsOverText(input);
+
+                expect(result).toBe('This is extra');
+                expect(result).not.toContain('{c:');
+            });
+
+            it('should NOT convert "x" without number as repetition', () => {
+                const input = 'Test x';
+
+                const result = service.convertFromChordsOverText(input);
+
+                expect(result).toBe('Test x');
+                expect(result).not.toContain('{c:');
+            });
+
+            it('should NOT convert x2 in the middle of line', () => {
+                const input = 'Śpiewaj x2 razy głośniej';
+
+                const result = service.convertFromChordsOverText(input);
+
+                // x2 w środku linii nie powinno być konwertowane
+                expect(result).toBe('Śpiewaj x2 razy głośniej');
+                expect(result).not.toContain('{c:');
+            });
+
+            it('should handle uppercase X2 as repetition marker', () => {
+                const input = 'La la la X2';
+
+                const result = service.convertFromChordsOverText(input);
+
+                expect(result).toBe('La la la {c: X2}');
+            });
+
+            it('should preserve repetition marker through chord conversion', () => {
+                const input = [
+                    'C    G     C',
+                    'Lalala x2'
+                ].join('\n');
+
+                const result = service.convertFromChordsOverText(input);
+
+                expect(result).toContain('[C]');
+                expect(result).toContain('[G]');
+                // Tekst "Lalala" może być rozdzielony przez akordy, sprawdzamy fragmenty
+                expect(result).toContain('Lala');
+                expect(result).toContain('{c: x2}');
+                // Dyrektywa powinna być na końcu linii
+                expect(result).toMatch(/\{c: x2\}$/);
+            });
+        });
     });
 
     describe('convertToOverText', () => {
@@ -793,6 +893,78 @@ describe('ChordConverterService', () => {
             expect(backToOverText).toContain('Am');
             expect(backToOverText).toContain('F');
             expect(backToOverText).toContain('G');
+        });
+
+        // ========== Testy konwersji dyrektywy repetycji {c: xN} → xN ==========
+
+        describe('repetition directive conversion ({c: xN} → xN)', () => {
+            it('should convert {c: x2} directive back to x2 marker', () => {
+                const input = 'La la la {c: x2}';
+
+                const result = service.convertToOverText(input);
+
+                expect(result).toBe('La la la x2');
+            });
+
+            it('should convert {c: x3} in line with chords', () => {
+                const input = '[C]Tekst [Am]piosenki {c: x3}';
+
+                const result = service.convertToOverText(input);
+                const lines = result.split('\n');
+
+                expect(lines.length).toBe(2);
+                expect(lines[0]).toContain('C');
+                expect(lines[0]).toContain('Am');
+                expect(lines[1]).toBe('Tekst piosenki x3');
+            });
+
+            it('should convert {c: x2} in standalone chord line', () => {
+                const input = '[C]  [Am]  [F]  [G] {c: x2}';
+
+                const result = service.convertToOverText(input);
+
+                expect(result).toContain('C');
+                expect(result).toContain('Am');
+                expect(result).toContain('F');
+                expect(result).toContain('G');
+                expect(result).toContain('x2');
+            });
+
+            it('should handle {c:x2} without space', () => {
+                const input = 'La la la {c:x2}';
+
+                const result = service.convertToOverText(input);
+
+                expect(result).toBe('La la la x2');
+            });
+
+            it('should handle {c: x10} with multiple digits', () => {
+                const input = 'Refren {c: x10}';
+
+                const result = service.convertToOverText(input);
+
+                expect(result).toBe('Refren x10');
+            });
+
+            it('should be inverse of convertFromChordsOverText for repetition markers', () => {
+                const original = [
+                    'C       Am      F       G',
+                    'Śpiewaj razem x2'
+                ].join('\n');
+
+                // Konwertuj do ChordPro i z powrotem
+                const chordPro = service.convertFromChordsOverText(original);
+                expect(chordPro).toContain('{c: x2}');
+
+                const backToOverText = service.convertToOverText(chordPro);
+
+                // Wynikowy tekst powinien zawierać x2 (nie {c: x2})
+                expect(backToOverText).toContain('x2');
+                expect(backToOverText).not.toContain('{c:');
+                // Tekst może być rozdzielony przez akordy, sprawdzamy fragmenty
+                expect(backToOverText).toContain('Śpiewaj');
+                expect(backToOverText).toContain('razem');
+            });
         });
     });
 });
