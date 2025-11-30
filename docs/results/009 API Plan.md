@@ -90,6 +90,8 @@
 
 > **Note on Chord Transposition:** The feature allowing users to transpose chords in real-time is implemented entirely on the client-side. The API always returns the song content as it is stored in the database. The frontend application is responsible for applying the transposition logic before rendering the song to the user. This approach ensures instant UI feedback without requiring additional server round-trips.
 
+> **Note on Editor Preview Modes:** The feature allowing the user to switch between ChordPro and "Biesiada" (chords-above-text) preview modes in the song editor is implemented entirely on the client-side. The frontend application reuses its existing ChordPro generation logic and rendering components to provide this functionality. This does not require any changes to the API.
+
 #### POST /songs
 - **Method:** POST
 - **Path:** `/songs`
@@ -609,31 +611,4 @@
 
 ### 4.4 Public Access
 - `GET /public/**` returns `404` if `published_at` null, `410` if resource soft-deleted; sanitized `content` with chords stripped for songs.
-- Navigation metadata computed using ordered `repertoire_songs` rows; ensure performance via `repertoire_songs_repertoire_position_idx`.
-- Add `Cache-Control: public, max-age=60` for public endpoints; purge cache when `published_at` toggles or content updates.
-
-### 4.5 Biesiada Mode
-- Organizer endpoints reuse song/repertoire validations but return chord-rich content; ensure they are not cached by public CDN.
-- Provide `share` metadata inline to support quick QR display without second round-trip.
-
-### 4.6 Error Handling
-- Standard error envelope:
-```json
-{
-  "error": {
-    "code": "resource_not_found",
-    "message": "Repertoire not found",
-    "details": null
-  }
-}
-```
-- Error codes include `validation_error`, `unauthorized`, `forbidden`, `conflict`, `rate_limited`, `resource_gone`.
-
-### 4.7 Security Measures
-- Enforce `noindex, nofollow` meta tags in public responses plus `X-Robots-Tag: noindex, nofollow` header.
-- Audit logs stored via Supabase `pgAudit` or table capturing create/update/delete with `auth.uid()` for compliance.
-- Input sanitation for `content` to prevent script injection if future HTML rendering occurs; apply server-side escaping.
-
-### 4.8 Rate Limiting & Monitoring
-- Implement per-user rate limiters on modifications (30 write ops/min) to deter abuse.
-- Provide Prometheus-compatible metrics via Supabase Edge Function for latency, error rate, top endpoints.
+- Navigation metadata computed using ordered `

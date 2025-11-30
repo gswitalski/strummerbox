@@ -38,12 +38,14 @@
             }
         </mat-form-field>
 
-        <div preview class="song-edit-form__preview">
-            <div class="song-edit-form__preview-header">
-                <span class="song-edit-form__preview-title">Podgląd (ChordPro)</span>
-            </div>
-            <pre class="song-edit-form__preview-content song-edit-form__chordpro-raw">{{ previewContent() || 'Wprowadź treść, aby zobaczyć podgląd w formacie ChordPro...' }}</pre>
-        </div>
+        <stbo-song-editor-preview
+            preview
+            class="song-edit-form__preview"
+            [content]="previewContent()"
+            [title]="form.controls.title.value"
+            [mode]="previewMode()"
+            (modeChange)="onPreviewModeChange($event)">
+        </stbo-song-editor-preview>
 
         <!-- Wersja dla trybu tabs (mobile) -->
         <mat-form-field editor-tab appearance="outline" class="song-edit-form__content-field" subscriptSizing="dynamic">
@@ -62,9 +64,14 @@
             }
         </mat-form-field>
 
-        <div preview-tab class="song-edit-form__preview song-edit-form__preview--tab">
-            <pre class="song-edit-form__preview-content song-edit-form__chordpro-raw">{{ previewContent() || 'Wprowadź treść, aby zobaczyć podgląd w formacie ChordPro...' }}</pre>
-        </div>
+        <stbo-song-editor-preview
+            preview-tab
+            class="song-edit-form__preview song-edit-form__preview--tab"
+            [content]="previewContent()"
+            [title]="form.controls.title.value"
+            [mode]="previewMode()"
+            (modeChange)="onPreviewModeChange($event)">
+        </stbo-song-editor-preview>
     </stbo-song-editor-layout>
 </form>
 

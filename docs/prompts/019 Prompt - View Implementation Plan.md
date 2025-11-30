@@ -18,45 +18,37 @@ Najpierw przejrzyj następujące informacje:
 
 3. Widok do implementacji
 <views>
-### Zmodyfikowane Widoki
 
-#### **6. Lista Piosenek (Song List View)**
+### Zmodyfikowane widoki
 
--   **Ścieżka:** `/management/songs`
--   **Opis zmiany:** Do kluczowych informacji w tym widoku, w ramach opcji dostępnych dla każdej piosenki, dodano akcję "Podgląd" z dedykowaną ikoną.
+#### **Widok 7. Tworzenie / Edycja Piosenki (Song Create/Edit View)**
 
-### Nowe Widoki
-
-#### **7a. Podgląd Piosenki (Song Preview View)**
-
--   **Ścieżka:** `/management/songs/:id/preview`
--   **Główny cel:** Umożliwienie Organizatorowi szybkiego podglądu piosenki w trybie "do grania", z pełną funkcjonalnością transpozycji, bez opuszczania kontekstu zarządzania.
--   **Kluczowe informacje:** Tytuł piosenki, treść z akordami, w pełni funkcjonalne kontrolki transpozycji. Przycisk "Zamknij" w toolbarze, który powraca do listy piosenek.
--   **Kluczowe komponenty:** `SongViewerComponent`, `mat-toolbar`, `mat-button`.
--   **UX, dostępność, bezpieczeństwo:**
-    -   **UX:** Widok wykorzystuje reużywalny komponent `SongViewerComponent`, zapewniając spójne doświadczenie z widokiem publicznym i trybem Biesiada. Interfejs jest zoptymalizowany pod kątem czytelności. Przycisk "Zamknij" zapewnia intuicyjny powrót do listy piosenek (`/management/songs`). Transpozycja działa w czasie rzeczywistym i jest stanem tymczasowym (nie jest zapisywana).
-    -   **Dostępność:** Wysoki kontrast i duże czcionki dziedziczone z `SongViewerComponent`. Przycisk "Zamknij" posiada odpowiednią etykietę `aria-label`.
-    -   **Bezpieczeństwo:** Dostęp do widoku jest chroniony przez `CanActivate` guard.
-
+-   **Ścieżka:** `/management/songs/new`, `/management/songs/:id/edit`
+-   **Opis zmian:**
+    -   Do panelu podglądu dodano przełącznik (`mat-button-toggle-group`) umożliwiający wybór jednego z dwóch trybów: "Podgląd ChordPro" i "Podgląd Biesiada".
+    -   Tryb "Podgląd ChordPro" zachowuje dotychczasową funkcjonalność.
+    -   Tryb "Podgląd Biesiada" renderuje piosenkę przy użyciu istniejącego komponentu `SongViewerComponent`, aby pokazać finalny wygląd utworu, tak jak w trybie Biesiada, ale bez opcji transpozycji.
+    -   Wprowadzono mechanizm zapamiętywania wybranego trybu podglądu w `localStorage`, aby poprawić komfort pracy użytkownika przy edycji wielu piosenek.
 
 </views>
 
 4. User Stories:
 <user_stories>
-### Nowa Historyjka Użytkownika
 
--   **ID**: US-027
--   **Title**: Szybki podgląd piosenki z listy
--   **Description**: Jako Organizator, przeglądając listę swoich piosenek, chcę mieć możliwość szybkiego otworzenia podglądu wybranego utworu w trybie "do grania", aby sprawdzić jego wygląd i przetestować transpozycję bez wchodzenia w tryb edycji lub Biesiada.
--   **Acceptance Criteria**:
-    -   W widoku listy piosenek (`/management/songs`), w kolumnie "Akcje", obok istniejących ikon, widoczna jest nowa ikona "Podgląd" (np. ikona `visibility`).
-    -   Kliknięcie ikony "Podgląd" przekierowuje użytkownika na nową, dedykowaną stronę podglądu piosenki (np. `/management/songs/{id}/preview`).
-    -   Nowy widok jest chroniony i dostępny tylko dla zalogowanego organizatora.
-    -   W widoku podglądu wyświetlana jest piosenka przy użyciu komponentu `SongViewerComponent`.
-    -   Widoczny jest tytuł oraz pełna treść piosenki z akordami.
-    -   Dostępne i w pełni funkcjonalne są kontrolki do transpozycji akordów.
-    -   W nagłówku/toolbarze widoku znajduje się przycisk "Zamknij".
-    -   Kliknięcie przycisku "Zamknij" powoduje powrót do widoku listy piosenek (`/management/songs`).
+### Nowe historyjki
+
+-   **ID:** US-028
+-   **Title:** Podgląd piosenki w trybie 'Biesiada' podczas edycji
+-   **Description:** Jako Organizator, podczas edycji piosenki, chcę mieć możliwość przełączenia podglądu, aby zobaczyć, jak piosenka będzie wyglądać w docelowym formacie "akordy nad tekstem", tak jak zobaczą ją Biesiadnicy.
+-   **Acceptance Criteria:**
+    -   W widoku edycji piosenki, nad panelem podglądu, znajduje się przełącznik z opcjami "Podgląd ChordPro" i "Podgląd Biesiada".
+    -   Domyślnie wybrany jest tryb "Podgląd ChordPro", który działa tak jak dotychczas, pokazując na żywo wygenerowany format ChordPro.
+    -   Po przełączeniu na "Podgląd Biesiada", panel podglądu renderuje piosenkę przy użyciu komponentu `SongViewerComponent`, wyświetlając ją w formacie "akordy nad tekstem".
+    -   Dane wejściowe dla "Podglądu Biesiada" pochodzą z dynamicznie generowanego w tle formatu ChordPro.
+    -   W "Podglądzie Biesiada" nie są widoczne kontrolki transpozycji.
+    -   Wybór trybu podglądu jest zapamiętywany w `localStorage` i jest zachowywany pomiędzy sesjami edycji różnych piosenek.
+
+
 </user_stories>
 
 5. Endpoint Description:
