@@ -22,7 +22,13 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 
 import { SongEditorLayoutComponent } from '../song-editor-layout/song-editor-layout.component';
+import { SongEditorPreviewComponent } from '../song-editor-preview/song-editor-preview.component';
+import {
+    SongEditPreviewMode,
+    SONG_EDITOR_PREVIEW_MODE_STORAGE_KEY,
+} from '../song-editor-preview/song-editor-preview.types';
 import { ChordConverterService } from '../../../core/services/chord-converter.service';
+import { LocalStorageService } from '../../../core/services/local-storage.service';
 
 /**
  * Dane początkowe dla formularza edycji piosenki.
@@ -69,6 +75,7 @@ export interface SongEditFormData {
         MatInputModule,
         TextFieldModule,
         SongEditorLayoutComponent,
+        SongEditorPreviewComponent,
     ],
     templateUrl: './song-edit-form.component.html',
     styleUrl: './song-edit-form.component.scss',
@@ -78,6 +85,7 @@ export class SongEditFormComponent {
     private readonly fb = inject(NonNullableFormBuilder);
     private readonly destroyRef = inject(DestroyRef);
     private readonly chordConverter = inject(ChordConverterService);
+    private readonly localStorage = inject(LocalStorageService);
 
     /**
      * Dane początkowe do wypełnienia formularza.
@@ -122,6 +130,12 @@ export class SongEditFormComponent {
     public readonly previewContent = signal<string>('');
 
     /**
+     * Tryb podglądu: 'chordpro' lub 'biesiada'.
+     * Wartość początkowa odczytywana z localStorage, domyślnie 'chordpro'.
+     */
+    public readonly previewMode = signal<SongEditPreviewMode>(this.getInitialPreviewMode());
+
+    /**
      * Computed signal informujący czy formularz jest prawidłowy.
      */
     public readonly isFormValid = computed(() => {
@@ -147,6 +161,12 @@ export class SongEditFormComponent {
             } else {
                 this.form.enable({ emitEvent: false });
             }
+        });
+
+        // Zapisuj zmiany trybu podglądu w localStorage
+        effect(() => {
+            const mode = this.previewMode();
+            this.localStorage.setItem(SONG_EDITOR_PREVIEW_MODE_STORAGE_KEY, mode);
         });
 
         // Subskrybuj zmiany w polu content z debounce dla podglądu
@@ -217,6 +237,25 @@ export class SongEditFormComponent {
     private updatePreview(overTextContent: string): void {
         const chordProContent = this.chordConverter.convertFromChordsOverText(overTextContent);
         this.previewContent.set(chordProContent);
+    }
+
+    /**
+     * Obsługuje zmianę trybu podglądu.
+     */
+    public onPreviewModeChange(mode: SongEditPreviewMode): void {
+        this.previewMode.set(mode);
+    }
+
+    /**
+     * Pobiera początkowy tryb podglądu z localStorage.
+     * Zwraca 'chordpro' jeśli brak zapisanej wartości lub wartość jest nieprawidłowa.
+     */
+    private getInitialPreviewMode(): SongEditPreviewMode {
+        const stored = this.localStorage.getItem(SONG_EDITOR_PREVIEW_MODE_STORAGE_KEY);
+        if (stored === 'chordpro' || stored === 'biesiada') {
+            return stored;
+        }
+        return 'chordpro';
     }
 }
 
