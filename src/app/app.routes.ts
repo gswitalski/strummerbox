@@ -68,6 +68,13 @@ export const routes: Routes = [
                     ),
             },
             {
+                path: 'songs/:id/preview',
+                loadComponent: () =>
+                    import('./pages/song-preview/song-preview-page.component').then(
+                        (m) => m.SongPreviewPageComponent
+                    ),
+            },
+            {
                 path: 'repertoires',
                 loadComponent: () =>
                     import('./pages/repertoire-list/repertoire-list-page/repertoire-list-page.component').then(

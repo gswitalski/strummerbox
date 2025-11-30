@@ -18,53 +18,45 @@ Najpierw przejrzyj następujące informacje:
 
 3. Widok do implementacji
 <views>
+### Zmodyfikowane Widoki
 
-### Zmodyfikowany widok: Tworzenie / Edycja Piosenki (Song Create/Edit View)
+#### **6. Lista Piosenek (Song List View)**
 
--   **Ścieżka:** `/management/songs/new`, `/management/songs/:id/edit`
--   **Notatka o zmianach:**
-    -   Logika edytora została odwrócona. Główne pole tekstowe (`textarea`) służy teraz do wprowadzania danych w formacie "akordy nad tekstem".
-    -   Panel podglądu wyświetla na żywo wynik konwersji do formatu ChordPro.
-    -   Usunięto przycisk "Importuj z tekstu" oraz powiązane z nim okno modalne (`ImportFromTextDialogComponent`), ponieważ funkcjonalność ta została zintegrowana bezpośrednio z edytorem.
+-   **Ścieżka:** `/management/songs`
+-   **Opis zmiany:** Do kluczowych informacji w tym widoku, w ramach opcji dostępnych dla każdej piosenki, dodano akcję "Podgląd" z dedykowaną ikoną.
 
-#### Zaktualizowany opis widoku:
+### Nowe Widoki
 
--   **Główny cel:** Dodawanie nowej lub modyfikacja istniejącej piosenki.
--   **Kluczowe informacje:** Formularz z polem na tytuł piosenki, edytor tekstu dla treści w formacie "akordy nad tekstem". Podgląd na żywo piosenki skonwertowanej do formatu ChordPro.
--   **Kluczowe komponenty:** `mat-form-field`, `textarea`, `mat-button`, niestandardowy komponent edytora "side-by-side".
+#### **7a. Podgląd Piosenki (Song Preview View)**
+
+-   **Ścieżka:** `/management/songs/:id/preview`
+-   **Główny cel:** Umożliwienie Organizatorowi szybkiego podglądu piosenki w trybie "do grania", z pełną funkcjonalnością transpozycji, bez opuszczania kontekstu zarządzania.
+-   **Kluczowe informacje:** Tytuł piosenki, treść z akordami, w pełni funkcjonalne kontrolki transpozycji. Przycisk "Zamknij" w toolbarze, który powraca do listy piosenek.
+-   **Kluczowe komponenty:** `SongViewerComponent`, `mat-toolbar`, `mat-button`.
 -   **UX, dostępność, bezpieczeństwo:**
-    -   **UX:** Na desktopie układ "side-by-side" (edycja w formacie "akordy nad tekstem" po lewej, podgląd w formacie ChordPro po prawej). Na mobile układ z zakładkami (`mat-tab-group`) do przełączania się między edycją a podglądem. Walidacja (np. unikalność tytułu) z komunikatami błędów.
-    -   **Dostępność:** Etykiety pól formularza.
-    -   **Bezpieczeństwo:** Dostęp chroniony.
-
+    -   **UX:** Widok wykorzystuje reużywalny komponent `SongViewerComponent`, zapewniając spójne doświadczenie z widokiem publicznym i trybem Biesiada. Interfejs jest zoptymalizowany pod kątem czytelności. Przycisk "Zamknij" zapewnia intuicyjny powrót do listy piosenek (`/management/songs`). Transpozycja działa w czasie rzeczywistym i jest stanem tymczasowym (nie jest zapisywana).
+    -   **Dostępność:** Wysoki kontrast i duże czcionki dziedziczone z `SongViewerComponent`. Przycisk "Zamknij" posiada odpowiednią etykietę `aria-label`.
+    -   **Bezpieczeństwo:** Dostęp do widoku jest chroniony przez `CanActivate` guard.
 
 
 </views>
 
 4. User Stories:
 <user_stories>
-### Zaktualizowana historyjka
+### Nowa Historyjka Użytkownika
 
-Poniższa historyjka użytkownika zastępuje poprzednią wersję `US-004`.
-
--   **ID:** US-004
--   **Title:** Tworzenie i edycja piosenki z intuicyjnym edytorem
--   **Description:** Jako Organizator, chcę móc dodawać i edytować piosenki w mojej bazie, wpisując tekst w naturalnym formacie "akordy nad tekstem" i jednocześnie widzieć podgląd, jak zostanie on zapisany w formacie ChordPro.
--   **Acceptance Criteria:**
-    -   Formularz dodawania/edycji piosenki zawiera pole na tytuł oraz duży edytor tekstu.
-    -   Do edytora wprowadzam tekst piosenki w formacie, gdzie linia z akordami znajduje się bezpośrednio nad linią z tekstem.
-    -   Obok edytora (w widoku "side-by-side") wyświetlany jest podgląd piosenki w czasie rzeczywistym, pokazujący skonwertowaną treść w formacie ChordPro (np. `[G]Idę sobie [D]ulicą...`).
-    -   System nie pozwala na zapisanie piosenki bez tytułu.
-    -   System nie pozwala na zapisanie piosenki o tytule, który już istnieje w mojej bazie.
-    -   Podczas edycji istniejącej piosenki, jej zawartość (zapisana w ChordPro) jest automatycznie konwertowana do formtu "akordy nad tekstem" i umieszczana w edytorze.
-    -   Po zapisaniu, piosenka jest widoczna na liście moich piosenek.
-
-### Usunięta historyjka
-
--   **ID:** US-021
--   **Title:** Importowanie piosenki z formatu "akordy nad tekstem"
--   **Notatka:** Ta historyjka została usunięta, ponieważ nowy edytor natywnie obsługuje format "akordy nad tekstem", co czyni dedykowaną funkcję importu zbędną.
-
+-   **ID**: US-027
+-   **Title**: Szybki podgląd piosenki z listy
+-   **Description**: Jako Organizator, przeglądając listę swoich piosenek, chcę mieć możliwość szybkiego otworzenia podglądu wybranego utworu w trybie "do grania", aby sprawdzić jego wygląd i przetestować transpozycję bez wchodzenia w tryb edycji lub Biesiada.
+-   **Acceptance Criteria**:
+    -   W widoku listy piosenek (`/management/songs`), w kolumnie "Akcje", obok istniejących ikon, widoczna jest nowa ikona "Podgląd" (np. ikona `visibility`).
+    -   Kliknięcie ikony "Podgląd" przekierowuje użytkownika na nową, dedykowaną stronę podglądu piosenki (np. `/management/songs/{id}/preview`).
+    -   Nowy widok jest chroniony i dostępny tylko dla zalogowanego organizatora.
+    -   W widoku podglądu wyświetlana jest piosenka przy użyciu komponentu `SongViewerComponent`.
+    -   Widoczny jest tytuł oraz pełna treść piosenki z akordami.
+    -   Dostępne i w pełni funkcjonalne są kontrolki do transpozycji akordów.
+    -   W nagłówku/toolbarze widoku znajduje się przycisk "Zamknij".
+    -   Kliknięcie przycisku "Zamknij" powoduje powrót do widoku listy piosenek (`/management/songs`).
 </user_stories>
 
 5. Endpoint Description:
@@ -95,15 +87,6 @@ Poniższa historyjka użytkownika zastępuje poprzednią wersję `US-004`.
 
 
 </rules>
-
-<dodatkowe_wskazówki>
-Należy wykorzystać gotowe funkcje do konwertowanie z chordpro do 'akordy nad tekstem' (przy odczycie piosenkii z bazy i ładowaniu do edytora.) ora z formatu 'akordy nad tekstem' do chordpro do prezentowania podglądu i zapisu piosenki na backendzie.
-z chordpro do 'akordy nad tekstem wykorzystuje komponet do prezentcji piosenki
-z 'akordy nad tekstem' do chord pro wykorzystywany jest przy imporcie piosenk z formatu 'akordy nad tekstem'.
-
-Obie funkcjonalności nalezy wydzielić z komponentów i umieścić w serwisie.
-
-</dodatkowe_wskazówki>
 
 
 Przed utworzeniem ostatecznego planu wdrożenia przeprowadź analizę i planowanie wewnątrz tagów <implementation_breakdown> w swoim bloku myślenia. Ta sekcja może być dość długa, ponieważ ważne jest, aby być dokładnym.

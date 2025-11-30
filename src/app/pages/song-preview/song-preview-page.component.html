@@ -1,0 +1,11 @@
+<stbo-song-viewer
+    [status]="status()"
+    [error]="error() ?? undefined"
+    [title]="title()"
+    [content]="content()"
+    [showChords]="true"
+    [transposeOffset]="transposeOffset()"
+    [config]="config"
+    (transposeChanged)="onTransposeChange($event)">
+</stbo-song-viewer>
+
