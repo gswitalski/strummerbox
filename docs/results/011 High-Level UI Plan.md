@@ -137,11 +137,14 @@ Zarządzanie stanem aplikacji będzie realizowane za pomocą serwisów Angulara 
 
 *   **Ścieżka:** `/management/songs/new`, `/management/songs/:id/edit`
 *   **Główny cel:** Dodawanie nowej lub modyfikacja istniejącej piosenki.
-*   **Kluczowe informacje:** Formularz z polem na tytuł piosenki, edytor tekstu dla treści w formacie "akordy nad tekstem". Podgląd na żywo piosenki skonwertowanej do formatu ChordPro.
-*   **Kluczowe komponenty:** `mat-form-field`, `textarea`, `mat-button`, niestandardowy komponent edytora "side-by-side".
+*   **Kluczowe informacje:** Formularz z polem na tytuł piosenki, edytor tekstu dla treści w formacie "akordy nad tekstem". Panel podglądu z przełącznikiem trybu ("Podgląd ChordPro" / "Podgląd Biesiada").
+*   **Kluczowe komponenty:** `mat-form-field`, `textarea`, `mat-button`, `mat-button-toggle-group`, niestandardowy komponent edytora "side-by-side", `SongViewerComponent`.
 *   **UX, dostępność, bezpieczeństwo:**
-    *   **UX:** Na desktopie układ "side-by-side" (edycja w formacie "akordy nad tekstem" po lewej, podgląd w formacie ChordPro po prawej). Na mobile układ z zakładkami (`mat-tab-group`) do przełączania się między edycją a podglądem. Walidacja (np. unikalność tytułu) z komunikatami błędów.
-    *   **Dostępność:** Etykiety pól formularza.
+    *   **UX:** Nad panelem podglądu znajduje się przełącznik (`mat-button-toggle-group`) pozwalający na wybór jednego z dwóch trybów:
+        *   **Podgląd ChordPro:** Domyślny tryb, działający jak dotychczas. Na desktopie układ "side-by-side" (edycja po lewej, surowy podgląd ChordPro po prawej). Na mobile zakładki.
+        *   **Podgląd Biesiada:** Renderuje piosenkę przy użyciu `SongViewerComponent` (bez kontrolek transpozycji), pokazując, jak będzie wyglądać w trybie Biesiada. Dane do tego podglądu są pobierane z dynamicznie generowanego formatu ChordPro.
+    *   **UX:** Wybór trybu podglądu jest zapamiętywany w `localStorage`, dzięki czemu preferencja użytkownika jest zachowana przy edycji kolejnych piosenek. Walidacja (np. unikalność tytułu) z komunikatami błędów.
+    *   **Dostępność:** Etykiety pól formularza i kontrolek przełącznika.
     *   **Bezpieczeństwo:** Dostęp chroniony.
 
 ---
