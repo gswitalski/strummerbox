@@ -37,37 +37,8 @@ Zapoznaj się z następującymi materiałami:
 
 <aktualne_zachowanie>
 
-konwerter z formatu chord pro 'akordy nad tekstem' źle interpretuje linijkę z samymi akordami pod którą nie ma tekstu. dodatkowo nie dodaje spacji przed odtatnim akordem
-
-<input>
-[A]  [f#]  [E]
-[A]  [f#]  [E]
-[A]  [f#]  [E]
-[A]  [f#]  [E]
-    
-N[A]ie płacz Ewka, bo tu mi[f#]ejsca brak
-N[E]a twe babskie łzy
-P[A]o ulicy miłość h[f#]ula wiatr
-Wśr[E]ód rozbitych szyb
-</input>
-
-<output>
-A f#E
-     (pusta linia)
-A f#E
-    (pusta linia)
-A f#E
-    (pusta linia)
-A f#E
-    
- A                      f#        
-Nie płacz Ewka, bo tu miejsca brak
- E                
-Na twe babskie łzy
- A               f#       
-Po ulicy miłość hula wiatr
-   E                
-Wśród rozbitych szyb
+konwerter ChordConverterService rozpoznaje wzorzec tupu 'G*' jako zwykły tekst
+cała linia jest wtedy traktowana jako tekst
 
 </output>
 
@@ -75,23 +46,9 @@ Wśród rozbitych szyb
 </aktualne_zachowanie>
 
 <oczekiwane_zachowanie>
-<output>
-A f# E
-A f# E
-A f# E
-A f# E
-    
- A                      f#        
-Nie płacz Ewka, bo tu miejsca brak
- E                
-Na twe babskie łzy
- A               f#       
-Po ulicy miłość hula wiatr
-   E                
-Wśród rozbitych szyb
-</output>
+konwerter ChordConverterService rozpoznaje wzorzec tupu 'G*' jako kaord (tak jak np 'G7')
+cała linia jest wtedy traktowana jako linia akordów
 
-akordy poza tym mają mieć co najmniej dwie spacje odstępu i jedna linijkię odstępu pod spodem
 
 </oczekiwane_zachowanie>
 
