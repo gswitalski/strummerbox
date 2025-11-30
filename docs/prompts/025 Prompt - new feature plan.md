@@ -12,16 +12,14 @@ Oto opis nowej funkcjonalności, którą należy dodać do projektu:
 
 <nowa_funkcjonalnosc>
 
-Aktualnnie podczas edycji piosenki dane wprowadza się z lewej strony w formacie chordpro. jednocześnie z prawej strony jest prezentowany podgląd tej piosenki w formacie 'akordy nad tekstem'
-Chce żeby było na odwrót: użytkownik wprowadza tekst piosenki z akordami w formacie 'akordy nad tekstem' a po prawej stonie prezentowany jest podgląd w jaki sposób piosenka będzie zapisana w baxie cyli chordpro.
-Należy wykorzystać gotowe funkcje do konwertowanie z chordpro do 'akordy nad tekstem' (przy odczycie piosenkii z bazy i ładowaniu do edytora.) ora z formatu 'akordy nad tekstem' do chordpro do prezentowania podglądu i zapisu piosenki na backendzie.
-z chordpro do 'akordy nad tekstem wykorzystuje komponet do prezentcji piosenki
-z 'akordy nad tekstem' do chord pro wykorzystywany jest przy imporcie piosenk z formatu 'akordy nad tekstem'.
-
-Obie funkcjonalności nalezy wydzielić z komponentów i umieścić w serwisie.
-
-Funcja importu zostanie wyłączona bo już nie będzie potrzebna.
-
+Chcę aby w trybie edycji piosenki prawy panel , kóry pokazuje podgląd formatu chordpro, maił 2 tryby podglądu przełączane switchem na górze.
+Pierwszy tryb ma być taki jak teraz a drugi to ma być podgląd w formacie 'akordy nad tekstem'.
+W priewszym trybue (chord pro) system ma dziaać tak jak teraz.
+W drugim (podgląd w trybie 'akordy nad tekstem' system ma prezentować ten sam widok co widokk w trybuie biesiady (reużywalny komponet jest gotowy) ale bez trnaspozycji. dane źródłowe fo poglądu mają stanowić tekst w formachie chordpro wygenerowany dlas podgloądu chord pro
+Innymi słowy w drugim trybie
+1. uzytkowik wprowadza swój tekst w formacie 'akordy nad tekstem'
+2. system na podstawie tego generuje chordpro.
+3. System na podstawie wyganerowanego chordpro ponownie generuje 'akordy nad tekstem' w celu zaprezentowania w panelu prawym w drugim trybie
 
 
 </nowa_funkcjonalnosc>
@@ -66,5 +64,5 @@ W każdym rozdziale umieść odpowiednio opisy historyjek, endpointów i widokó
 
 Pamiętaj: niczego nie implementujesz, uaktualniasz tylko dokumentację.
 
-Zanim wygenerujesz wyniki zadaj klila pytań uszczegóławiających moje wymagania. Pod pytaniami napisz swoje sugestie jako odpowiedź.
+Zanim wygenerujesz wyniki zadaj kilka pytań uszczegóławiających moje wymagania. Pod pytaniami napisz swoje sugestie jako odpowiedź.
 Dopiero gdy udzielę odpowiedzi przystąp do generowania dokumentów uwzględniając moje odpowiedzi.

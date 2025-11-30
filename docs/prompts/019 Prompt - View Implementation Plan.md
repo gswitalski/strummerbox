@@ -19,51 +19,35 @@ Najpierw przejrzyj następujące informacje:
 3. Widok do implementacji
 <views>
 
-### Zmodyfikowany widok: Tworzenie / Edycja Piosenki (Song Create/Edit View)
+### Zmodyfikowane widoki
+
+#### **Widok 7. Tworzenie / Edycja Piosenki (Song Create/Edit View)**
 
 -   **Ścieżka:** `/management/songs/new`, `/management/songs/:id/edit`
--   **Notatka o zmianach:**
-    -   Logika edytora została odwrócona. Główne pole tekstowe (`textarea`) służy teraz do wprowadzania danych w formacie "akordy nad tekstem".
-    -   Panel podglądu wyświetla na żywo wynik konwersji do formatu ChordPro.
-    -   Usunięto przycisk "Importuj z tekstu" oraz powiązane z nim okno modalne (`ImportFromTextDialogComponent`), ponieważ funkcjonalność ta została zintegrowana bezpośrednio z edytorem.
-
-#### Zaktualizowany opis widoku:
-
--   **Główny cel:** Dodawanie nowej lub modyfikacja istniejącej piosenki.
--   **Kluczowe informacje:** Formularz z polem na tytuł piosenki, edytor tekstu dla treści w formacie "akordy nad tekstem". Podgląd na żywo piosenki skonwertowanej do formatu ChordPro.
--   **Kluczowe komponenty:** `mat-form-field`, `textarea`, `mat-button`, niestandardowy komponent edytora "side-by-side".
--   **UX, dostępność, bezpieczeństwo:**
-    -   **UX:** Na desktopie układ "side-by-side" (edycja w formacie "akordy nad tekstem" po lewej, podgląd w formacie ChordPro po prawej). Na mobile układ z zakładkami (`mat-tab-group`) do przełączania się między edycją a podglądem. Walidacja (np. unikalność tytułu) z komunikatami błędów.
-    -   **Dostępność:** Etykiety pól formularza.
-    -   **Bezpieczeństwo:** Dostęp chroniony.
-
-
+-   **Opis zmian:**
+    -   Do panelu podglądu dodano przełącznik (`mat-button-toggle-group`) umożliwiający wybór jednego z dwóch trybów: "Podgląd ChordPro" i "Podgląd Biesiada".
+    -   Tryb "Podgląd ChordPro" zachowuje dotychczasową funkcjonalność.
+    -   Tryb "Podgląd Biesiada" renderuje piosenkę przy użyciu istniejącego komponentu `SongViewerComponent`, aby pokazać finalny wygląd utworu, tak jak w trybie Biesiada, ale bez opcji transpozycji.
+    -   Wprowadzono mechanizm zapamiętywania wybranego trybu podglądu w `localStorage`, aby poprawić komfort pracy użytkownika przy edycji wielu piosenek.
 
 </views>
 
 4. User Stories:
 <user_stories>
-### Zaktualizowana historyjka
 
-Poniższa historyjka użytkownika zastępuje poprzednią wersję `US-004`.
+### Nowe historyjki
 
--   **ID:** US-004
--   **Title:** Tworzenie i edycja piosenki z intuicyjnym edytorem
--   **Description:** Jako Organizator, chcę móc dodawać i edytować piosenki w mojej bazie, wpisując tekst w naturalnym formacie "akordy nad tekstem" i jednocześnie widzieć podgląd, jak zostanie on zapisany w formacie ChordPro.
+-   **ID:** US-028
+-   **Title:** Podgląd piosenki w trybie 'Biesiada' podczas edycji
+-   **Description:** Jako Organizator, podczas edycji piosenki, chcę mieć możliwość przełączenia podglądu, aby zobaczyć, jak piosenka będzie wyglądać w docelowym formacie "akordy nad tekstem", tak jak zobaczą ją Biesiadnicy.
 -   **Acceptance Criteria:**
-    -   Formularz dodawania/edycji piosenki zawiera pole na tytuł oraz duży edytor tekstu.
-    -   Do edytora wprowadzam tekst piosenki w formacie, gdzie linia z akordami znajduje się bezpośrednio nad linią z tekstem.
-    -   Obok edytora (w widoku "side-by-side") wyświetlany jest podgląd piosenki w czasie rzeczywistym, pokazujący skonwertowaną treść w formacie ChordPro (np. `[G]Idę sobie [D]ulicą...`).
-    -   System nie pozwala na zapisanie piosenki bez tytułu.
-    -   System nie pozwala na zapisanie piosenki o tytule, który już istnieje w mojej bazie.
-    -   Podczas edycji istniejącej piosenki, jej zawartość (zapisana w ChordPro) jest automatycznie konwertowana do formtu "akordy nad tekstem" i umieszczana w edytorze.
-    -   Po zapisaniu, piosenka jest widoczna na liście moich piosenek.
+    -   W widoku edycji piosenki, nad panelem podglądu, znajduje się przełącznik z opcjami "Podgląd ChordPro" i "Podgląd Biesiada".
+    -   Domyślnie wybrany jest tryb "Podgląd ChordPro", który działa tak jak dotychczas, pokazując na żywo wygenerowany format ChordPro.
+    -   Po przełączeniu na "Podgląd Biesiada", panel podglądu renderuje piosenkę przy użyciu komponentu `SongViewerComponent`, wyświetlając ją w formacie "akordy nad tekstem".
+    -   Dane wejściowe dla "Podglądu Biesiada" pochodzą z dynamicznie generowanego w tle formatu ChordPro.
+    -   W "Podglądzie Biesiada" nie są widoczne kontrolki transpozycji.
+    -   Wybór trybu podglądu jest zapamiętywany w `localStorage` i jest zachowywany pomiędzy sesjami edycji różnych piosenek.
 
-### Usunięta historyjka
-
--   **ID:** US-021
--   **Title:** Importowanie piosenki z formatu "akordy nad tekstem"
--   **Notatka:** Ta historyjka została usunięta, ponieważ nowy edytor natywnie obsługuje format "akordy nad tekstem", co czyni dedykowaną funkcję importu zbędną.
 
 </user_stories>
 
@@ -95,15 +79,6 @@ Poniższa historyjka użytkownika zastępuje poprzednią wersję `US-004`.
 
 
 </rules>
-
-<dodatkowe_wskazówki>
-Należy wykorzystać gotowe funkcje do konwertowanie z chordpro do 'akordy nad tekstem' (przy odczycie piosenkii z bazy i ładowaniu do edytora.) ora z formatu 'akordy nad tekstem' do chordpro do prezentowania podglądu i zapisu piosenki na backendzie.
-z chordpro do 'akordy nad tekstem wykorzystuje komponet do prezentcji piosenki
-z 'akordy nad tekstem' do chord pro wykorzystywany jest przy imporcie piosenk z formatu 'akordy nad tekstem'.
-
-Obie funkcjonalności nalezy wydzielić z komponentów i umieścić w serwisie.
-
-</dodatkowe_wskazówki>
 
 
 Przed utworzeniem ostatecznego planu wdrożenia przeprowadź analizę i planowanie wewnątrz tagów <implementation_breakdown> w swoim bloku myślenia. Ta sekcja może być dość długa, ponieważ ważne jest, aby być dokładnym.

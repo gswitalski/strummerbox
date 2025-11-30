@@ -124,7 +124,7 @@ Zarządzanie stanem aplikacji będzie realizowane za pomocą serwisów Angulara 
 
 *   **Ścieżka:** `/management/songs`
 *   **Główny cel:** Umożliwienie Organizatorowi przeglądania, wyszukiwania i zarządzania swoją biblioteką piosenek.
-*   **Kluczowe informacje:** Lista piosenek (na desktopie tabela, na mobile karty) z tytułem i datą modyfikacji. Pole wyszukiwania. Przycisk "Dodaj nową piosenkę". Opcje dla każdej piosenki: "Edytuj", "Usuń", "Udostępnij". Każda piosenka po klikneciu na status zienia staus z 'Szkic' na 'Opublikowana' i na odwrót.
+*   **Kluczowe informacje:** Lista piosenek (na desktopie tabela, na mobile karty) z tytułem i datą modyfikacji. Pole wyszukiwania. Przycisk "Dodaj nową piosenkę". Opcje dla każdej piosenki: "Edytuj", "Podgląd", "Usuń", "Udostępnij". Każda piosenka po klikneciu na status zienia staus z 'Szkic' na 'Opublikowana' i na odwrót.
 *   **Kluczowe komponenty:** `mat-table` / `mat-card`, `mat-form-field` (dla wyszukiwania), `mat-paginator`, `mat-icon-button`, `EmptyStateComponent`.
 *   **UX, dostępność, bezpieczeństwo:**
     *   **UX:** Obsługa pustego stanu (gdy brak piosenek). Wyszukiwanie w czasie rzeczywistym. Potwierdzenie akcji usunięcia w oknie modalnym. Wskaźnik ładowania (`MatSpinner`) podczas pobierania danych.
@@ -137,12 +137,28 @@ Zarządzanie stanem aplikacji będzie realizowane za pomocą serwisów Angulara 
 
 *   **Ścieżka:** `/management/songs/new`, `/management/songs/:id/edit`
 *   **Główny cel:** Dodawanie nowej lub modyfikacja istniejącej piosenki.
-*   **Kluczowe informacje:** Formularz z polem na tytuł piosenki, edytor tekstu dla treści w formacie "akordy nad tekstem". Podgląd na żywo piosenki skonwertowanej do formatu ChordPro.
-*   **Kluczowe komponenty:** `mat-form-field`, `textarea`, `mat-button`, niestandardowy komponent edytora "side-by-side".
+*   **Kluczowe informacje:** Formularz z polem na tytuł piosenki, edytor tekstu dla treści w formacie "akordy nad tekstem". Panel podglądu z przełącznikiem trybu ("Podgląd ChordPro" / "Podgląd Biesiada").
+*   **Kluczowe komponenty:** `mat-form-field`, `textarea`, `mat-button`, `mat-button-toggle-group`, niestandardowy komponent edytora "side-by-side", `SongViewerComponent`.
 *   **UX, dostępność, bezpieczeństwo:**
-    *   **UX:** Na desktopie układ "side-by-side" (edycja w formacie "akordy nad tekstem" po lewej, podgląd w formacie ChordPro po prawej). Na mobile układ z zakładkami (`mat-tab-group`) do przełączania się między edycją a podglądem. Walidacja (np. unikalność tytułu) z komunikatami błędów.
-    *   **Dostępność:** Etykiety pól formularza.
+    *   **UX:** Nad panelem podglądu znajduje się przełącznik (`mat-button-toggle-group`) pozwalający na wybór jednego z dwóch trybów:
+        *   **Podgląd ChordPro:** Domyślny tryb, działający jak dotychczas. Na desktopie układ "side-by-side" (edycja po lewej, surowy podgląd ChordPro po prawej). Na mobile zakładki.
+        *   **Podgląd Biesiada:** Renderuje piosenkę przy użyciu `SongViewerComponent` (bez kontrolek transpozycji), pokazując, jak będzie wyglądać w trybie Biesiada. Dane do tego podglądu są pobierane z dynamicznie generowanego formatu ChordPro.
+    *   **UX:** Wybór trybu podglądu jest zapamiętywany w `localStorage`, dzięki czemu preferencja użytkownika jest zachowana przy edycji kolejnych piosenek. Walidacja (np. unikalność tytułu) z komunikatami błędów.
+    *   **Dostępność:** Etykiety pól formularza i kontrolek przełącznika.
     *   **Bezpieczeństwo:** Dostęp chroniony.
+
+---
+
+#### **7a. Podgląd Piosenki (Song Preview View)**
+
+*   **Ścieżka:** `/management/songs/:id/preview`
+*   **Główny cel:** Umożliwienie Organizatorowi szybkiego podglądu piosenki w trybie "do grania", z pełną funkcjonalnością transpozycji, bez opuszczania kontekstu zarządzania.
+*   **Kluczowe informacje:** Tytuł piosenki, treść z akordami, w pełni funkcjonalne kontrolki transpozycji. Przycisk "Zamknij" w toolbarze, który powraca do listy piosenek.
+*   **Kluczowe komponenty:** `SongViewerComponent`, `mat-toolbar`, `mat-button`.
+*   **UX, dostępność, bezpieczeństwo:**
+    *   **UX:** Widok wykorzystuje reużywalny komponent `SongViewerComponent`, zapewniając spójne doświadczenie z widokiem publicznym i trybem Biesiada. Interfejs jest zoptymalizowany pod kątem czytelności. Przycisk "Zamknij" zapewnia intuicyjny powrót do listy piosenek (`/management/songs`). Transpozycja działa w czasie rzeczywistym i jest stanem tymczasowym (nie jest zapisywana).
+    *   **Dostępność:** Wysoki kontrast i duże czcionki dziedziczone z `SongViewerComponent`. Przycisk "Zamknij" posiada odpowiednią etykietę `aria-label`.
+    *   **Bezpieczeństwo:** Dostęp do widoku jest chroniony przez `CanActivate` guard.
 
 ---
 

@@ -1,0 +1,36 @@
+<div class="song-editor-preview">
+    <div class="song-editor-preview__header">
+        <mat-button-toggle-group
+            [value]="mode"
+            (change)="onModeToggle($event.value)"
+            class="song-editor-preview__toggle"
+            aria-label="Wybierz tryb podglądu">
+            <mat-button-toggle value="chordpro">Podgląd ChordPro</mat-button-toggle>
+            <mat-button-toggle value="biesiada">Podgląd Biesiada</mat-button-toggle>
+        </mat-button-toggle-group>
+    </div>
+
+    <div class="song-editor-preview__content">
+        @if (mode === 'chordpro') {
+            <pre class="song-editor-preview__chordpro">{{ content || emptyContentPlaceholder }}</pre>
+        } @else {
+            <div class="song-editor-preview__biesiada">
+                @if (content) {
+                    <stbo-song-viewer
+                        [status]="'loaded'"
+                        [title]="title || 'Podgląd'"
+                        [content]="content"
+                        [showChords]="true"
+                        [showHeader]="false"
+                        [config]="biesiadaConfig">
+                    </stbo-song-viewer>
+                } @else {
+                    <div class="song-editor-preview__empty">
+                        Wprowadź treść, aby zobaczyć podgląd w trybie Biesiada...
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>
+

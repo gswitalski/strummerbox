@@ -16,6 +16,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSortModule, Sort } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
+import { RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs';
 import type {
@@ -36,6 +37,7 @@ import type { SongListViewModel } from '../../song-list.types';
         MatSlideToggleModule,
         MatSortModule,
         MatTableModule,
+        RouterLink,
     ],
     templateUrl: './song-list.component.html',
     styleUrl: './song-list.component.scss',
