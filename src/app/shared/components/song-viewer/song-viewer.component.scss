@@ -85,7 +85,7 @@
 // Tytuł w toolbarze ma inne style
 .song-toolbar .song-title {
     margin: 0;
-    
+
     @media (max-width: 767px) {
         font-size: 1rem;
     }
@@ -153,7 +153,7 @@
     border-radius: 8px;
     font-family: 'Courier New', Courier, monospace;
     font-size: 1.125rem;
-    line-height: 1.6;
+    line-height: 1;
     color: var(--mat-sys-on-surface);
     overflow-x: hidden;
     overflow-wrap: break-word;

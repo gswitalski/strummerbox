@@ -1,12 +1,14 @@
 import {
     ChangeDetectionStrategy,
     Component,
+    HostBinding,
     Signal,
     computed,
     inject,
     input,
 } from '@angular/core';
 import { TransposeService } from '../../../core/services/transpose.service';
+import { FontSize } from '../../models/font-size.model';
 
 /**
  * Typ linii z tekstem piosenki
@@ -90,6 +92,19 @@ export class SongDisplayComponent {
      * Wartość transpozycji (przesunięcie w półtonach)
      */
     public readonly transposeOffset = input<number>(0);
+
+    /**
+     * Wielkość czcionki dla wyświetlanego tekstu
+     */
+    public readonly fontSize = input<FontSize>('small');
+
+    /**
+     * Dynamicznie ustawia klasę CSS na hoście komponentu w zależności od rozmiaru czcionki
+     */
+    @HostBinding('class')
+    get hostClasses(): string {
+        return `font-size-${this.fontSize()}`;
+    }
 
     /**
      * Sparsowana treść piosenki - automatycznie przeliczana gdy zmieni się content lub transposeOffset

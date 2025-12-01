@@ -1,3 +1,21 @@
+// Zmienne dla rozmiarów czcionek
+$font-size-small: 1rem;
+$font-size-medium: 1.3rem;
+$font-size-large: 1.6rem;
+
+// Style dla różnych rozmiarów czcionek na poziomie hosta
+:host.font-size-small .song-display__content {
+    font-size: $font-size-small;
+}
+
+:host.font-size-medium .song-display__content {
+    font-size: $font-size-medium;
+}
+
+:host.font-size-large .song-display__content {
+    font-size: $font-size-large;
+}
+
 .song-display {
     display: flex;
     flex-direction: column;
@@ -22,7 +40,8 @@
         gap: 0.5rem;
         font-family: 'Fira Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
             'Liberation Mono', 'Courier New', monospace;
-        font-size: 1.25rem;
+        // font-size jest kontrolowany przez klasy :host.font-size-*
+        font-size: $font-size-small; // Domyślny rozmiar
     }
 
     &__line {
