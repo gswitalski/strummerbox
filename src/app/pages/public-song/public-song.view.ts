@@ -11,10 +11,12 @@ import { Title, Meta } from '@angular/platform-browser';
 import { HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { PublicSongService } from './services/public-song.service';
+import { FontSizeService } from '../../core/services/font-size.service';
 import { SongViewerComponent } from '../../shared/components/song-viewer/song-viewer.component';
 import type { SongViewerConfig } from '../../shared/components/song-viewer/song-viewer.config';
 import type { PublicSongState } from './public-song.types';
 import type { PublicSongDto } from '../../../../packages/contracts/types';
+import type { FontSize } from '../../shared/models/font-size.model';
 
 /**
  * Główny komponent widoku publicznej piosenki (smart component).
@@ -36,6 +38,7 @@ import type { PublicSongDto } from '../../../../packages/contracts/types';
 export class PublicSongViewComponent implements OnInit {
     private readonly route = inject(ActivatedRoute);
     private readonly publicSongService = inject(PublicSongService);
+    private readonly fontSizeService = inject(FontSizeService);
     private readonly titleService = inject(Title);
     private readonly metaService = inject(Meta);
 
@@ -57,6 +60,12 @@ export class PublicSongViewComponent implements OnInit {
      * Domyślnie 0 (brak transpozycji)
      */
     public readonly transposeOffset: WritableSignal<number> = signal(0);
+
+    /**
+     * Sygnał zarządzający wielkością czcionki
+     * Inicjalizowany wartością z localStorage lub domyślną wartością 'small'
+     */
+    public readonly fontSize: WritableSignal<FontSize> = signal(this.fontSizeService.getFontSize());
 
     /**
      * Konfiguracja dla komponentu SongViewer
@@ -169,6 +178,14 @@ export class PublicSongViewComponent implements OnInit {
      */
     onTransposeChanged(newOffset: number): void {
         this.transposeOffset.set(newOffset);
+    }
+
+    /**
+     * Obsługuje zmianę wielkości czcionki
+     */
+    onFontSizeChanged(newSize: FontSize): void {
+        this.fontSize.set(newSize);
+        this.fontSizeService.setFontSize(newSize);
     }
 }
 

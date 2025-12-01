@@ -13,6 +13,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { MatDialog } from '@angular/material/dialog';
 import { Subject, switchMap, takeUntil, catchError, of, map } from 'rxjs';
 import { BiesiadaService } from '../../core/services/biesiada.service';
+import { FontSizeService } from '../../core/services/font-size.service';
 import { SongViewerComponent } from '../../shared/components/song-viewer/song-viewer.component';
 import { ShareDialogComponent } from '../../shared/components/share-dialog/share-dialog.component';
 import type { SongViewerConfig } from '../../shared/components/song-viewer/song-viewer.config';
@@ -20,6 +21,7 @@ import type { BiesiadaSongViewModel, BiesiadaSongState } from './biesiada-song.t
 import type { BiesiadaRepertoireSongDetailDto } from '../../../../packages/contracts/types';
 import type { SongNavigation } from '../../shared/components/song-viewer/song-viewer.types';
 import type { ShareDialogData } from '../../shared/models/share-dialog.model';
+import type { FontSize } from '../../shared/models/font-size.model';
 
 /**
  * Główny komponent widoku piosenki w trybie Biesiada (smart component).
@@ -41,6 +43,7 @@ import type { ShareDialogData } from '../../shared/models/share-dialog.model';
 export class BiesiadaSongViewComponent implements OnInit, OnDestroy {
     private readonly route = inject(ActivatedRoute);
     private readonly biesiadaService = inject(BiesiadaService);
+    private readonly fontSizeService = inject(FontSizeService);
     private readonly titleService = inject(Title);
     private readonly dialog = inject(MatDialog);
     private readonly destroy$ = new Subject<void>();
@@ -59,6 +62,12 @@ export class BiesiadaSongViewComponent implements OnInit, OnDestroy {
      * Domyślnie 0 (brak transpozycji)
      */
     public readonly transposeOffset = signal(0);
+
+    /**
+     * Sygnał zarządzający wielkością czcionki
+     * Inicjalizowany wartością z localStorage lub domyślną wartością 'small'
+     */
+    public readonly fontSize = signal<FontSize>(this.fontSizeService.getFontSize());
 
     /**
      * Konfiguracja dla komponentu SongViewer
@@ -202,6 +211,14 @@ export class BiesiadaSongViewComponent implements OnInit, OnDestroy {
      */
     onTransposeChanged(newOffset: number): void {
         this.transposeOffset.set(newOffset);
+    }
+
+    /**
+     * Obsługuje zmianę wielkości czcionki
+     */
+    onFontSizeChanged(newSize: FontSize): void {
+        this.fontSize.set(newSize);
+        this.fontSizeService.setFontSize(newSize);
     }
 
     /**

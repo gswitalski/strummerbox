@@ -13,10 +13,12 @@ import { Title, Meta } from '@angular/platform-browser';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Subject, switchMap, takeUntil, catchError, of, map } from 'rxjs';
 import { PublicRepertoireService } from '../public-repertoire/services/public-repertoire.service';
+import { FontSizeService } from '../../core/services/font-size.service';
 import { SongViewerComponent } from '../../shared/components/song-viewer/song-viewer.component';
 import type { SongViewerConfig } from '../../shared/components/song-viewer/song-viewer.config';
 import type { PublicRepertoireSongState } from './public-repertoire-song.types';
 import type { SongNavigation } from '../../shared/components/song-viewer/song-viewer.types';
+import type { FontSize } from '../../shared/models/font-size.model';
 
 /**
  * Główny komponent widoku publicznej piosenki w kontekście repertuaru (smart component).
@@ -39,6 +41,7 @@ import type { SongNavigation } from '../../shared/components/song-viewer/song-vi
 export class PublicRepertoireSongViewComponent implements OnInit, OnDestroy {
     private readonly route = inject(ActivatedRoute);
     private readonly publicRepertoireService = inject(PublicRepertoireService);
+    private readonly fontSizeService = inject(FontSizeService);
     private readonly titleService = inject(Title);
     private readonly metaService = inject(Meta);
     private readonly destroy$ = new Subject<void>();
@@ -67,6 +70,12 @@ export class PublicRepertoireSongViewComponent implements OnInit, OnDestroy {
      * Domyślnie 0 (brak transpozycji)
      */
     public readonly transposeOffset: WritableSignal<number> = signal(0);
+
+    /**
+     * Sygnał zarządzający wielkością czcionki
+     * Inicjalizowany wartością z localStorage lub domyślną wartością 'small'
+     */
+    public readonly fontSize: WritableSignal<FontSize> = signal(this.fontSizeService.getFontSize());
 
     /**
      * Pomocniczy getter dla type narrowing
@@ -258,6 +267,14 @@ export class PublicRepertoireSongViewComponent implements OnInit, OnDestroy {
      */
     onTransposeChanged(newOffset: number): void {
         this.transposeOffset.set(newOffset);
+    }
+
+    /**
+     * Obsługuje zmianę wielkości czcionki
+     */
+    onFontSizeChanged(newSize: FontSize): void {
+        this.fontSize.set(newSize);
+        this.fontSizeService.setFontSize(newSize);
     }
 }
 

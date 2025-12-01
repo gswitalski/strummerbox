@@ -6,8 +6,10 @@
         [content]="currentState.status === 'loaded' ? currentState.song.content : undefined"
         [showChords]="showChords()"
         [transposeOffset]="transposeOffset()"
+        [fontSize]="fontSize()"
         [config]="viewerConfig"
         (chordsToggled)="onChordsToggled($event)"
-        (transposeChanged)="onTransposeChanged($event)">
+        (transposeChanged)="onTransposeChanged($event)"
+        (fontSizeChanged)="onFontSizeChanged($event)">
     </stbo-song-viewer>
 }
