@@ -41,24 +41,27 @@ Zapoznaj się z następującymi materiałami:
 2. Włączone akordy
 3. tryb telefonu komórkowego
 4. linie tekstu nie mieszczą sie w jednej linii
-5. oddzielnie zawija się linia akordów a odzielnie linia z tekstem:
-  C    a   G   
-  d
-  Tekst Test Tekst
-  Tekst
+6. tekst jest dzielony na tokenty aby linie testu łamały się razem z akodrami:
+ C a G d
+Wśród noc
+  F G d A
+nej ciszy 
+
+ale słowa nie powinny być dzielone jak w załączniku  
 
 
 </aktualne_zachowanie>
 
 <oczekiwane_zachowanie>
+C a G
+Wśród 
+ d   F G d A
+nocnej ciszy 
+
+
 
 
 </oczekiwane_zachowanie>
-
-  C    a   G   
-  Tekst Test Tekst
-  d
-  Tekst
 
 
 <aktualna_implementacja>

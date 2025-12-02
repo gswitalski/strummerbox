@@ -57,7 +57,7 @@ describe('SongDisplayComponent', () => {
             expect(repetitionMarker?.textContent?.trim()).toBe('× 3');
 
             // Sprawdź że tekst jest wyrenderowany w nowej strukturze (word-group)
-            const words = compiled.querySelectorAll('.song-display__word');
+            const words = compiled.querySelectorAll('.song-display__text-part');
             const allText = Array.from(words).map(w => w.textContent).join('');
             expect(allText).toContain('Tekst');
             expect(allText).toContain('piosenki');
@@ -123,7 +123,11 @@ describe('SongDisplayComponent', () => {
             // Tekst nie powinien zawierać dyrektywy {c: x2}
             expect(lyrics?.textContent).not.toContain('{c:');
             expect(lyrics?.textContent).toContain('Śpiewaj głośno');
-            expect(lyrics?.textContent).toContain('× 2'); // wskaźnik powinien być częścią lyrics span
+            
+            // Wskaźnik repetycji jest teraz osobnym elementem obok tekstu
+            const marker = compiled.querySelector('.song-display__repetition-marker');
+            expect(marker).not.toBeNull();
+            expect(marker?.textContent).toContain('× 2'); 
         });
 
         it('powinien wyrenderować wieloliniową piosenkę z repetycją na różnych liniach', async () => {
@@ -179,7 +183,7 @@ Trzecia linia {c: x3}`;
 
             const { compiled } = await setupComponent(content, false);
 
-            const chords = compiled.querySelector('.song-display__chords');
+            const chords = compiled.querySelector('.song-display__chord');
             expect(chords).toBeNull();
         });
     });

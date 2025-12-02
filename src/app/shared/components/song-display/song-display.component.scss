@@ -48,7 +48,7 @@ $font-size-large: 1.6rem;
         display: block;
     }
 
-    // Linia z tekstem - domyślnie flexbox do zawijania tokenów
+    // Linia z tekstem - domyślnie flexbox do zawijania słów
     &__lyrics-line {
         display: flex;
         flex-wrap: wrap;
@@ -61,14 +61,21 @@ $font-size-large: 1.6rem;
         }
     }
 
-    // Grupa akord+słowo - kluczowy element dla poprawnego zawijania
-    // Każda grupa jest inline-block, więc akord i słowo pod nim zawijają się razem
-    &__word-group {
+    // Wrapper dla całego słowa (składającego się z wielu części z akordami)
+    // Zapobiega łamaniu linii wewnątrz słowa
+    &__word-wrapper {
+        display: inline-block;
+        white-space: nowrap;
+    }
+
+    // Grupa akord+część tekstu
+    // Każda grupa jest inline-flex wewnątrz word-wrapper
+    &__part-group {
         display: inline-flex;
         flex-direction: column;
         align-items: flex-start;
         vertical-align: bottom;
-        white-space: pre; // Zachowaj spacje wewnątrz słów
+        white-space: pre; // Zachowaj spacje wewnątrz fragmentu
     }
 
     // Akord nad słowem
@@ -79,8 +86,8 @@ $font-size-large: 1.6rem;
         line-height: 1.2;
     }
 
-    // Słowo pod akordem
-    &__word {
+    // Część tekstu pod akordem
+    &__text-part {
         line-height: 1.4;
     }
 
@@ -121,4 +128,3 @@ $font-size-large: 1.6rem;
         white-space: nowrap;
     }
 }
-
