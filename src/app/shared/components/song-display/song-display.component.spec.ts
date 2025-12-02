@@ -56,10 +56,11 @@ describe('SongDisplayComponent', () => {
             expect(repetitionMarker).not.toBeNull();
             expect(repetitionMarker?.textContent?.trim()).toBe('× 3');
 
-            // Sprawdź że tekst jest wyrenderowany
-            const lyrics = compiled.querySelector('.song-display__lyrics');
-            expect(lyrics?.textContent).toContain('Tekst');
-            expect(lyrics?.textContent).toContain('piosenki');
+            // Sprawdź że tekst jest wyrenderowany w nowej strukturze (word-group)
+            const words = compiled.querySelectorAll('.song-display__word');
+            const allText = Array.from(words).map(w => w.textContent).join('');
+            expect(allText).toContain('Tekst');
+            expect(allText).toContain('piosenki');
         });
 
         it('powinien wyrenderować wskaźnik × 10 dla wielocyfrowej liczby', async () => {
@@ -81,8 +82,8 @@ describe('SongDisplayComponent', () => {
             expect(repetitionMarker).not.toBeNull();
             expect(repetitionMarker?.textContent?.trim()).toBe('× 2');
 
-            // Sprawdź że akordy są wyrenderowane
-            const chords = compiled.querySelector('.song-display__chords');
+            // Sprawdź że akordy są wyrenderowane (dla linii tylko z akordami używamy chords-only)
+            const chords = compiled.querySelector('.song-display__chords-only');
             expect(chords?.textContent).toContain('C');
             expect(chords?.textContent).toContain('Am');
         });
@@ -95,8 +96,9 @@ describe('SongDisplayComponent', () => {
             const repetitionMarker = compiled.querySelector('.song-display__repetition-marker');
             expect(repetitionMarker).toBeNull();
 
-            // Sprawdź że tekst jest wyrenderowany
+            // Sprawdź że tekst jest wyrenderowany (fallback dla tekstu bez akordów)
             const lyrics = compiled.querySelector('.song-display__lyrics');
+            expect(lyrics).not.toBeNull();
             expect(lyrics?.textContent).toContain('Zwykły tekst bez repetycji');
         });
 
@@ -115,7 +117,9 @@ describe('SongDisplayComponent', () => {
 
             const { compiled } = await setupComponent(content);
 
+            // Dla tekstu bez akordów używamy fallback .song-display__lyrics
             const lyrics = compiled.querySelector('.song-display__lyrics');
+            expect(lyrics).not.toBeNull();
             // Tekst nie powinien zawierać dyrektywy {c: x2}
             expect(lyrics?.textContent).not.toContain('{c:');
             expect(lyrics?.textContent).toContain('Śpiewaj głośno');
@@ -151,7 +155,9 @@ Trzecia linia {c: x3}`;
 
             const { compiled } = await setupComponent(content);
 
+            // Dla tekstu bez akordów używamy fallback .song-display__lyrics
             const lyrics = compiled.querySelector('.song-display__lyrics');
+            expect(lyrics).not.toBeNull();
             expect(lyrics?.textContent).toContain('Zwykły tekst piosenki');
         });
 
@@ -160,9 +166,12 @@ Trzecia linia {c: x3}`;
 
             const { compiled } = await setupComponent(content, true);
 
-            const chords = compiled.querySelector('.song-display__chords');
-            expect(chords?.textContent).toContain('C');
-            expect(chords?.textContent).toContain('G');
+            // Dla tekstu z akordami używamy nowej struktury word-group
+            const chords = compiled.querySelectorAll('.song-display__chord');
+            expect(chords.length).toBeGreaterThan(0);
+            const allChords = Array.from(chords).map(c => c.textContent?.trim()).join(' ');
+            expect(allChords).toContain('C');
+            expect(allChords).toContain('G');
         });
 
         it('NIE powinien wyrenderować akordów gdy showChords jest false', async () => {

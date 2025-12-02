@@ -1,18 +1,32 @@
 <div class="song-display">
     @if (!content()) {
         <div class="song-display__empty">
-            Brak tre\u015bci piosenki
+            Brak treści piosenki
         </div>
     } @else {
         <div class="song-display__content">
             @for (line of parsedLines(); track $index) {
                 <div class="song-display__line" [attr.data-type]="line.type">
                     @if (line.type === 'lyrics') {
-                        <div class="song-display__lyrics-line">
-                            @if (showChords() && line.chordLine) {
-                                <span class="song-display__chords">{{ line.chordLine }}@if (!line.hasLyrics && line.repetitionCount) {<span class="song-display__repetition-marker">× {{ line.repetitionCount }}</span>}</span>
-                            }
-                            @if (line.hasLyrics) {
+                        <div class="song-display__lyrics-line" [class.song-display__lyrics-line--with-chords]="showChords() && line.chordLine">
+                            <!-- Nowe podejście: tokeny (pary akord+słowo) dla poprawnego zawijania -->
+                            @if (line.hasLyrics && line.tokens) {
+                                @for (token of line.tokens; track $index) {
+                                    <span class="song-display__word-group">
+                                        @if (showChords()) {
+                                            <span class="song-display__chord">{{ token.chord || nbsp }}</span>
+                                        }
+                                        <span class="song-display__word">{{ token.word }}</span>
+                                    </span>
+                                }
+                                @if (line.repetitionCount) {
+                                    <span class="song-display__repetition-marker">× {{ line.repetitionCount }}</span>
+                                }
+                            } @else if (!line.hasLyrics && showChords() && line.chordLine) {
+                                <!-- Linie zawierające tylko akordy (bez tekstu) - stare podejście -->
+                                <span class="song-display__chords-only">{{ line.chordLine }}@if (line.repetitionCount) {<span class="song-display__repetition-marker">× {{ line.repetitionCount }}</span>}</span>
+                            } @else if (line.hasLyrics && !line.tokens) {
+                                <!-- Fallback dla linii bez akordów -->
                                 <span class="song-display__lyrics">{{ line.textLine }}@if (line.repetitionCount) {<span class="song-display__repetition-marker">× {{ line.repetitionCount }}</span>}</span>
                             }
                         </div>

@@ -37,20 +37,28 @@ Zapoznaj się z następującymi materiałami:
 
 <aktualne_zachowanie>
 
-1. Widok piosenki dla anonimowego uzytkownia
+1. Widok piosenki w trybie biesiadnym z akordami
 2. Włączone akordy
-3. tryb telefonu komórkoweg
-4. przyciski starujące się ni miesczą w jednej linii
-5. przycisk wielkości czcinek rzechodzi do następnej linii i nachodzi na tekst piosenki
+3. tryb telefonu komórkowego
+4. linie tekstu nie mieszczą sie w jednej linii
+5. oddzielnie zawija się linia akordów a odzielnie linia z tekstem:
+  C    a   G   
+  d
+  Tekst Test Tekst
+  Tekst
 
 
 </aktualne_zachowanie>
 
 <oczekiwane_zachowanie>
 
-5. tekst piosenki obniża się automatycznie aby przyciski na niego nie nachodziły
 
 </oczekiwane_zachowanie>
+
+  C    a   G   
+  Tekst Test Tekst
+  d
+  Tekst
 
 
 <aktualna_implementacja>

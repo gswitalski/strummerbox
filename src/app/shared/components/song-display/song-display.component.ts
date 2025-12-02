@@ -11,15 +11,31 @@ import { TransposeService } from '../../../core/services/transpose.service';
 import { FontSize } from '../../models/font-size.model';
 
 /**
+ * Token reprezentujący parę akord+słowo.
+ * Służy do renderowania tekstu z akordami w sposób umożliwiający
+ * poprawne zawijanie na wąskich ekranach.
+ */
+interface ChordWordToken {
+    /** Akord (może być pusty jeśli brak akordu nad słowem) */
+    chord: string;
+    /** Słowo/tekst (może być pusty dla samotnych akordów) */
+    word: string;
+}
+
+/**
  * Typ linii z tekstem piosenki
  */
 interface LyricsLine {
     type: 'lyrics';
+    /** @deprecated Używane tylko dla linii bez tekstu (same akordy) */
     chordLine: string;
+    /** @deprecated Używane jako fallback */
     textLine: string;
     hasLyrics: boolean;
     /** Liczba powtórzeń (z dyrektywy {c: xN}), undefined jeśli brak */
     repetitionCount?: number;
+    /** Tokeny dla renderowania par akord+słowo (nowe podejście) */
+    tokens?: ChordWordToken[];
 }
 
 /**
@@ -199,7 +215,12 @@ function parseLine(line: string): ParsedLine {
         .replace(/\[[^\]]*\]/g, '')
         .replace(/\t/g, NBSP.repeat(4));
     const hasLyrics = textLine.trim().length > 0;
+    const hasChords = /\[[^\]]+\]/.test(lineWithoutRepetition);
     const chordLine = hasLyrics ? buildChordLine(lineWithoutRepetition) : buildChordOnlyLine(lineWithoutRepetition);
+
+    // Parsuj linię na tokeny (pary akord+słowo) dla poprawnego zawijania
+    // Tokeny generujemy tylko dla linii z tekstem I akordami
+    const tokens = (hasLyrics && hasChords) ? parseLineToTokens(lineWithoutRepetition) : undefined;
 
     return {
         type: 'lyrics',
@@ -207,6 +228,7 @@ function parseLine(line: string): ParsedLine {
         textLine,
         hasLyrics,
         repetitionCount,
+        tokens,
     };
 }
 
@@ -312,5 +334,70 @@ function buildChordOnlyLine(line: string): string {
     }
 
     return rendered;
+}
+
+/**
+ * Parsuje linię ChordPro na tokeny (pary akord+słowo).
+ * Pozwala na renderowanie w sposób umożliwiający poprawne zawijanie na wąskich ekranach.
+ *
+ * Algorytm:
+ * 1. Dzieli linię na segmenty tekstu i akordów
+ * 2. Dla każdego słowa określa, czy ma nad sobą akord
+ * 3. Zwraca tablicę tokenów, gdzie każdy token to para {chord, word}
+ *
+ * Przykład:
+ * Input: "[C]Tekst [a]Test [G]Tekst [d]Tekst"
+ * Output: [{chord:"C", word:"Tekst "}, {chord:"a", word:"Test "}, {chord:"G", word:"Tekst "}, {chord:"d", word:"Tekst"}]
+ */
+function parseLineToTokens(line: string): ChordWordToken[] {
+    const tokens: ChordWordToken[] = [];
+
+    // Regex do znajdowania akordów w nawiasach kwadratowych
+    const chordRegex = /\[([^\]]+)\]/g;
+    let match: RegExpExecArray | null;
+
+    // Zbierz wszystkie akordy z ich pozycjami
+    const chords: { chord: string; startIndex: number; endIndex: number }[] = [];
+    while ((match = chordRegex.exec(line)) !== null) {
+        chords.push({
+            chord: match[1].trim(),
+            startIndex: match.index,
+            endIndex: match.index + match[0].length,
+        });
+    }
+
+    // Jeśli brak akordów, zwróć cały tekst jako jeden token
+    if (chords.length === 0) {
+        const text = line.replace(/\t/g, NBSP.repeat(4));
+        if (text.length > 0) {
+            tokens.push({ chord: '', word: text });
+        }
+        return tokens;
+    }
+
+    // Tekst przed pierwszym akordem (jeśli istnieje)
+    if (chords[0].startIndex > 0) {
+        const textBefore = line.slice(0, chords[0].startIndex).replace(/\t/g, NBSP.repeat(4));
+        if (textBefore.length > 0) {
+            tokens.push({ chord: '', word: textBefore });
+        }
+    }
+
+    // Przetwarzaj każdy akord i tekst po nim
+    for (let i = 0; i < chords.length; i++) {
+        const currentChord = chords[i];
+        const nextChordStart = i < chords.length - 1 ? chords[i + 1].startIndex : line.length;
+
+        // Tekst po aktualnym akordzie (do następnego akordu lub końca linii)
+        const textAfterChord = line.slice(currentChord.endIndex, nextChordStart).replace(/\t/g, NBSP.repeat(4));
+
+        // Dodaj token z akordem i tekstem po nim
+        tokens.push({
+            chord: currentChord.chord,
+            word: textAfterChord,
+        });
+    }
+
+    return tokens;
 }
 
