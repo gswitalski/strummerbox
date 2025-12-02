@@ -28,8 +28,12 @@
     width: 100%;
 }
 
-// Toolbar
+// Toolbar - nadpisanie domyślnych stylów Angular Material mat-toolbar
 .song-toolbar {
+    // Nadpisanie CSS custom properties Angular Material aby pozwolić na dynamiczną wysokość
+    --mat-toolbar-standard-height: auto;
+    --mat-toolbar-mobile-height: auto;
+
     position: sticky;
     top: 0;
     z-index: 10;
@@ -37,13 +41,16 @@
     align-items: center;
     gap: 0.75rem;
     flex-wrap: wrap;
+    align-content: flex-start; // Wyrównanie wieloliniowe od góry
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     min-height: 56px;
+    height: auto !important; // Pozwól toolbarowi rosnąć dynamicznie przy zawijaniu elementów
     padding: 0.5rem 1rem;
 
     @media (max-width: 767px) {
         gap: 0.5rem;
         padding: 0.5rem 0.75rem;
+        row-gap: 0.5rem; // Dodatkowy odstęp między wierszami na mobile
     }
 }
 
