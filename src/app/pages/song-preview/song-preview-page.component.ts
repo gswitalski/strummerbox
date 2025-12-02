@@ -11,12 +11,14 @@ import { ActivatedRoute, Router } from '@angular/router';
 
 import type { SongDto } from '../../../../packages/contracts/types';
 import { SongsApiService } from '../song-create/services/songs-api.service';
+import { FontSizeService } from '../../core/services/font-size.service';
 import { SongViewerComponent } from '../../shared/components/song-viewer/song-viewer.component';
 import type {
     SongViewerConfig,
     SongViewerError,
     SongViewerStatus,
 } from '../../shared/components/song-viewer/song-viewer.config';
+import type { FontSize } from '../../shared/models/font-size.model';
 
 /**
  * Interfejs opisujący stan widoku podglądu piosenki.
@@ -50,6 +52,7 @@ export class SongPreviewPageComponent implements OnInit {
     private readonly route = inject(ActivatedRoute);
     private readonly router = inject(Router);
     private readonly songsApiService = inject(SongsApiService);
+    private readonly fontSizeService = inject(FontSizeService);
 
     /**
      * Główny sygnał stanu komponentu.
@@ -60,6 +63,12 @@ export class SongPreviewPageComponent implements OnInit {
         error: null,
         transposeOffset: 0,
     });
+
+    /**
+     * Sygnał zarządzający wielkością czcionki
+     * Inicjalizowany wartością z localStorage lub domyślną wartością 'small'
+     */
+    public readonly fontSize: WritableSignal<FontSize> = signal(this.fontSizeService.getFontSize());
 
     /**
      * Konfiguracja dla SongViewerComponent.
@@ -108,6 +117,14 @@ export class SongPreviewPageComponent implements OnInit {
             ...s,
             transposeOffset: newOffset,
         }));
+    }
+
+    /**
+     * Obsługuje zmianę wielkości czcionki.
+     */
+    public onFontSizeChange(newSize: FontSize): void {
+        this.fontSize.set(newSize);
+        this.fontSizeService.setFontSize(newSize);
     }
 
     /**

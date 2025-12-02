@@ -59,6 +59,12 @@
                         (offsetChange)="onTransposeChange($event)">
                     </stbo-transpose-controls>
                 }
+
+                <!-- Kontrolki wielkości czcionki -->
+                <stbo-font-size-controls
+                    [selectedSize]="fontSize"
+                    (sizeChanged)="onFontSizeChange($event)">
+                </stbo-font-size-controls>
             </mat-toolbar>
         }
 
@@ -74,6 +80,7 @@
                     [content]="content"
                     [showChords]="showChords"
                     [transposeOffset]="transposeOffset"
+                    [fontSize]="fontSize"
                     class="song-content">
                 </stbo-song-display>
             </div>

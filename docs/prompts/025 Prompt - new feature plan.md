@@ -12,50 +12,14 @@ Oto opis nowej funkcjonalności, którą należy dodać do projektu:
 
 <nowa_funkcjonalnosc>
 
-Chcę aby podczas edycji piosenki konwerter obsługiwał powtórzenia
+Chcę aby wyświetlanie piosenki w trybie biesiadnym wyświwtlało tekst i akordy domyślnie fontem o wielkości 1rem
+w trybie biesiady mają być trzy icon-buttony 'A' (małe, średnie i duże)
+domyślnie aktywne jest a małe
+użytkownik może wbybrac a-średnie lub a-duże lub ponownie a-małe,
 
-wykorzyttując te instrukcje:
-<instrukcje_dla_powtórzeń>
-
-### Powtarzające się ciągi akordów (bez tekstu)
-Gdy chcesz zapisać sekwencję akordów instrumentalnych, która ma się powtórzyć określoną liczbę razy, umieść komentarz z informacją o powtórzeniach na końcu linii lub w osobnej linii przed/po akordach.
-
-```text
-[C]   [A]   [G]   [D]   {c: x2}
-```
-
-Ten zapis oznacza: "zagraj sekwencję C → A → G → D dwa razy".
-
-### Powtarzające się linie tekstu z akordami
-
-```text
-Pi[C]eski małe [A]dwa {c: x2}
-```
-
-
-</instrukcje_dla_powtórzeń>
-
-1. Przypadek 1: ciąg akordów bez tekstu"
- - użytkownik wprowadza
-   C a d G x2
- - w chordpro prozapisuje się :
-   [C]  [a]  [d]  [G] {c: x2}
- - w drugą stronę (konwersja chrod rpo do 'akordy ma górze) anbalogicznie
- - w trybie biesiada wyświetla się:
-   C a d G x 2
-   (zamias znaku x ma być znak 'razy') a cyfra po x może być dowolna
-
-2. Przypadek 2: pojedyncza linia z akordami tekst z akordami
- - użytkownik wprowadza
-    C            a
-   Pieski małe dwa x2
- - w chordpro prozapisuje się:
-    Pi[C]eski małe [A]dwa {c: x2}
- - w trybie biesiada wyświetla się
-     C           a
-   Pieski małe dwa  x 2 
-   zamiast 'x' ma być zank razy
-
+A małe wyświetla tresć 1rem
+A średnie wyświetla tresć 1.3rem
+A duże wyświetla tresć 1.6rem
 
 
 </nowa_funkcjonalnosc>

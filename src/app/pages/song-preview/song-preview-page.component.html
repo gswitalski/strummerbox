@@ -5,7 +5,9 @@
     [content]="content()"
     [showChords]="true"
     [transposeOffset]="transposeOffset()"
+    [fontSize]="fontSize()"
     [config]="config"
-    (transposeChanged)="onTransposeChange($event)">
+    (transposeChanged)="onTransposeChange($event)"
+    (fontSizeChanged)="onFontSizeChange($event)">
 </stbo-song-viewer>
 

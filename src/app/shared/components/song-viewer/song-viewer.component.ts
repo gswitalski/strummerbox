@@ -15,12 +15,14 @@ import { SongDisplayComponent } from '../song-display/song-display.component';
 import { SongNavigationComponent } from '../song-navigation/song-navigation.component';
 import { ErrorDisplayComponent } from '../error-display/error-display.component';
 import { TransposeControlsComponent } from '../transpose-controls/transpose-controls.component';
+import { FontSizeControlsComponent } from '../font-size-controls/font-size-controls.component';
 import type {
     SongViewerConfig,
     SongViewerStatus,
     SongViewerError,
 } from './song-viewer.config';
 import type { SongNavigation } from './song-viewer.types';
+import type { FontSize } from '../../models/font-size.model';
 
 /**
  * Reużywalny komponent prezentacyjny do wyświetlania widoku piosenki.
@@ -58,6 +60,7 @@ import type { SongNavigation } from './song-viewer.types';
         SongNavigationComponent,
         ErrorDisplayComponent,
         TransposeControlsComponent,
+        FontSizeControlsComponent,
     ],
     templateUrl: './song-viewer.component.html',
     styleUrl: './song-viewer.component.scss',
@@ -110,6 +113,11 @@ export class SongViewerComponent {
      */
     @Input() showHeader = true;
 
+    /**
+     * Wielkość czcionki dla wyświetlanego tekstu
+     */
+    @Input() fontSize: FontSize = 'small';
+
 
     /**
      * Zdarzenie emitowane gdy użytkownik zmienia stan przełącznika akordów
@@ -125,6 +133,11 @@ export class SongViewerComponent {
      * Zdarzenie emitowane gdy użytkownik zmienia wartość transpozycji
      */
     @Output() transposeChanged = new EventEmitter<number>();
+
+    /**
+     * Zdarzenie emitowane gdy użytkownik zmienia wielkość czcionki
+     */
+    @Output() fontSizeChanged = new EventEmitter<FontSize>();
 
     /**
      * Pomocnicze gettery dla czytelności w template
@@ -161,5 +174,12 @@ export class SongViewerComponent {
      */
     onTransposeChange(newOffset: number): void {
         this.transposeChanged.emit(newOffset);
+    }
+
+    /**
+     * Obsługa zmiany wielkości czcionki
+     */
+    onFontSizeChange(newSize: FontSize): void {
+        this.fontSizeChanged.emit(newSize);
     }
 }
