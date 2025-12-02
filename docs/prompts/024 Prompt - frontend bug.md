@@ -37,18 +37,29 @@ Zapoznaj się z następującymi materiałami:
 
 <aktualne_zachowanie>
 
-1. Widok piosenki dla anonimowego uzytkownia
+1. Widok piosenki w trybie biesiadnym z akordami
 2. Włączone akordy
-3. tryb telefonu komórkoweg
-4. przyciski starujące się ni miesczą w jednej linii
-5. przycisk wielkości czcinek rzechodzi do następnej linii i nachodzi na tekst piosenki
+3. tryb telefonu komórkowego
+4. linie tekstu nie mieszczą sie w jednej linii
+6. tekst jest dzielony na tokenty aby linie testu łamały się razem z akodrami:
+ C a G d
+Wśród noc
+  F G d A
+nej ciszy 
+
+ale słowa nie powinny być dzielone jak w załączniku  
 
 
 </aktualne_zachowanie>
 
 <oczekiwane_zachowanie>
+C a G
+Wśród 
+ d   F G d A
+nocnej ciszy 
 
-5. tekst piosenki obniża się automatycznie aby przyciski na niego nie nachodziły
+
+
 
 </oczekiwane_zachowanie>
 
