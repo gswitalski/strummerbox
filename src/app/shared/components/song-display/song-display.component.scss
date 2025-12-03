@@ -59,12 +59,6 @@ $font-size-large: 1.6rem;
         &--with-chords {
             align-items: flex-end;
         }
-
-        // Modyfikator dla linii w bloku powtórzeń - pionowa linia po prawej
-        &--in-repeat-block {
-            border-right: 2px solid var(--mat-sys-tertiary);
-            padding-right: 0.5em;
-        }
     }
 
     // Wrapper dla całego słowa (składającego się z wielu części z akordami)
@@ -138,29 +132,42 @@ $font-size-large: 1.6rem;
     // Style dla bloków powtórzeń (wielowierszowe)
     // =========================================================================
 
-    // Wspólny styl dla elementów w bloku powtórzeń (pionowa linia po prawej)
-    &__directive--in-repeat-block,
-    &__comment--in-repeat-block {
-        display: inline-block;
-        border-right: 2px solid var(--mat-sys-tertiary);
-        padding-right: 0.5em;
+    // Kontener bloku powtórzeń - CSS Grid dla wyrównania pionowej linii
+    &__repeat-block {
+        display: inline-grid;
+        grid-template-columns: auto auto;
+        gap: 0 0.5em;
+        align-items: stretch;
     }
 
-    // Spacer w bloku powtórzeń - minimalna szerokość dla linii
-    &__spacer--in-repeat-block {
-        display: inline-block;
-        min-width: 1em;
-        border-right: 2px solid var(--mat-sys-tertiary);
-        padding-right: 0.5em;
+    // Kolumna z treścią (liniami tekstu)
+    &__repeat-block-content {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
     }
 
-    // Wskaźnik powtórzenia bloku (× N) - wyświetlany przy ostatniej linii
+    // Kolumna ze wskaźnikiem (pionowa linia + × N)
+    &__repeat-block-indicator {
+        display: flex;
+        flex-direction: row;
+        align-items: stretch;
+        gap: 0.25em;
+    }
+
+    // Pionowa linia - wyrównana do wysokości całego bloku
+    &__repeat-block-line {
+        width: 2px;
+        background-color: var(--mat-sys-tertiary);
+        border-radius: 2px;
+    }
+
+    // Wskaźnik powtórzenia bloku (× N)
     &__block-repeat-marker {
         color: var(--mat-sys-tertiary);
         font-weight: 600;
         font-size: 0.85em;
         white-space: nowrap;
-        margin-left: 0.5em;
-        vertical-align: bottom;
+        align-self: flex-end;
     }
 }

@@ -59,20 +59,33 @@ export type ParsedLine = LyricsLine | DirectiveLine | CommentLine | EmptyLine;
 
 /**
  * Model widoku dla pojedynczej linii piosenki.
- * Rozszerza ParsedLine o informacje o blokach powtórzeń.
  */
 export interface SongLineViewModel {
     /** Oryginalna sparsowana linia */
     line: ParsedLine;
-    /** Czy ta linia rozpoczyna blok powtórzenia */
-    isRepeatBlockStart: boolean;
-    /** Czy ta linia znajduje się wewnątrz bloku powtórzenia */
-    isInRepeatBlock: boolean;
-    /** Czy ta linia kończy blok powtórzenia */
-    isRepeatBlockEnd: boolean;
-    /** Liczba powtórzeń bloku (tylko dla isRepeatBlockEnd) */
-    blockRepeatCount: number | null;
 }
+
+/**
+ * Blok powtórzeń - grupa linii z oznaczeniem liczby powtórzeń.
+ */
+export interface RepeatBlockViewModel {
+    type: 'repeatBlock';
+    lines: SongLineViewModel[];
+    repeatCount: number;
+}
+
+/**
+ * Pojedyncza linia (nie w bloku powtórzeń).
+ */
+export interface SingleLineViewModel {
+    type: 'single';
+    viewModel: SongLineViewModel;
+}
+
+/**
+ * Element do wyświetlenia - albo pojedyncza linia, albo blok powtórzeń.
+ */
+export type DisplayItem = SingleLineViewModel | RepeatBlockViewModel;
 
 const NBSP = '\u00A0';
 
@@ -144,9 +157,9 @@ export class SongDisplayComponent {
 
     /**
      * Sparsowana treść piosenki - automatycznie przeliczana gdy zmieni się content lub transposeOffset
-     * Zwraca tablicę SongLineViewModel z informacjami o blokach powtórzeń.
+     * Zwraca tablicę DisplayItem (pojedyncze linie lub bloki powtórzeń).
      */
-    protected readonly parsedLines: Signal<SongLineViewModel[]> = computed(() => {
+    protected readonly displayItems: Signal<DisplayItem[]> = computed(() => {
         const contentValue = this.content();
         if (!contentValue) {
             return [];
@@ -159,8 +172,22 @@ export class SongDisplayComponent {
             : contentValue;
 
         const lines = parseChordPro(processedContent);
-        return createLineViewModels(lines);
+        return createDisplayItems(lines);
     });
+
+    /**
+     * Helper do sprawdzania typu elementu w szablonie
+     */
+    protected isRepeatBlock(item: DisplayItem): item is RepeatBlockViewModel {
+        return item.type === 'repeatBlock';
+    }
+
+    /**
+     * Helper do sprawdzania typu elementu w szablonie
+     */
+    protected isSingleLine(item: DisplayItem): item is SingleLineViewModel {
+        return item.type === 'single';
+    }
 
     /**
      * Pomocnicza stała dla non-breaking space
@@ -458,15 +485,15 @@ function parseLineToChunks(line: string): ChordTextChunk[] {
 // ============================================================================
 
 /**
- * Tworzy tablicę SongLineViewModel z informacjami o blokach powtórzeń.
- * Przetwarza dyrektywy {block_start: xN} i {block_end} aby oznaczyć linie
- * należące do bloków powtórzeń.
+ * Tworzy tablicę DisplayItem grupując linie w bloki powtórzeń.
+ * Przetwarza dyrektywy {block_start: xN} i {block_end} aby utworzyć
+ * zgrupowane bloki.
  */
-function createLineViewModels(lines: ParsedLine[]): SongLineViewModel[] {
-    const result: SongLineViewModel[] = [];
-    let inRepeatBlock = false;
+function createDisplayItems(lines: ParsedLine[]): DisplayItem[] {
+    const result: DisplayItem[] = [];
+    let currentBlockLines: SongLineViewModel[] = [];
     let blockRepeatCount: number | null = null;
-    let blockStartIndex: number | null = null;
+    let inRepeatBlock = false;
 
     for (const line of lines) {
         // Sprawdź czy to dyrektywa początku bloku
@@ -475,40 +502,51 @@ function createLineViewModels(lines: ParsedLine[]): SongLineViewModel[] {
             if (blockStartMatch) {
                 inRepeatBlock = true;
                 blockRepeatCount = parseInt(blockStartMatch[1], 10);
-                blockStartIndex = result.length;
+                currentBlockLines = [];
                 // Nie dodawaj dyrektywy do wyniku - to tylko marker
                 continue;
             }
 
             // Sprawdź czy to dyrektywa końca bloku
             if (/^block_end$/i.test(line.content)) {
-                if (inRepeatBlock && blockStartIndex !== null && blockRepeatCount !== null) {
-                    // Oznacz ostatnią linię bloku jako koniec
-                    if (result.length > blockStartIndex) {
-                        const lastLineIndex = result.length - 1;
-                        result[lastLineIndex].isRepeatBlockEnd = true;
-                        result[lastLineIndex].blockRepeatCount = blockRepeatCount;
-                    }
+                if (inRepeatBlock && blockRepeatCount !== null && currentBlockLines.length > 0) {
+                    // Zamknij blok i dodaj do wyniku
+                    result.push({
+                        type: 'repeatBlock',
+                        lines: currentBlockLines,
+                        repeatCount: blockRepeatCount,
+                    });
                 }
 
                 // Zresetuj stan bloku
                 inRepeatBlock = false;
                 blockRepeatCount = null;
-                blockStartIndex = null;
+                currentBlockLines = [];
                 // Nie dodawaj dyrektywy do wyniku
                 continue;
             }
         }
 
-        // Zwykła linia - dodaj z informacją o bloku
-        const isBlockStart = inRepeatBlock && result.length === blockStartIndex;
+        // Zwykła linia
+        const viewModel: SongLineViewModel = { line };
 
+        if (inRepeatBlock) {
+            // Dodaj do aktualnego bloku
+            currentBlockLines.push(viewModel);
+        } else {
+            // Dodaj jako pojedynczą linię
+            result.push({
+                type: 'single',
+                viewModel,
+            });
+        }
+    }
+
+    // Jeśli blok nie został zamknięty, dodaj pozostałe linie jako pojedyncze
+    for (const vm of currentBlockLines) {
         result.push({
-            line,
-            isRepeatBlockStart: isBlockStart,
-            isInRepeatBlock: inRepeatBlock,
-            isRepeatBlockEnd: false, // Zostanie ustawione później przy {block_end}
-            blockRepeatCount: null, // Zostanie ustawione tylko dla ostatniej linii
+            type: 'single',
+            viewModel: vm,
         });
     }
 
