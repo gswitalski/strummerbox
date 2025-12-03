@@ -37,14 +37,12 @@ Zapoznaj się z następującymi materiałami:
 
 <aktualne_zachowanie>
 
-Widok piosenki w trybie biesiadnym z akordami ,  która zwiera powtarzające się wiersze
-blok z linią pionową i napisem x 2 jest za daleko. (patrz załaczony obrazek)
-
+w aktualnym branchu została wprowadzona finkcjonalnosc wyświetlająca pioniwą kreskę i napis x2 dla powtarzających się wierszy. normalnie działa to ok. laoe w branchu develop mialem funkcjonalność która elegancko zawijała wiersze w trybie użądzeia mobilnego gdy się nie mieściły. Teraz ta funkcjonalność przestała działać. 
 
 </aktualne_zachowanie>
 
 <oczekiwane_zachowanie>
-blok z linioą pionową i napisem x 2 powinien byc bezpośredni o za anjdłuższym wierszem
+Sprawdź branch 'develop' i poórwnaj co się zmieniło i przywróć zawijanie wierszy jednocześnie zachowując aktualną funkcjonalność wprowadzoną w tym branczhu.
 
 </oczekiwane_zachowanie>
 

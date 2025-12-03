@@ -97,15 +97,14 @@ const REPETITION_DIRECTIVE_PATTERN = /\{c:\s*x(\d+)\s*\}/i;
 
 /**
  * Wzorzec dla dyrektywy początku bloku powtórzeń.
- * Dopasowuje {block_start: xN} gdzie N to liczba.
+ * Dopasowuje block_start: xN gdzie N to liczba (bez nawiasów klamrowych).
  */
-const BLOCK_START_DIRECTIVE_PATTERN = /^\{block_start:\s*x(\d+)\s*\}$/i;
+const BLOCK_START_DIRECTIVE_PATTERN = /^block_start:\s*x(\d+)$/i;
 
 /**
  * Wzorzec dla dyrektywy końca bloku powtórzeń.
- * Dopasowuje {block_end}
  */
-const BLOCK_END_DIRECTIVE_PATTERN = /^\{block_end\}$/i;
+const BLOCK_END_DIRECTIVE_PATTERN = /^block_end$/i;
 
 /**
  * Reużywalny komponent do renderowania treści piosenki w formacie ChordPro.
@@ -498,7 +497,7 @@ function createDisplayItems(lines: ParsedLine[]): DisplayItem[] {
     for (const line of lines) {
         // Sprawdź czy to dyrektywa początku bloku
         if (line.type === 'directive') {
-            const blockStartMatch = line.content.match(/^block_start:\s*x(\d+)$/i);
+            const blockStartMatch = line.content.match(BLOCK_START_DIRECTIVE_PATTERN);
             if (blockStartMatch) {
                 inRepeatBlock = true;
                 blockRepeatCount = parseInt(blockStartMatch[1], 10);
@@ -508,7 +507,7 @@ function createDisplayItems(lines: ParsedLine[]): DisplayItem[] {
             }
 
             // Sprawdź czy to dyrektywa końca bloku
-            if (/^block_end$/i.test(line.content)) {
+            if (BLOCK_END_DIRECTIVE_PATTERN.test(line.content)) {
                 if (inRepeatBlock && blockRepeatCount !== null && currentBlockLines.length > 0) {
                     // Zamknij blok i dodaj do wyniku
                     result.push({
