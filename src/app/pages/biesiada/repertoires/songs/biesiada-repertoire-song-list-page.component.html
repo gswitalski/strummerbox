@@ -10,6 +10,14 @@
         <span class="biesiada-song-list-page__toolbar-title">
             {{ vm().repertoireName || 'Repertuar' }}
         </span>
+        <span style="flex: 1 1 auto;"></span>
+        <button 
+            mat-icon-button 
+            type="button"
+            aria-label="Zamknij i wróć do panelu głównego"
+            (click)="navigateToDashboard()">
+            <mat-icon>close</mat-icon>
+        </button>
     </mat-toolbar>
 
     @if (vm().isLoading) {

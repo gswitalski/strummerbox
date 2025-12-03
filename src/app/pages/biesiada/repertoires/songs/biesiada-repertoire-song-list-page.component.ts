@@ -113,5 +113,12 @@ export class BiesiadaRepertoireSongListPageComponent implements OnInit, OnDestro
             maxWidth: '90vw',
         });
     }
+
+    /**
+     * Navigate to the main Dashboard (quick exit from Biesiada mode)
+     */
+    navigateToDashboard(): void {
+        this.router.navigate(['/management/dashboard']);
+    }
 }
 

@@ -1,11 +1,23 @@
 .biesiada-repertoire-list-page {
     min-height: 100vh;
-    padding: 16px;
     background-color: var(--mat-sys-background);
+
+    &__toolbar {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+    }
+
+    &__toolbar-title {
+        margin-left: 8px;
+        font-size: 20px;
+        font-weight: 500;
+    }
 
     &__container {
         max-width: 800px;
         margin: 0 auto;
+        padding: 16px;
     }
 
     &__header {
@@ -181,7 +193,9 @@
 // Tablet and desktop
 @media (min-width: 768px) {
     .biesiada-repertoire-list-page {
-        padding: 32px;
+        &__container {
+            padding: 32px;
+        }
 
         &__header {
             margin-bottom: 40px;

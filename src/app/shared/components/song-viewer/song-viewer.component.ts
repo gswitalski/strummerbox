@@ -140,6 +140,11 @@ export class SongViewerComponent {
     @Output() fontSizeChanged = new EventEmitter<FontSize>();
 
     /**
+     * Zdarzenie emitowane gdy użytkownik klika przycisk "Zamknij" (wyjście z trybu Biesiada)
+     */
+    @Output() exitClicked = new EventEmitter<void>();
+
+    /**
      * Pomocnicze gettery dla czytelności w template
      */
     get isLoading(): boolean {
@@ -181,5 +186,12 @@ export class SongViewerComponent {
      */
     onFontSizeChange(newSize: FontSize): void {
         this.fontSizeChanged.emit(newSize);
+    }
+
+    /**
+     * Obsługa kliknięcia przycisku "Zamknij" (wyjście z trybu Biesiada)
+     */
+    onExitClick(): void {
+        this.exitClicked.emit();
     }
 }

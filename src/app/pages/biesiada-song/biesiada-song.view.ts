@@ -7,7 +7,7 @@ import {
     signal,
     computed,
 } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Title } from '@angular/platform-browser';
 import { HttpErrorResponse } from '@angular/common/http';
 import { MatDialog } from '@angular/material/dialog';
@@ -42,6 +42,7 @@ import type { FontSize } from '../../shared/models/font-size.model';
 })
 export class BiesiadaSongViewComponent implements OnInit, OnDestroy {
     private readonly route = inject(ActivatedRoute);
+    private readonly router = inject(Router);
     private readonly biesiadaService = inject(BiesiadaService);
     private readonly fontSizeService = inject(FontSizeService);
     private readonly titleService = inject(Title);
@@ -84,6 +85,7 @@ export class BiesiadaSongViewComponent implements OnInit, OnDestroy {
             showQrButton: true,
             showNavigation: true,
             backButtonAriaLabel: 'Powrót do listy',
+            showExitButton: true, // Przycisk szybkiego wyjścia do Dashboardu
         };
     });
 
@@ -219,6 +221,13 @@ export class BiesiadaSongViewComponent implements OnInit, OnDestroy {
     onFontSizeChanged(newSize: FontSize): void {
         this.fontSize.set(newSize);
         this.fontSizeService.setFontSize(newSize);
+    }
+
+    /**
+     * Nawiguje do głównego Dashboardu (szybkie wyjście z trybu Biesiada)
+     */
+    navigateToDashboard(): void {
+        this.router.navigate(['/management/dashboard']);
     }
 
     /**

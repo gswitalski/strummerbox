@@ -1,4 +1,15 @@
 <div class="biesiada-repertoire-list-page">
+    <mat-toolbar class="biesiada-repertoire-list-page__toolbar" color="primary">
+        <button 
+            mat-icon-button 
+            type="button"
+            aria-label="Zamknij i wróć do panelu głównego"
+            (click)="navigateToDashboard()">
+            <mat-icon>close</mat-icon>
+        </button>
+        <span class="biesiada-repertoire-list-page__toolbar-title">Biesiada</span>
+    </mat-toolbar>
+
     <div class="biesiada-repertoire-list-page__container">
         <header class="biesiada-repertoire-list-page__header">
             <h1 class="biesiada-repertoire-list-page__title">Repertuary</h1>

@@ -65,6 +65,17 @@
                     [selectedSize]="fontSize"
                     (sizeChanged)="onFontSizeChange($event)">
                 </stbo-font-size-controls>
+
+                <!-- Przycisk "Zamknij" (wyjście z trybu Biesiada) -->
+                @if (config.showExitButton) {
+                    <button
+                        mat-icon-button
+                        class="exit-button"
+                        (click)="onExitClick()"
+                        aria-label="Zamknij i wróć do panelu głównego">
+                        <mat-icon>close</mat-icon>
+                    </button>
+                }
             </mat-toolbar>
         }
 

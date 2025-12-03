@@ -19,45 +19,43 @@ Najpierw przejrzyj następujące informacje:
 3. Widok do implementacji
 <views>
 
-### Zaktualizowane widoki
+Zaktualizowano definicje widoków trybu Biesiada w Planie UI.
 
-#### **4b. Publiczny Widok Piosenki (Public Song View)**
+### Zmienione Widoki:
 
--   **Kluczowe informacje**: Do toolbara, obok istniejących kontrolek, dodano przełącznik do zmiany wielkości czcionki.
--   **Kluczowe komponenty**: Dodano nowy komponent `FontSizeControlsComponent`, który jest używany wewnątrz `SongViewerComponent`.
--   **UX**: Użytkownik może w każdej chwili zmienić rozmiar czcionki, a jego wybór jest zapamiętywany na przyszłość w `localStorage`.
+#### 11. Tryb Biesiada - Lista Repertuarów
+*   **Zmiana:** Dodano opis przycisku "Zamknij" w `mat-toolbar`.
+*   **Lokalizacja:** Lewy górny róg (zamiast menu hamburgera, które w trybie Biesiada jest ukryte).
+*   **Akcja:** `router.navigate(['/dashboard'])`.
 
-#### **13. Tryb Biesiada - Widok Piosenki (Biesiada Song View)**
+#### 12. Tryb Biesiada - Lista Piosenek w Repertuarze
+*   **Zmiana:** Zredefiniowano układ paska narzędzi.
+*   **Układ:**
+    *   Lewa strona: Przycisk "Wstecz" (powrót do listy repertuarów).
+    *   Prawa strona: Przycisk "Zamknij" (powrót do Dashboardu).
 
--   **Kluczowe informacje**: Analogicznie do widoku publicznego, w toolbarze dodano kontrolki do zmiany wielkości czcionki.
--   **Kluczowe komponenty**: Wykorzystano ten sam nowy komponent `FontSizeControlsComponent`.
--   **UX**: Zapewniono spójne działanie z widokiem publicznym, w tym zapamiętywanie wybranego rozmiaru czcionki.
-
-### Nowy komponent
-
--   **`FontSizeControlsComponent`**:
-    -   **Opis**: Komponent prezentacyjny wyświetlający grupę trzech przycisków (`mat-button-toggle-group`) do zmiany wielkości czcionki. Jest w pełni sterowany z zewnątrz.
-    -   **API**: `@Input() selectedSize: 'small' | 'medium' | 'large'`, `@Output() sizeChanged = new EventEmitter<'small' | 'medium' | 'large'>()`
-    -   **Użycie**: Wewnętrznie używany przez `SongViewerComponent` w toolbarze.
-    -   **Stan**: Do zaimplementowania.
-
+#### 13. Tryb Biesiada - Widok Piosenki
+*   **Zmiana:** Aktualizacja konfiguracji komponentu `SongViewerComponent`.
+*   **Szczegóły:** Komponent musi przyjąć parametr konfiguracyjny (np. `showExitButton: true`), który wyrenderuje dodatkowy przycisk `mat-icon-button` z ikoną `close` w prawej części toolbara.
+*   **Interakcja:** Przycisk ten będzie emitował zdarzenie (np. `exitClicked`) lub bezpośrednio nawigował do Dashboardu, zależnie od implementacji smart komponentu.
 
 
 </views>
 
 4. User Stories:
 <user_stories>
-### Nowa historyjka
+Dodano nową historyjkę użytkownika do sekcji "Udostępnianie i Tryb Biesiada".
 
--   **ID**: US-030
--   **Title**: Dostosowanie wielkości czcionki w widoku piosenki
--   **Description**: Jako Biesiadnik lub Organizator w trybie Biesiada, chcę móc powiększyć lub zmniejszyć tekst piosenki, aby dostosować go do moich potrzeb i warunków oświetleniowych.
--   **Acceptance Criteria**:
-    -   W widoku piosenki (publicznym oraz Biesiada) widoczny jest zestaw trzech przycisków do zmiany wielkości czcionki.
-    -   Przyciski są zrealizowane jako `mat-button-toggle-group` i oznaczone literą "A" w wizualnie różniących się rozmiarach (małym, średnim, dużym).
-    -   Domyślnie wybrana jest najmniejsza wielkość czcionki (odpowiadająca `1rem`).
-    -   Kliknięcie przycisku natychmiastowo zmienia rozmiar czcionki tekstu piosenki i akordów na jedną z predefiniowanych wartości: `1rem` (mały), `1.3rem` (średni), `1.6rem` (duży).
-    -   Wybór użytkownika jest zapamiętywany w `localStorage` i automatycznie przywracany przy kolejnym otwarciu dowolnej piosenki na tym samym urządzeniu.
+### US-031: Szybkie wyjście z trybu Biesiada
+**Jako** Organizator w trybie 'Biesiada',  
+**Chcę** mieć możliwość kliknięcia przycisku "Zamknij/X",  
+**Aby** natychmiast wrócić do panelu zarządzania (Dashboardu) bez konieczności wielokrotnego klikania "Wstecz".
+
+**Kryteria akceptacji:**
+1.  **Widok główny (Lista Repertuarów):** Przycisk z ikoną `close` (X) znajduje się w **lewym górnym rogu** paska narzędzi. Kliknięcie przenosi do `/dashboard`.
+2.  **Widoki podrzędne (Lista Piosenek, Widok Piosenki):** Przycisk z ikoną `close` (X) znajduje się w **prawym górnym rogu** paska narzędzi.
+3.  **Nawigacja kontekstowa:** Na widokach podrzędnych, w lewym górnym rogu pozostaje przycisk `arrow_back` (Wstecz), który zachowuje standardową nawigację (np. powrót z piosenki do listy piosenek).
+4.  **Widoczność:** Przycisk jest dostępny tylko w trybie organizatora (nie występuje w publicznych widokach dla biesiadników).
 
 
 </user_stories>
