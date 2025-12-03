@@ -19,43 +19,38 @@ Najpierw przejrzyj następujące informacje:
 3. Widok do implementacji
 <views>
 
-Zaktualizowano definicje widoków trybu Biesiada w Planie UI.
+Zaktualizowano Plan UI, aby odzwierciedlić zmiany w interfejsie edytora piosenek oraz w komponencie odpowiedzialnym za ich wyświetlanie.
 
-### Zmienione Widoki:
+### Zmiany w Widoku Tworzenia / Edycji Piosenki
 
-#### 11. Tryb Biesiada - Lista Repertuarów
-*   **Zmiana:** Dodano opis przycisku "Zamknij" w `mat-toolbar`.
-*   **Lokalizacja:** Lewy górny róg (zamiast menu hamburgera, które w trybie Biesiada jest ukryte).
-*   **Akcja:** `router.navigate(['/dashboard'])`.
+-   **Ścieżka:** `/management/songs/new`, `/management/songs/:id/edit`
+-   **Opis zmiany:**
+    -   Zaktualizowano sekcję `UX` w opisie widoku. Edytor tekstu wspiera teraz uproszczoną składnię do definiowania powtórzeń jednowierszowych (np. `x2`) oraz wielowierszowych (np. `x2(3)`). Podgląd na żywo w trybach 'ChordPro' i 'Biesiada' natychmiastowo odzwierciedla interpretację tej składni.
 
-#### 12. Tryb Biesiada - Lista Piosenek w Repertuarze
-*   **Zmiana:** Zredefiniowano układ paska narzędzi.
-*   **Układ:**
-    *   Lewa strona: Przycisk "Wstecz" (powrót do listy repertuarów).
-    *   Prawa strona: Przycisk "Zamknij" (powrót do Dashboardu).
+### Zmiany w Komponencie `SongDisplayComponent`
 
-#### 13. Tryb Biesiada - Widok Piosenki
-*   **Zmiana:** Aktualizacja konfiguracji komponentu `SongViewerComponent`.
-*   **Szczegóły:** Komponent musi przyjąć parametr konfiguracyjny (np. `showExitButton: true`), który wyrenderuje dodatkowy przycisk `mat-icon-button` z ikoną `close` w prawej części toolbara.
-*   **Interakcja:** Przycisk ten będzie emitował zdarzenie (np. `exitClicked`) lub bezpośrednio nawigował do Dashboardu, zależnie od implementacji smart komponentu.
+-   **Opis zmiany:**
+    -   Zaktualizowano opis komponentu, aby uwzględnić jego nową odpowiedzialność. Komponent jest teraz odpowiedzialny za parsowanie i renderowanie dyrektyw powtórzeń ChordPro, zarówno jednowierszowych (`{c: xN}`), jak i wielowierszowych (`{block_start: xN}` / `{block_end}`). Bloki powtórzeń są wizualnie oznaczane pionową linią po prawej stronie oraz wskaźnikiem `× N` przy ostatnim wierszu bloku, stylizowanymi zgodnie z wytycznymi.
 
 
 </views>
 
 4. User Stories:
 <user_stories>
-Dodano nową historyjkę użytkownika do sekcji "Udostępnianie i Tryb Biesiada".
+Do dokumentu PRD dodano nową historyjkę użytkownika, aby opisać wymagania z perspektywy Organizatora.
 
-### US-031: Szybkie wyjście z trybu Biesiada
-**Jako** Organizator w trybie 'Biesiada',  
-**Chcę** mieć możliwość kliknięcia przycisku "Zamknij/X",  
-**Aby** natychmiast wrócić do panelu zarządzania (Dashboardu) bez konieczności wielokrotnego klikania "Wstecz".
+### Nowa Historyjka Użytkownika
 
-**Kryteria akceptacji:**
-1.  **Widok główny (Lista Repertuarów):** Przycisk z ikoną `close` (X) znajduje się w **lewym górnym rogu** paska narzędzi. Kliknięcie przenosi do `/dashboard`.
-2.  **Widoki podrzędne (Lista Piosenek, Widok Piosenki):** Przycisk z ikoną `close` (X) znajduje się w **prawym górnym rogu** paska narzędzi.
-3.  **Nawigacja kontekstowa:** Na widokach podrzędnych, w lewym górnym rogu pozostaje przycisk `arrow_back` (Wstecz), który zachowuje standardową nawigację (np. powrót z piosenki do listy piosenek).
-4.  **Widoczność:** Przycisk jest dostępny tylko w trybie organizatora (nie występuje w publicznych widokach dla biesiadników).
+-   **ID:** US-032
+-   **Title:** Definiowanie wielowierszowych bloków powtórzeń
+-   **Description:** Jako Organizator, chcę móc oznaczać całe sekcje piosenki (np. zwrotkę z refrenem) jako powtarzające się, aby zapis był bardziej przejrzysty i zorganizowany.
+-   **Acceptance Criteria:**
+    -   W edytorze piosenek, dodanie na końcu ostatniej linii bloku znacznika w formacie `xN(L)` (np. `x2(4)` dla powtórzenia 4 ostatnich wierszy 2 razy) jest interpretowane jako dyrektywa powtórzenia wielowierszowego.
+    -   W podglądzie "ChordPro", taka składnia jest konwertowana do bloku dyrektyw `{block_start: xN}` i `{block_end}`.
+    -   W podglądzie "Biesiada" oraz w widoku publicznym, cały blok powtórzenia (zarówno jedno-, jak i wielowierszowy) jest wizualnie oznaczony pionową linią po prawej stronie.
+    -   Pionowa linia ma taki sam kolor jak wskaźnik powtórzenia (`× N`).
+    -   Wskaźnik powtórzenia (`× N`) jest wyświetlany przy ostatnim wierszu bloku.
+    -   Podczas konwersji z formatu ChordPro do edytora, blok dyrektyw `{block_start: xN}` i `{block_end}` jest z powrotem zamieniany na prosty zapis `xN(L)` na końcu ostatniej linii.
 
 
 </user_stories>
