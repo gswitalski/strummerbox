@@ -48,9 +48,9 @@ $font-size-large: 1.6rem;
         display: block;
     }
 
-    // Linia z tekstem - domyślnie flexbox do zawijania słów
+    // Linia z tekstem - inline-flex dla dopasowania szerokości do zawartości
     &__lyrics-line {
-        display: flex;
+        display: inline-flex;
         flex-wrap: wrap;
         align-items: flex-end;
         line-height: 1.4;
@@ -58,6 +58,12 @@ $font-size-large: 1.6rem;
         // Modyfikator dla linii z akordami - wyrównanie do dołu
         &--with-chords {
             align-items: flex-end;
+        }
+
+        // Modyfikator dla linii w bloku powtórzeń - pionowa linia po prawej
+        &--in-repeat-block {
+            border-right: 2px solid var(--mat-sys-tertiary);
+            padding-right: 0.5em;
         }
     }
 
@@ -126,5 +132,35 @@ $font-size-large: 1.6rem;
         color: var(--mat-sys-tertiary);
         margin-left: 0.5em;
         white-space: nowrap;
+    }
+
+    // =========================================================================
+    // Style dla bloków powtórzeń (wielowierszowe)
+    // =========================================================================
+
+    // Wspólny styl dla elementów w bloku powtórzeń (pionowa linia po prawej)
+    &__directive--in-repeat-block,
+    &__comment--in-repeat-block {
+        display: inline-block;
+        border-right: 2px solid var(--mat-sys-tertiary);
+        padding-right: 0.5em;
+    }
+
+    // Spacer w bloku powtórzeń - minimalna szerokość dla linii
+    &__spacer--in-repeat-block {
+        display: inline-block;
+        min-width: 1em;
+        border-right: 2px solid var(--mat-sys-tertiary);
+        padding-right: 0.5em;
+    }
+
+    // Wskaźnik powtórzenia bloku (× N) - wyświetlany przy ostatniej linii
+    &__block-repeat-marker {
+        color: var(--mat-sys-tertiary);
+        font-weight: 600;
+        font-size: 0.85em;
+        white-space: nowrap;
+        margin-left: 0.5em;
+        vertical-align: bottom;
     }
 }

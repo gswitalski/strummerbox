@@ -715,6 +715,135 @@ describe('ChordConverterService', () => {
                 expect(result).toMatch(/\{c: x2\}$/);
             });
         });
+
+        // ========== Testy konwersji wielowierszowych powtórzeń xN(L) → {block_start}/{block_end} ==========
+
+        describe('multiline repetition conversion (xN(L) → block directives)', () => {
+            it('should convert x2(4) to block directives for 4 lines', () => {
+                const input = [
+                    'Linia 1',
+                    'Linia 2',
+                    'Linia 3',
+                    'Linia 4 x2(4)'
+                ].join('\n');
+
+                const result = service.convertFromChordsOverText(input);
+                const lines = result.split('\n');
+
+                expect(lines[0]).toBe('{block_start: x2}');
+                expect(lines[1]).toBe('Linia 1');
+                expect(lines[2]).toBe('Linia 2');
+                expect(lines[3]).toBe('Linia 3');
+                expect(lines[4]).toBe('Linia 4');
+                expect(lines[5]).toBe('{block_end}');
+            });
+
+            it('should convert x3(2) to block directives for 2 lines', () => {
+                const input = [
+                    'Pierwsza linia',
+                    'Druga linia x3(2)'
+                ].join('\n');
+
+                const result = service.convertFromChordsOverText(input);
+                const lines = result.split('\n');
+
+                expect(lines[0]).toBe('{block_start: x3}');
+                expect(lines[1]).toBe('Pierwsza linia');
+                expect(lines[2]).toBe('Druga linia');
+                expect(lines[3]).toBe('{block_end}');
+            });
+
+            it('should handle x2(4) with chords over text', () => {
+                const input = [
+                    'C       Am',
+                    'Linia pierwsza',
+                    'F       G',
+                    'Linia druga x2(2)'
+                ].join('\n');
+
+                const result = service.convertFromChordsOverText(input);
+
+                expect(result).toContain('{block_start: x2}');
+                expect(result).toContain('{block_end}');
+                expect(result).toContain('[C]');
+                expect(result).toContain('[Am]');
+                expect(result).toContain('[F]');
+                expect(result).toContain('[G]');
+            });
+
+            it('should handle x2(1) for single line repeat block', () => {
+                const input = 'Powtórz mnie x2(1)';
+
+                const result = service.convertFromChordsOverText(input);
+                const lines = result.split('\n');
+
+                expect(lines[0]).toBe('{block_start: x2}');
+                expect(lines[1]).toBe('Powtórz mnie');
+                expect(lines[2]).toBe('{block_end}');
+            });
+
+            it('should handle L greater than available lines (use all available)', () => {
+                const input = [
+                    'Linia 1',
+                    'Linia 2 x2(10)'
+                ].join('\n');
+
+                const result = service.convertFromChordsOverText(input);
+                const lines = result.split('\n');
+
+                // Powinno użyć wszystkich dostępnych linii (2)
+                expect(lines[0]).toBe('{block_start: x2}');
+                expect(lines[1]).toBe('Linia 1');
+                expect(lines[2]).toBe('Linia 2');
+                expect(lines[3]).toBe('{block_end}');
+            });
+
+            it('should handle multiple repeat blocks in one song', () => {
+                const input = [
+                    'Refren linia 1',
+                    'Refren linia 2 x2(2)',
+                    '',
+                    'Zwrotka linia 1',
+                    'Zwrotka linia 2',
+                    'Zwrotka linia 3 x3(3)'
+                ].join('\n');
+
+                const result = service.convertFromChordsOverText(input);
+
+                // Sprawdź czy oba bloki są obecne
+                const blockStarts = (result.match(/\{block_start:/g) || []).length;
+                const blockEnds = (result.match(/\{block_end\}/g) || []).length;
+
+                expect(blockStarts).toBe(2);
+                expect(blockEnds).toBe(2);
+                expect(result).toContain('{block_start: x2}');
+                expect(result).toContain('{block_start: x3}');
+            });
+
+            it('should NOT convert x2 without (L) as multiline block', () => {
+                const input = 'Linia z powtórzeniem x2';
+
+                const result = service.convertFromChordsOverText(input);
+
+                // Powinno użyć standardowej konwersji do {c: x2}
+                expect(result).toBe('Linia z powtórzeniem {c: x2}');
+                expect(result).not.toContain('{block_start:');
+                expect(result).not.toContain('{block_end}');
+            });
+
+            it('should handle uppercase X2(3)', () => {
+                const input = [
+                    'Linia 1',
+                    'Linia 2',
+                    'Linia 3 X2(3)'
+                ].join('\n');
+
+                const result = service.convertFromChordsOverText(input);
+
+                expect(result).toContain('{block_start: x2}');
+                expect(result).toContain('{block_end}');
+            });
+        });
     });
 
     describe('convertToOverText', () => {
@@ -966,6 +1095,142 @@ describe('ChordConverterService', () => {
                 expect(backToOverText).toContain('razem');
             });
         });
+
+        // ========== Testy konwersji dyrektyw blokowych {block_start}/{block_end} → xN(L) ==========
+
+        describe('block directives conversion ({block_start}/{block_end} → xN(L))', () => {
+            it('should convert block directives back to xN(L) format', () => {
+                const input = [
+                    '{block_start: x2}',
+                    'Linia 1',
+                    'Linia 2',
+                    'Linia 3',
+                    'Linia 4',
+                    '{block_end}'
+                ].join('\n');
+
+                const result = service.convertToOverText(input);
+
+                expect(result).toContain('x2(4)');
+                expect(result).not.toContain('{block_start');
+                expect(result).not.toContain('{block_end}');
+            });
+
+            it('should convert x3(2) block directives', () => {
+                const input = [
+                    '{block_start: x3}',
+                    'Pierwsza linia',
+                    'Druga linia',
+                    '{block_end}'
+                ].join('\n');
+
+                const result = service.convertToOverText(input);
+
+                expect(result).toContain('Druga linia x3(2)');
+            });
+
+            it('should handle block with chords', () => {
+                const input = [
+                    '{block_start: x2}',
+                    '[C]Linia [Am]pierwsza',
+                    '[F]Linia [G]druga',
+                    '{block_end}'
+                ].join('\n');
+
+                const result = service.convertToOverText(input);
+
+                // Powinien mieć akordy nad tekstem
+                expect(result).toContain('C');
+                expect(result).toContain('Am');
+                expect(result).toContain('F');
+                expect(result).toContain('G');
+                // I znacznik xN(L) na końcu
+                expect(result).toContain('x2(2)');
+            });
+
+            it('should handle block_start with spaces', () => {
+                const input = [
+                    '{block_start:   x2  }',
+                    'Linia 1',
+                    '{block_end}'
+                ].join('\n');
+
+                const result = service.convertToOverText(input);
+
+                expect(result).toContain('x2(1)');
+            });
+
+            it('should ignore unmatched {block_end}', () => {
+                const input = [
+                    'Linia 1',
+                    '{block_end}',
+                    'Linia 2'
+                ].join('\n');
+
+                const result = service.convertToOverText(input);
+
+                expect(result).toContain('Linia 1');
+                expect(result).toContain('Linia 2');
+                expect(result).not.toContain('{block_end}');
+            });
+
+            it('should handle unclosed {block_start} (no xN(L) added)', () => {
+                const input = [
+                    '{block_start: x2}',
+                    'Linia 1',
+                    'Linia 2'
+                ].join('\n');
+
+                const result = service.convertToOverText(input);
+
+                // Bez {block_end} nie powinno być xN(L)
+                expect(result).not.toContain('x2(');
+                expect(result).toContain('Linia 1');
+                expect(result).toContain('Linia 2');
+            });
+
+            it('should be inverse of convertFromChordsOverText for multiline repeats', () => {
+                const original = [
+                    'Linia 1',
+                    'Linia 2',
+                    'Linia 3',
+                    'Linia 4 x2(4)'
+                ].join('\n');
+
+                // Konwertuj do ChordPro i z powrotem
+                const chordPro = service.convertFromChordsOverText(original);
+                expect(chordPro).toContain('{block_start: x2}');
+                expect(chordPro).toContain('{block_end}');
+
+                const backToOverText = service.convertToOverText(chordPro);
+
+                // Wynikowy tekst powinien zawierać xN(L)
+                expect(backToOverText).toContain('x2(4)');
+                expect(backToOverText).not.toContain('{block_start');
+                expect(backToOverText).not.toContain('{block_end}');
+                expect(backToOverText).toContain('Linia 1');
+                expect(backToOverText).toContain('Linia 4');
+            });
+
+            it('should handle multiple block directives', () => {
+                const input = [
+                    '{block_start: x2}',
+                    'Refren linia 1',
+                    'Refren linia 2',
+                    '{block_end}',
+                    '',
+                    '{block_start: x3}',
+                    'Zwrotka linia 1',
+                    'Zwrotka linia 2',
+                    'Zwrotka linia 3',
+                    '{block_end}'
+                ].join('\n');
+
+                const result = service.convertToOverText(input);
+
+                expect(result).toContain('x2(2)');
+                expect(result).toContain('x3(3)');
+            });
+        });
     });
 });
-

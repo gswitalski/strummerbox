@@ -5,14 +5,22 @@
         </div>
     } @else {
         <div class="song-display__content">
-            @for (line of parsedLines(); track $index) {
-                <div class="song-display__line" [attr.data-type]="line.type">
-                    @if (line.type === 'lyrics') {
-                        <div class="song-display__lyrics-line" [class.song-display__lyrics-line--with-chords]="showChords() && line.chordLine">
+            @for (viewModel of parsedLines(); track $index) {
+                <div 
+                    class="song-display__line"
+                    [attr.data-type]="viewModel.line.type"
+                    [class.song-display__line--repeat-block]="viewModel.isInRepeatBlock"
+                    [class.song-display__line--repeat-block-start]="viewModel.isRepeatBlockStart"
+                    [class.song-display__line--repeat-block-end]="viewModel.isRepeatBlockEnd">
+                    @if (viewModel.line.type === 'lyrics') {
+                        <span 
+                            class="song-display__lyrics-line" 
+                            [class.song-display__lyrics-line--with-chords]="showChords() && viewModel.line.chordLine"
+                            [class.song-display__lyrics-line--in-repeat-block]="viewModel.isInRepeatBlock">
                             <!-- Nowe podejście: Słowa logiczne składające się z części (akord+tekst) -->
                             <!-- Wrapper zapobiega łamaniu linii wewnątrz słowa -->
-                            @if (line.hasLyrics && line.words) {
-                                @for (word of line.words; track $index) {
+                            @if (viewModel.line.hasLyrics && viewModel.line.words) {
+                                @for (word of viewModel.line.words; track $index) {
                                     <span class="song-display__word-wrapper">
                                         @for (part of word.parts; track $index) {
                                             <span class="song-display__part-group">
@@ -24,26 +32,40 @@
                                         }
                                     </span>
                                 }
-                                @if (line.repetitionCount) {
-                                    <span class="song-display__repetition-marker">× {{ line.repetitionCount }}</span>
+                                @if (viewModel.line.repetitionCount) {
+                                    <span class="song-display__repetition-marker">× {{ viewModel.line.repetitionCount }}</span>
                                 }
-                            } @else if (!line.hasLyrics && showChords() && line.chordLine) {
+                            } @else if (!viewModel.line.hasLyrics && showChords() && viewModel.line.chordLine) {
                                 <!-- Linie zawierające tylko akordy (bez tekstu) - stare podejście -->
-                                <span class="song-display__chords-only">{{ line.chordLine }}@if (line.repetitionCount) {<span class="song-display__repetition-marker">× {{ line.repetitionCount }}</span>}</span>
-                            } @else if (line.hasLyrics && !line.words) {
+                                <span class="song-display__chords-only">{{ viewModel.line.chordLine }}@if (viewModel.line.repetitionCount) {<span class="song-display__repetition-marker">× {{ viewModel.line.repetitionCount }}</span>}</span>
+                            } @else if (viewModel.line.hasLyrics && !viewModel.line.words) {
                                 <!-- Fallback dla tekstu bez akordów lub gdy parsowanie słów nie jest wymagane -->
-                                <span class="song-display__lyrics">{{ line.textLine }}</span>
-                                @if (line.repetitionCount) {
-                                    <span class="song-display__repetition-marker">× {{ line.repetitionCount }}</span>
+                                <span class="song-display__lyrics">{{ viewModel.line.textLine }}</span>
+                                @if (viewModel.line.repetitionCount) {
+                                    <span class="song-display__repetition-marker">× {{ viewModel.line.repetitionCount }}</span>
                                 }
                             }
-                        </div>
-                    } @else if (line.type === 'directive') {
-                        <div class="song-display__directive">{{ line.content }}</div>
-                    } @else if (line.type === 'comment') {
-                        <div class="song-display__comment">{{ line.content }}</div>
-                    } @else if (line.type === 'empty') {
-                        <div class="song-display__spacer"></div>
+                        </span>
+                        <!-- Wskaźnik powtórzenia bloku - wyświetlany tylko przy ostatniej linii bloku -->
+                        @if (viewModel.isRepeatBlockEnd && viewModel.blockRepeatCount) {
+                            <span class="song-display__block-repeat-marker">× {{ viewModel.blockRepeatCount }}</span>
+                        }
+                    } @else if (viewModel.line.type === 'directive') {
+                        <span class="song-display__directive" [class.song-display__directive--in-repeat-block]="viewModel.isInRepeatBlock">{{ viewModel.line.content }}</span>
+                        @if (viewModel.isRepeatBlockEnd && viewModel.blockRepeatCount) {
+                            <span class="song-display__block-repeat-marker">× {{ viewModel.blockRepeatCount }}</span>
+                        }
+                    } @else if (viewModel.line.type === 'comment') {
+                        <span class="song-display__comment" [class.song-display__comment--in-repeat-block]="viewModel.isInRepeatBlock">{{ viewModel.line.content }}</span>
+                        @if (viewModel.isRepeatBlockEnd && viewModel.blockRepeatCount) {
+                            <span class="song-display__block-repeat-marker">× {{ viewModel.blockRepeatCount }}</span>
+                        }
+                    } @else if (viewModel.line.type === 'empty') {
+                        <span class="song-display__spacer" [class.song-display__spacer--in-repeat-block]="viewModel.isInRepeatBlock"></span>
+                        <!-- Wskaźnik powtórzenia bloku dla pustych linii -->
+                        @if (viewModel.isRepeatBlockEnd && viewModel.blockRepeatCount) {
+                            <span class="song-display__block-repeat-marker">× {{ viewModel.blockRepeatCount }}</span>
+                        }
                     }
                 </div>
             }

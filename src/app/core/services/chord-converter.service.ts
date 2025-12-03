@@ -37,6 +37,25 @@ export class ChordConverterService {
     private readonly REPETITION_DIRECTIVE_PATTERN = /\{c:\s*x(\d+)\s*\}/i;
 
     /**
+     * Wzorzec dla wielowierszowego znacznika repetycji na końcu linii.
+     * Dopasowuje spację + "x" + liczba powtórzeń + "(" + liczba linii + ")" na końcu linii.
+     * Przykłady: "tekst x2(4)", "akordy x3(2)"
+     */
+    private readonly MULTILINE_REPETITION_MARKER_PATTERN = /\s+x(\d+)\((\d+)\)$/i;
+
+    /**
+     * Wzorzec dla dyrektywy początku bloku powtórzeń w formacie ChordPro.
+     * Dopasowuje {block_start: xN} gdzie N to liczba.
+     */
+    private readonly BLOCK_START_DIRECTIVE_PATTERN = /^\{block_start:\s*x(\d+)\s*\}$/i;
+
+    /**
+     * Wzorzec dla dyrektywy końca bloku powtórzeń w formacie ChordPro.
+     * Dopasowuje {block_end}
+     */
+    private readonly BLOCK_END_DIRECTIVE_PATTERN = /^\{block_end\}$/i;
+
+    /**
      * Konwertuje tekst w formacie "akordy nad tekstem" do formatu ChordPro.
      *
      * Format wejściowy:
@@ -48,6 +67,9 @@ export class ChordConverterService {
      *
      * Obsługuje również znacznik repetycji xN (np. x2) na końcu linii,
      * konwertując go do dyrektywy ChordPro {c: xN}.
+     *
+     * Obsługuje wielowierszowe powtórzenia xN(L) (np. x2(4)), konwertując je
+     * do dyrektyw {block_start: xN} i {block_end}.
      *
      * @param text - Tekst piosenki w formacie "akordy nad tekstem"
      * @returns Tekst piosenki w formacie ChordPro
@@ -91,6 +113,48 @@ export class ChordConverterService {
                 // Zwykła linia tekstu (w tym puste linie)
                 result.push(this.convertRepetitionMarker(currentLine));
                 i += 1;
+            }
+        }
+
+        // Drugie przejście: obsługa wielowierszowych powtórzeń xN(L)
+        return this.processMultilineRepetitions(result);
+    }
+
+    /**
+     * Przetwarza wielowierszowe znaczniki powtórzeń xN(L) i konwertuje je
+     * do dyrektyw {block_start: xN} i {block_end}.
+     *
+     * @param lines - Tablica linii po pierwszym etapie konwersji
+     * @returns Tekst z przetworzonymi blokami powtórzeń
+     */
+    private processMultilineRepetitions(lines: string[]): string {
+        const result = [...lines];
+
+        for (let i = 0; i < result.length; i++) {
+            const line = result[i];
+            const match = line.match(this.MULTILINE_REPETITION_MARKER_PATTERN);
+
+            if (match) {
+                const repeatCount = parseInt(match[1], 10);
+                const lineCount = parseInt(match[2], 10);
+
+                // Usuń znacznik z aktualnej linii
+                const lineWithoutMarker = line.replace(this.MULTILINE_REPETITION_MARKER_PATTERN, '');
+                result[i] = lineWithoutMarker;
+
+                // Oblicz indeks początku bloku
+                // Bierzemy pod uwagę, że blok obejmuje 'lineCount' linii, włącznie z aktualną
+                const blockStartIndex = Math.max(0, i - lineCount + 1);
+
+                // Wstaw dyrektywę {block_start: xN} przed blokiem
+                result.splice(blockStartIndex, 0, `{block_start: x${repeatCount}}`);
+
+                // Indeks został przesunięty o 1 przez splice, więc koniec bloku jest teraz na i + 1
+                // Wstaw dyrektywę {block_end} po aktualnej linii (teraz i + 1 + 1 = i + 2)
+                result.splice(i + 2, 0, '{block_end}');
+
+                // Przeskocz dodane dyrektywy
+                i += 2;
             }
         }
 
@@ -272,6 +336,9 @@ export class ChordConverterService {
      * Obsługuje również dyrektywę repetycji {c: xN},
      * konwertując ją z powrotem do znacznika xN.
      *
+     * Obsługuje dyrektywy blokowe {block_start: xN} i {block_end},
+     * konwertując je z powrotem do składni xN(L).
+     *
      * @param chordProContent - Tekst piosenki w formacie ChordPro
      * @returns Tekst piosenki w formacie "akordy nad tekstem"
      */
@@ -280,7 +347,10 @@ export class ChordConverterService {
             return '';
         }
 
-        const lines = chordProContent.split('\n');
+        // Najpierw przetwórz dyrektywy blokowe
+        const processedContent = this.processBlockDirectivesToOverText(chordProContent);
+
+        const lines = processedContent.split('\n');
         const result: string[] = [];
 
         for (const line of lines) {
@@ -303,6 +373,60 @@ export class ChordConverterService {
                 // Linia bez akordów - dodaj bez zmian (z markerem jeśli był)
                 result.push(lineWithoutDirective + repetitionMarker);
             }
+        }
+
+        return result.join('\n');
+    }
+
+    /**
+     * Przetwarza dyrektywy blokowe {block_start: xN} i {block_end}
+     * i konwertuje je do składni xN(L).
+     *
+     * @param content - Tekst piosenki w formacie ChordPro
+     * @returns Tekst z przekonwertowanymi dyrektywami blokowymi
+     */
+    private processBlockDirectivesToOverText(content: string): string {
+        const lines = content.split('\n');
+        const result: string[] = [];
+
+        let blockRepeatCount: number | null = null;
+        let blockStartResultIndex: number | null = null;
+
+        for (const line of lines) {
+            const trimmedLine = line.trim();
+
+            // Sprawdź czy to dyrektywa początku bloku
+            const blockStartMatch = trimmedLine.match(this.BLOCK_START_DIRECTIVE_PATTERN);
+            if (blockStartMatch) {
+                blockRepeatCount = parseInt(blockStartMatch[1], 10);
+                blockStartResultIndex = result.length;
+                // Nie dodawaj tej linii do wyniku
+                continue;
+            }
+
+            // Sprawdź czy to dyrektywa końca bloku
+            const blockEndMatch = trimmedLine.match(this.BLOCK_END_DIRECTIVE_PATTERN);
+            if (blockEndMatch) {
+                if (blockRepeatCount !== null && blockStartResultIndex !== null) {
+                    // Oblicz liczbę linii w bloku
+                    const lineCount = result.length - blockStartResultIndex;
+
+                    // Dodaj znacznik xN(L) do ostatniej linii bloku (jeśli jest)
+                    if (lineCount > 0) {
+                        const lastLineIndex = result.length - 1;
+                        result[lastLineIndex] = `${result[lastLineIndex]} x${blockRepeatCount}(${lineCount})`;
+                    }
+                }
+
+                // Zresetuj stan bloku
+                blockRepeatCount = null;
+                blockStartResultIndex = null;
+                // Nie dodawaj tej linii do wyniku
+                continue;
+            }
+
+            // Zwykła linia - dodaj do wyniku
+            result.push(line);
         }
 
         return result.join('\n');

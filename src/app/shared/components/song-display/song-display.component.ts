@@ -57,6 +57,23 @@ export interface EmptyLine {
  */
 export type ParsedLine = LyricsLine | DirectiveLine | CommentLine | EmptyLine;
 
+/**
+ * Model widoku dla pojedynczej linii piosenki.
+ * Rozszerza ParsedLine o informacje o blokach powtórzeń.
+ */
+export interface SongLineViewModel {
+    /** Oryginalna sparsowana linia */
+    line: ParsedLine;
+    /** Czy ta linia rozpoczyna blok powtórzenia */
+    isRepeatBlockStart: boolean;
+    /** Czy ta linia znajduje się wewnątrz bloku powtórzenia */
+    isInRepeatBlock: boolean;
+    /** Czy ta linia kończy blok powtórzenia */
+    isRepeatBlockEnd: boolean;
+    /** Liczba powtórzeń bloku (tylko dla isRepeatBlockEnd) */
+    blockRepeatCount: number | null;
+}
+
 const NBSP = '\u00A0';
 
 /**
@@ -64,6 +81,18 @@ const NBSP = '\u00A0';
  * Dopasowuje {c: xN} lub {c:xN} gdzie N to liczba.
  */
 const REPETITION_DIRECTIVE_PATTERN = /\{c:\s*x(\d+)\s*\}/i;
+
+/**
+ * Wzorzec dla dyrektywy początku bloku powtórzeń.
+ * Dopasowuje {block_start: xN} gdzie N to liczba.
+ */
+const BLOCK_START_DIRECTIVE_PATTERN = /^\{block_start:\s*x(\d+)\s*\}$/i;
+
+/**
+ * Wzorzec dla dyrektywy końca bloku powtórzeń.
+ * Dopasowuje {block_end}
+ */
+const BLOCK_END_DIRECTIVE_PATTERN = /^\{block_end\}$/i;
 
 /**
  * Reużywalny komponent do renderowania treści piosenki w formacie ChordPro.
@@ -115,8 +144,9 @@ export class SongDisplayComponent {
 
     /**
      * Sparsowana treść piosenki - automatycznie przeliczana gdy zmieni się content lub transposeOffset
+     * Zwraca tablicę SongLineViewModel z informacjami o blokach powtórzeń.
      */
-    protected readonly parsedLines: Signal<ParsedLine[]> = computed(() => {
+    protected readonly parsedLines: Signal<SongLineViewModel[]> = computed(() => {
         const contentValue = this.content();
         if (!contentValue) {
             return [];
@@ -128,7 +158,8 @@ export class SongDisplayComponent {
             ? this.transposeService.transposeContent(contentValue, offset)
             : contentValue;
 
-        return parseChordPro(processedContent);
+        const lines = parseChordPro(processedContent);
+        return createLineViewModels(lines);
     });
 
     /**
@@ -420,4 +451,66 @@ function parseLineToChunks(line: string): ChordTextChunk[] {
 
     // Zamień tabulatory na spacje w wynikach
     return chunks.map(c => ({ ...c, text: c.text.replace(/\t/g, NBSP.repeat(4)) }));
+}
+
+// ============================================================================
+// Przetwarzanie bloków powtórzeń
+// ============================================================================
+
+/**
+ * Tworzy tablicę SongLineViewModel z informacjami o blokach powtórzeń.
+ * Przetwarza dyrektywy {block_start: xN} i {block_end} aby oznaczyć linie
+ * należące do bloków powtórzeń.
+ */
+function createLineViewModels(lines: ParsedLine[]): SongLineViewModel[] {
+    const result: SongLineViewModel[] = [];
+    let inRepeatBlock = false;
+    let blockRepeatCount: number | null = null;
+    let blockStartIndex: number | null = null;
+
+    for (const line of lines) {
+        // Sprawdź czy to dyrektywa początku bloku
+        if (line.type === 'directive') {
+            const blockStartMatch = line.content.match(/^block_start:\s*x(\d+)$/i);
+            if (blockStartMatch) {
+                inRepeatBlock = true;
+                blockRepeatCount = parseInt(blockStartMatch[1], 10);
+                blockStartIndex = result.length;
+                // Nie dodawaj dyrektywy do wyniku - to tylko marker
+                continue;
+            }
+
+            // Sprawdź czy to dyrektywa końca bloku
+            if (/^block_end$/i.test(line.content)) {
+                if (inRepeatBlock && blockStartIndex !== null && blockRepeatCount !== null) {
+                    // Oznacz ostatnią linię bloku jako koniec
+                    if (result.length > blockStartIndex) {
+                        const lastLineIndex = result.length - 1;
+                        result[lastLineIndex].isRepeatBlockEnd = true;
+                        result[lastLineIndex].blockRepeatCount = blockRepeatCount;
+                    }
+                }
+
+                // Zresetuj stan bloku
+                inRepeatBlock = false;
+                blockRepeatCount = null;
+                blockStartIndex = null;
+                // Nie dodawaj dyrektywy do wyniku
+                continue;
+            }
+        }
+
+        // Zwykła linia - dodaj z informacją o bloku
+        const isBlockStart = inRepeatBlock && result.length === blockStartIndex;
+
+        result.push({
+            line,
+            isRepeatBlockStart: isBlockStart,
+            isInRepeatBlock: inRepeatBlock,
+            isRepeatBlockEnd: false, // Zostanie ustawione później przy {block_end}
+            blockRepeatCount: null, // Zostanie ustawione tylko dla ostatniej linii
+        });
+    }
+
+    return result;
 }
