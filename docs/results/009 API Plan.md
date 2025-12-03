@@ -94,6 +94,8 @@
 
 > **Note on Repeats Handling:** The feature allowing users to define repeating sections using simplified syntax (e.g., `x2`) which translates to the ChordPro `{c: xN}` directive is implemented entirely on the client-side. The API is not aware of this syntax and treats the song `content` as an opaque string, requiring no changes to backend endpoints.
 
+> **Note on Multi-line Repeats Handling:** The feature allowing users to define multi-line repeating blocks using simplified syntax (e.g., `x2(4)`) which translates to the ChordPro `{block_start: xN}` and `{block_end}` directives is implemented entirely on the client-side. The API is not aware of this syntax and treats the song `content` as an opaque string, requiring no changes to backend endpoints.
+
 > **Uwaga dotycząca dostosowywania wielkości czcionki:** Funkcjonalność pozwalająca użytkownikom na zmianę wielkości czcionki w widokach Biesiada i publicznym jest zaimplementowana w całości po stronie klienta. Preferencje użytkownika są przechowywane w `localStorage` przeglądarki. Takie podejście zapewnia natychmiastową odpowiedź interfejsu i nie wymaga żadnych zmian w API.
 
 #### POST /songs
