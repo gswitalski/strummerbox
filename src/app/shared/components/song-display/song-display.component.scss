@@ -175,4 +175,16 @@ $font-size-large: 1.6rem;
         white-space: nowrap;
         align-self: flex-end;
     }
+
+    @media (min-width: 768px) {
+        &__repeat-block {
+            grid-template-columns: auto auto;
+            width: fit-content;
+            max-width: 100%;
+        }
+
+        &__repeat-block-content {
+            min-width: auto;
+        }
+    }
 }
