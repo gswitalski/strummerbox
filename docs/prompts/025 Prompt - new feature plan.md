@@ -12,14 +12,7 @@ Oto opis nowej funkcjonalności, którą należy dodać do projektu:
 
 <nowa_funkcjonalnosc>
 
-Chcę aby wyświetlanie piosenki w trybie biesiadnym wyświwtlało tekst i akordy domyślnie fontem o wielkości 1rem
-w trybie biesiady mają być trzy icon-buttony 'A' (małe, średnie i duże)
-domyślnie aktywne jest a małe
-użytkownik może wbybrac a-średnie lub a-duże lub ponownie a-małe,
-
-A małe wyświetla tresć 1rem
-A średnie wyświetla tresć 1.3rem
-A duże wyświetla tresć 1.6rem
+jako organizator , kóry wszedłw aplikacji w tryb biesiady chce mieć moliwosc szybkiego powrutu do dashboardu za pomocą icon-bitttona w lewym górnym rogu na widoku listy repertuarów, listy piosenek oraz pojedynczej piosenki
 
 
 </nowa_funkcjonalnosc>

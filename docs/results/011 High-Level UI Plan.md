@@ -213,9 +213,11 @@ Zarządzanie stanem aplikacji będzie realizowane za pomocą serwisów Angulara 
 *   **Ścieżka:** `/biesiada/repertoires`
 *   **Główny cel:** Uproszczony widok listy repertuarów dla Organizatora w trakcie wydarzenia.
 *   **Kluczowe informacje:** Lista repertuarów (nazwa, liczba piosenek).
-*   **Kluczowe komponenty:** `mat-list` lub `mat-card` w mobilnym układzie.
+*   **Kluczowe komponenty:** `mat-toolbar` z przyciskiem wyjścia, `mat-list` lub `mat-card` w mobilnym układzie.
 *   **UX, dostępność, bezpieczeństwo:**
-    *   **UX:** Duże, łatwe do kliknięcia elementy listy, zoptymalizowane pod kątem obsługi dotykowej. Kliknięcie w repertuar przenosi użytkownika do nowego "Widoku Listy Piosenek w Repertuarze" (`/biesiada/repertoires/:id`).
+    *   **UX:**
+        *   W lewym górnym rogu paska narzędzi (`mat-toolbar`) znajduje się przycisk `mat-icon-button` z ikoną `close` (Zamknij). Kliknięcie ikony zamyka tryb Biesiada i przekierowuje do `/dashboard`.
+        *   Duże, łatwe do kliknięcia elementy listy, zoptymalizowane pod kątem obsługi dotykowej. Kliknięcie w repertuar przenosi użytkownika do nowego "Widoku Listy Piosenek w Repertuarze" (`/biesiada/repertoires/:id`).
     *   **Dostępność:** Duża czcionka, wysoki kontrast.
     *   **Bezpieczeństwo:** Dostęp chroniony.
 
@@ -226,9 +228,12 @@ Zarządzanie stanem aplikacji będzie realizowane za pomocą serwisów Angulara 
 *   **Ścieżka:** `/biesiada/repertoires/:id`
 *   **Główny cel:** Wyświetlenie listy piosenek z wybranego repertuaru, umożliwiając Organizatorowi nawigację podczas biesiady.
 *   **Kluczowe informacje:** Nazwa repertuaru, uporządkowana lista piosenek. Przycisk nawigacji powrotnej do listy repertuarów.
-*   **Kluczowe komponenty:** `mat-toolbar` z przyciskiem "wstecz", `mat-list` z `mat-list-item`.
+*   **Kluczowe komponenty:** `mat-toolbar` z przyciskami "wstecz" i "zamknij", `mat-list` z `mat-list-item`.
 *   **UX, dostępność, bezpieczeństwo:**
-    *   **UX:** Prosty widok listy piosenek. Kliknięcie w tytuł piosenki przenosi do widoku piosenki w trybie biesiada. Przycisk "wstecz" w nagłówku pozwala na powrót do listy wszystkich repertuarów (`/biesiada/repertoires`).
+    *   **UX:**
+        *   **Lewy górny róg:** Przycisk nawigacji "wstecz" (`arrow_back`), który cofa do listy repertuarów (`/biesiada/repertoires`).
+        *   **Prawy górny róg:** Przycisk "zamknij" (`close`), który natychmiastowo przenosi do `/dashboard`.
+        *   Prosty widok listy piosenek. Kliknięcie w tytuł piosenki przenosi do widoku piosenki w trybie biesiada.
     *   **Dostępność:** Duża, czytelna czcionka.
     *   **Bezpieczeństwo:** Dostęp chroniony.
 
@@ -241,7 +246,11 @@ Zarządzanie stanem aplikacji będzie realizowane za pomocą serwisów Angulara 
 *   **Kluczowe informacje:** Tytuł, treść piosenki z akordami, kontrolki transpozycji, kontrolki zmiany wielkości czcionki, przyciski nawigacyjne "Następna" / "Poprzednia", przycisk "Pokaż kod QR". Przycisk nawigacji powrotnej do listy piosenek.
 *   **Kluczowe komponenty:** `SongViewerComponent` (reużywalny komponent prezentacyjny), który wewnętrznie używa `SongDisplayComponent`, `SongNavigationComponent`, `TransposeControlsComponent`, `FontSizeControlsComponent`, `mat-fab` do wyświetlania QR, `ShareDialogComponent` do wyświetlania kodu QR.
 *   **UX, dostępność, bezpieczeństwo:**
-    *   **UX:** Interfejs skupiony na czytelności tekstu z akordami. W toolbarze na stałe widoczne są kontrolki transpozycji oraz zmiany wielkości czcionki. Tytuł piosenki wyświetlany jest poniżej toolbara (w content area). Pływający przycisk akcji (`FAB`) nie zasłania treści. Kliknięcie w niego otwiera modal z dużym, czytelnym kodem QR. Przycisk "wstecz" w nagłówku pozwala na powrót do listy piosenek w repertuarze (`/biesiada/repertoires/:id`).
+    *   **UX:**
+        *   Interfejs skupiony na czytelności tekstu z akordami. W toolbarze na stałe widoczne są kontrolki transpozycji oraz zmiany wielkości czcionki.
+        *   **Lewy górny róg:** Przycisk "wstecz" (powrót do listy piosenek w repertuarze).
+        *   **Prawy górny róg:** Obok innych kontrolek widoczny przycisk "zamknij" (`close`) przekierowujący do `/dashboard`.
+        *   Tytuł piosenki wyświetlany jest poniżej toolbara (w content area). Pływający przycisk akcji (`FAB`) nie zasłania treści. Kliknięcie w niego otwiera modal z dużym, czytelnym kodem QR.
     *   **Dostępność:** Wysoki kontrast, duża czcionka.
     *   **Bezpieczeństwo:** Dostęp chroniony.
 
