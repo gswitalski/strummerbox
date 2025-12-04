@@ -37,29 +37,12 @@ Zapoznaj się z następującymi materiałami:
 
 <aktualne_zachowanie>
 
-1. Widok piosenki w trybie biesiadnym z akordami
-2. Włączone akordy
-3. tryb telefonu komórkowego
-4. linie tekstu nie mieszczą sie w jednej linii
-6. tekst jest dzielony na tokenty aby linie testu łamały się razem z akodrami:
- C a G d
-Wśród noc
-  F G d A
-nej ciszy 
-
-ale słowa nie powinny być dzielone jak w załączniku  
-
-
+w aktualnym branchu została wprowadzona finkcjonalnosc wyświetlająca pioniwą kreskę i napis x2 dla powtarzających się wierszy.
+napis x 2 jest na dole tej sekcji
 </aktualne_zachowanie>
 
 <oczekiwane_zachowanie>
-C a G
-Wśród 
- d   F G d A
-nocnej ciszy 
-
-
-
+napis x2 jes wycentrowany pionowo w tej sekcji
 
 </oczekiwane_zachowanie>
 

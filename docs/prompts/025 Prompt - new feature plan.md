@@ -5,21 +5,68 @@ Oto dokumenty projektu, które musisz przeanalizować:
 <dokumenty_projektu>
 
 
-
 </dokumenty_projektu>
 
 Oto opis nowej funkcjonalności, którą należy dodać do projektu:
 
 <nowa_funkcjonalnosc>
 
-Chcę aby wyświetlanie piosenki w trybie biesiadnym wyświwtlało tekst i akordy domyślnie fontem o wielkości 1rem
-w trybie biesiady mają być trzy icon-buttony 'A' (małe, średnie i duże)
-domyślnie aktywne jest a małe
-użytkownik może wbybrac a-średnie lub a-duże lub ponownie a-małe,
+Edycja piosenki
 
-A małe wyświetla tresć 1rem
-A średnie wyświetla tresć 1.3rem
-A duże wyświetla tresć 1.6rem
+Aktualnie gdy użytkownik wprowadzi 
+
+<user_edit_content>
+ C     a     F      G
+do Betlejem pośpieszajcie 
+   C   G     C     C  G      C
+przywitać Pana, przywitać Pana. x2
+</user_edit_content>
+
+to jest to zapisywane w bazie jako
+
+<db_content>
+d[C]o Betl[a]ejem p[F]ośpiesz[G]ajcie 
+prz[C]ywit[G]ać Pan[C]a, prz[C]ywi[G]tać Pan[C]a. {c: x2}
+</db_content>
+
+
+a podczas renderowania widoku biesisady wyświetlane z ' × 2' na końcu linii
+
+
+chcę aby gdy użytkownik wprowadzi na końcu linii 'x2x2'
+
+to ma to oznaczać że powtórzenie dotyczy dwóch wierszy a nie tylko jednego
+
+w bazie ma się to zapisać jako
+
+<db_content>
+{block_start: x2}
+d[C]o Betl[a]ejem p[F]ośpiesz[G]ajcie 
+prz[C]ywit[G]ać Pan[C]a, prz[C]ywi[G]tać Pan[C]a.
+{block_end}
+</db_content>
+
+
+Renderowanie takiego zapisu z bazy na ekranie ma wyglądać w ten sposób, że z prawej strony wyświetla sie pionowa linia obejmująca oba wiersze (przyklejona do tego dłuższego ) i przy ostatnim wierszu
+' × 2'
+
+czyli coś takiego
+<rendered>
+ C     a     F      G            |
+do Betlejem pośpieszajcie        |
+   C   G     C     C  G      C   |
+przywitać Pana, przywitać Pana.  |  × 2
+
+
+
+</rendered>
+
+oczywiście cyfry moga być dowolne.
+
+Dodatkowo chcę aby przy powtrzeniu jedengo wiersza taka kreska też sie pojawiła i żebby ona obejmowała zarówno linię tekstu jak linię akorrdu (gdy akordy sa wyświetlane)
+pionowa linia ma być w takim samym kolorze jak '× 2'
+
+wszsttko ma sie odbywać na frontendzie, bez zzmian w API
 
 
 </nowa_funkcjonalnosc>

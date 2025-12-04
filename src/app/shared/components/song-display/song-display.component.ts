@@ -57,6 +57,36 @@ export interface EmptyLine {
  */
 export type ParsedLine = LyricsLine | DirectiveLine | CommentLine | EmptyLine;
 
+/**
+ * Model widoku dla pojedynczej linii piosenki.
+ */
+export interface SongLineViewModel {
+    /** Oryginalna sparsowana linia */
+    line: ParsedLine;
+}
+
+/**
+ * Blok powtórzeń - grupa linii z oznaczeniem liczby powtórzeń.
+ */
+export interface RepeatBlockViewModel {
+    type: 'repeatBlock';
+    lines: SongLineViewModel[];
+    repeatCount: number;
+}
+
+/**
+ * Pojedyncza linia (nie w bloku powtórzeń).
+ */
+export interface SingleLineViewModel {
+    type: 'single';
+    viewModel: SongLineViewModel;
+}
+
+/**
+ * Element do wyświetlenia - albo pojedyncza linia, albo blok powtórzeń.
+ */
+export type DisplayItem = SingleLineViewModel | RepeatBlockViewModel;
+
 const NBSP = '\u00A0';
 
 /**
@@ -64,6 +94,17 @@ const NBSP = '\u00A0';
  * Dopasowuje {c: xN} lub {c:xN} gdzie N to liczba.
  */
 const REPETITION_DIRECTIVE_PATTERN = /\{c:\s*x(\d+)\s*\}/i;
+
+/**
+ * Wzorzec dla dyrektywy początku bloku powtórzeń.
+ * Dopasowuje block_start: xN gdzie N to liczba (bez nawiasów klamrowych).
+ */
+const BLOCK_START_DIRECTIVE_PATTERN = /^block_start:\s*x(\d+)$/i;
+
+/**
+ * Wzorzec dla dyrektywy końca bloku powtórzeń.
+ */
+const BLOCK_END_DIRECTIVE_PATTERN = /^block_end$/i;
 
 /**
  * Reużywalny komponent do renderowania treści piosenki w formacie ChordPro.
@@ -115,8 +156,9 @@ export class SongDisplayComponent {
 
     /**
      * Sparsowana treść piosenki - automatycznie przeliczana gdy zmieni się content lub transposeOffset
+     * Zwraca tablicę DisplayItem (pojedyncze linie lub bloki powtórzeń).
      */
-    protected readonly parsedLines: Signal<ParsedLine[]> = computed(() => {
+    protected readonly displayItems: Signal<DisplayItem[]> = computed(() => {
         const contentValue = this.content();
         if (!contentValue) {
             return [];
@@ -128,8 +170,23 @@ export class SongDisplayComponent {
             ? this.transposeService.transposeContent(contentValue, offset)
             : contentValue;
 
-        return parseChordPro(processedContent);
+        const lines = parseChordPro(processedContent);
+        return createDisplayItems(lines);
     });
+
+    /**
+     * Helper do sprawdzania typu elementu w szablonie
+     */
+    protected isRepeatBlock(item: DisplayItem): item is RepeatBlockViewModel {
+        return item.type === 'repeatBlock';
+    }
+
+    /**
+     * Helper do sprawdzania typu elementu w szablonie
+     */
+    protected isSingleLine(item: DisplayItem): item is SingleLineViewModel {
+        return item.type === 'single';
+    }
 
     /**
      * Pomocnicza stała dla non-breaking space
@@ -420,4 +477,77 @@ function parseLineToChunks(line: string): ChordTextChunk[] {
 
     // Zamień tabulatory na spacje w wynikach
     return chunks.map(c => ({ ...c, text: c.text.replace(/\t/g, NBSP.repeat(4)) }));
+}
+
+// ============================================================================
+// Przetwarzanie bloków powtórzeń
+// ============================================================================
+
+/**
+ * Tworzy tablicę DisplayItem grupując linie w bloki powtórzeń.
+ * Przetwarza dyrektywy {block_start: xN} i {block_end} aby utworzyć
+ * zgrupowane bloki.
+ */
+function createDisplayItems(lines: ParsedLine[]): DisplayItem[] {
+    const result: DisplayItem[] = [];
+    let currentBlockLines: SongLineViewModel[] = [];
+    let blockRepeatCount: number | null = null;
+    let inRepeatBlock = false;
+
+    for (const line of lines) {
+        // Sprawdź czy to dyrektywa początku bloku
+        if (line.type === 'directive') {
+            const blockStartMatch = line.content.match(BLOCK_START_DIRECTIVE_PATTERN);
+            if (blockStartMatch) {
+                inRepeatBlock = true;
+                blockRepeatCount = parseInt(blockStartMatch[1], 10);
+                currentBlockLines = [];
+                // Nie dodawaj dyrektywy do wyniku - to tylko marker
+                continue;
+            }
+
+            // Sprawdź czy to dyrektywa końca bloku
+            if (BLOCK_END_DIRECTIVE_PATTERN.test(line.content)) {
+                if (inRepeatBlock && blockRepeatCount !== null && currentBlockLines.length > 0) {
+                    // Zamknij blok i dodaj do wyniku
+                    result.push({
+                        type: 'repeatBlock',
+                        lines: currentBlockLines,
+                        repeatCount: blockRepeatCount,
+                    });
+                }
+
+                // Zresetuj stan bloku
+                inRepeatBlock = false;
+                blockRepeatCount = null;
+                currentBlockLines = [];
+                // Nie dodawaj dyrektywy do wyniku
+                continue;
+            }
+        }
+
+        // Zwykła linia
+        const viewModel: SongLineViewModel = { line };
+
+        if (inRepeatBlock) {
+            // Dodaj do aktualnego bloku
+            currentBlockLines.push(viewModel);
+        } else {
+            // Dodaj jako pojedynczą linię
+            result.push({
+                type: 'single',
+                viewModel,
+            });
+        }
+    }
+
+    // Jeśli blok nie został zamknięty, dodaj pozostałe linie jako pojedyncze
+    for (const vm of currentBlockLines) {
+        result.push({
+            type: 'single',
+            viewModel: vm,
+        });
+    }
+
+    return result;
 }

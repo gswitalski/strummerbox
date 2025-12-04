@@ -45,6 +45,13 @@ export interface SongViewerConfig {
      * Label dla przycisku powrotu (domyślnie: "Powrót")
      */
     backButtonAriaLabel?: string;
+
+    /**
+     * Czy wyświetlać przycisk "Zamknij" (ikona 'close') w prawym górnym rogu toolbara.
+     * Używany do szybkiego powrotu do Dashboardu z trybu Biesiada.
+     * @default false
+     */
+    showExitButton?: boolean;
 }
 
 /**

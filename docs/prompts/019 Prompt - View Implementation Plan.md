@@ -19,45 +19,38 @@ Najpierw przejrzyj następujące informacje:
 3. Widok do implementacji
 <views>
 
-### Zaktualizowane widoki
+Zaktualizowano Plan UI, aby odzwierciedlić zmiany w interfejsie edytora piosenek oraz w komponencie odpowiedzialnym za ich wyświetlanie.
 
-#### **4b. Publiczny Widok Piosenki (Public Song View)**
+### Zmiany w Widoku Tworzenia / Edycji Piosenki
 
--   **Kluczowe informacje**: Do toolbara, obok istniejących kontrolek, dodano przełącznik do zmiany wielkości czcionki.
--   **Kluczowe komponenty**: Dodano nowy komponent `FontSizeControlsComponent`, który jest używany wewnątrz `SongViewerComponent`.
--   **UX**: Użytkownik może w każdej chwili zmienić rozmiar czcionki, a jego wybór jest zapamiętywany na przyszłość w `localStorage`.
+-   **Ścieżka:** `/management/songs/new`, `/management/songs/:id/edit`
+-   **Opis zmiany:**
+    -   Zaktualizowano sekcję `UX` w opisie widoku. Edytor tekstu wspiera teraz uproszczoną składnię do definiowania powtórzeń jednowierszowych (np. `x2`) oraz wielowierszowych (np. `x2(3)`). Podgląd na żywo w trybach 'ChordPro' i 'Biesiada' natychmiastowo odzwierciedla interpretację tej składni.
 
-#### **13. Tryb Biesiada - Widok Piosenki (Biesiada Song View)**
+### Zmiany w Komponencie `SongDisplayComponent`
 
--   **Kluczowe informacje**: Analogicznie do widoku publicznego, w toolbarze dodano kontrolki do zmiany wielkości czcionki.
--   **Kluczowe komponenty**: Wykorzystano ten sam nowy komponent `FontSizeControlsComponent`.
--   **UX**: Zapewniono spójne działanie z widokiem publicznym, w tym zapamiętywanie wybranego rozmiaru czcionki.
-
-### Nowy komponent
-
--   **`FontSizeControlsComponent`**:
-    -   **Opis**: Komponent prezentacyjny wyświetlający grupę trzech przycisków (`mat-button-toggle-group`) do zmiany wielkości czcionki. Jest w pełni sterowany z zewnątrz.
-    -   **API**: `@Input() selectedSize: 'small' | 'medium' | 'large'`, `@Output() sizeChanged = new EventEmitter<'small' | 'medium' | 'large'>()`
-    -   **Użycie**: Wewnętrznie używany przez `SongViewerComponent` w toolbarze.
-    -   **Stan**: Do zaimplementowania.
-
+-   **Opis zmiany:**
+    -   Zaktualizowano opis komponentu, aby uwzględnić jego nową odpowiedzialność. Komponent jest teraz odpowiedzialny za parsowanie i renderowanie dyrektyw powtórzeń ChordPro, zarówno jednowierszowych (`{c: xN}`), jak i wielowierszowych (`{block_start: xN}` / `{block_end}`). Bloki powtórzeń są wizualnie oznaczane pionową linią po prawej stronie oraz wskaźnikiem `× N` przy ostatnim wierszu bloku, stylizowanymi zgodnie z wytycznymi.
 
 
 </views>
 
 4. User Stories:
 <user_stories>
-### Nowa historyjka
+Do dokumentu PRD dodano nową historyjkę użytkownika, aby opisać wymagania z perspektywy Organizatora.
 
--   **ID**: US-030
--   **Title**: Dostosowanie wielkości czcionki w widoku piosenki
--   **Description**: Jako Biesiadnik lub Organizator w trybie Biesiada, chcę móc powiększyć lub zmniejszyć tekst piosenki, aby dostosować go do moich potrzeb i warunków oświetleniowych.
--   **Acceptance Criteria**:
-    -   W widoku piosenki (publicznym oraz Biesiada) widoczny jest zestaw trzech przycisków do zmiany wielkości czcionki.
-    -   Przyciski są zrealizowane jako `mat-button-toggle-group` i oznaczone literą "A" w wizualnie różniących się rozmiarach (małym, średnim, dużym).
-    -   Domyślnie wybrana jest najmniejsza wielkość czcionki (odpowiadająca `1rem`).
-    -   Kliknięcie przycisku natychmiastowo zmienia rozmiar czcionki tekstu piosenki i akordów na jedną z predefiniowanych wartości: `1rem` (mały), `1.3rem` (średni), `1.6rem` (duży).
-    -   Wybór użytkownika jest zapamiętywany w `localStorage` i automatycznie przywracany przy kolejnym otwarciu dowolnej piosenki na tym samym urządzeniu.
+### Nowa Historyjka Użytkownika
+
+-   **ID:** US-032
+-   **Title:** Definiowanie wielowierszowych bloków powtórzeń
+-   **Description:** Jako Organizator, chcę móc oznaczać całe sekcje piosenki (np. zwrotkę z refrenem) jako powtarzające się, aby zapis był bardziej przejrzysty i zorganizowany.
+-   **Acceptance Criteria:**
+    -   W edytorze piosenek, dodanie na końcu ostatniej linii bloku znacznika w formacie `xN(L)` (np. `x2(4)` dla powtórzenia 4 ostatnich wierszy 2 razy) jest interpretowane jako dyrektywa powtórzenia wielowierszowego.
+    -   W podglądzie "ChordPro", taka składnia jest konwertowana do bloku dyrektyw `{block_start: xN}` i `{block_end}`.
+    -   W podglądzie "Biesiada" oraz w widoku publicznym, cały blok powtórzenia (zarówno jedno-, jak i wielowierszowy) jest wizualnie oznaczony pionową linią po prawej stronie.
+    -   Pionowa linia ma taki sam kolor jak wskaźnik powtórzenia (`× N`).
+    -   Wskaźnik powtórzenia (`× N`) jest wyświetlany przy ostatnim wierszu bloku.
+    -   Podczas konwersji z formatu ChordPro do edytora, blok dyrektyw `{block_start: xN}` i `{block_end}` jest z powrotem zamieniany na prosty zapis `xN(L)` na końcu ostatniej linii.
 
 
 </user_stories>

@@ -5,6 +5,7 @@ import { MatListModule } from '@angular/material/list';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatToolbarModule } from '@angular/material/toolbar';
 import { BiesiadaRepertoireListService } from './services/biesiada-repertoire-list.service';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
 
@@ -23,6 +24,7 @@ import { EmptyStateComponent } from '../../../shared/components/empty-state/empt
         MatProgressSpinnerModule,
         MatButtonModule,
         MatIconModule,
+        MatToolbarModule,
         EmptyStateComponent,
     ],
     templateUrl: './biesiada-repertoire-list-page.component.html',
@@ -54,6 +56,13 @@ export class BiesiadaRepertoireListPageComponent implements OnInit {
      */
     onNavigateToRepertoires(): void {
         this.router.navigate(['/repertoires']);
+    }
+
+    /**
+     * Navigate to the main Dashboard (quick exit from Biesiada mode)
+     */
+    navigateToDashboard(): void {
+        this.router.navigate(['/management/dashboard']);
     }
 }
 

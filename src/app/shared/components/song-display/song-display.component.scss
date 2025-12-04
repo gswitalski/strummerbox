@@ -48,9 +48,9 @@ $font-size-large: 1.6rem;
         display: block;
     }
 
-    // Linia z tekstem - domyślnie flexbox do zawijania słów
+    // Linia z tekstem - inline-flex dla dopasowania szerokości do zawartości
     &__lyrics-line {
-        display: flex;
+        display: inline-flex;
         flex-wrap: wrap;
         align-items: flex-end;
         line-height: 1.4;
@@ -126,5 +126,65 @@ $font-size-large: 1.6rem;
         color: var(--mat-sys-tertiary);
         margin-left: 0.5em;
         white-space: nowrap;
+    }
+
+    // =========================================================================
+    // Style dla bloków powtórzeń (wielowierszowe)
+    // =========================================================================
+
+    // Kontener bloku powtórzeń - CSS Grid dla wyrównania pionowej linii
+    &__repeat-block {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 0 0.5em;
+        align-items: stretch;
+        justify-content: flex-start;
+        width: 100%;
+        max-width: 100%;
+    }
+
+    // Kolumna z treścią (liniami tekstu)
+    &__repeat-block-content {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: flex-start;
+        min-width: 0; // pozwala kolumnie zwijać się na małych ekranach
+    }
+
+    // Kolumna ze wskaźnikiem (pionowa linia + × N)
+    &__repeat-block-indicator {
+        display: flex;
+        flex-direction: row;
+        align-items: stretch;
+        gap: 0.25em;
+    }
+
+    // Pionowa linia - wyrównana do wysokości całego bloku
+    &__repeat-block-line {
+        width: 2px;
+        background-color: var(--mat-sys-tertiary);
+        border-radius: 2px;
+    }
+
+    // Wskaźnik powtórzenia bloku (× N)
+    &__block-repeat-marker {
+        color: var(--mat-sys-tertiary);
+        font-weight: 600;
+        font-size: 0.85em;
+        white-space: nowrap;
+        align-self: center;
+    }
+
+    @media (min-width: 768px) {
+        &__repeat-block {
+            grid-template-columns: auto auto;
+            width: fit-content;
+            max-width: 100%;
+        }
+
+        &__repeat-block-content {
+            min-width: auto;
+        }
     }
 }

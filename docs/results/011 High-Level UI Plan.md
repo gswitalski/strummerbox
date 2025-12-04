@@ -143,7 +143,7 @@ Zarządzanie stanem aplikacji będzie realizowane za pomocą serwisów Angulara 
     *   **UX:** Nad panelem podglądu znajduje się przełącznik (`mat-button-toggle-group`) pozwalający na wybór jednego z dwóch trybów:
         *   **Podgląd ChordPro:** Domyślny tryb, działający jak dotychczas. Na desktopie układ "side-by-side" (edycja po lewej, surowy podgląd ChordPro po prawej). Na mobile zakładki.
         *   **Podgląd Biesiada:** Renderuje piosenkę przy użyciu `SongViewerComponent` (bez kontrolek transpozycji), pokazując, jak będzie wyglądać w trybie Biesiada. Dane do tego podglądu są pobierane z dynamicznie generowanego formatu ChordPro.
-    *   **UX:** Edytor tekstu wspiera uproszczoną składnię do definiowania powtórzeń (np. `x2` na końcu linii). Podgląd na żywo w trybach 'ChordPro' i 'Biesiada' natychmiastowo odzwierciedla interpretację tej składni.
+    *   **UX:** Edytor tekstu wspiera uproszczoną składnię do definiowania powtórzeń jednowierszowych (np. `x2`) oraz wielowierszowych (np. `x2(3)`). Podgląd na żywo w trybach 'ChordPro' i 'Biesiada' natychmiastowo odzwierciedla interpretację tej składni.
     *   **UX:** Wybór trybu podglądu jest zapamiętywany w `localStorage`, dzięki czemu preferencja użytkownika jest zachowana przy edycji kolejnych piosenek. Walidacja (np. unikalność tytułu) z komunikatami błędów.
     *   **Dostępność:** Etykiety pól formularza i kontrolek przełącznika.
     *   **Bezpieczeństwo:** Dostęp chroniony.
@@ -213,9 +213,11 @@ Zarządzanie stanem aplikacji będzie realizowane za pomocą serwisów Angulara 
 *   **Ścieżka:** `/biesiada/repertoires`
 *   **Główny cel:** Uproszczony widok listy repertuarów dla Organizatora w trakcie wydarzenia.
 *   **Kluczowe informacje:** Lista repertuarów (nazwa, liczba piosenek).
-*   **Kluczowe komponenty:** `mat-list` lub `mat-card` w mobilnym układzie.
+*   **Kluczowe komponenty:** `mat-toolbar` z przyciskiem wyjścia, `mat-list` lub `mat-card` w mobilnym układzie.
 *   **UX, dostępność, bezpieczeństwo:**
-    *   **UX:** Duże, łatwe do kliknięcia elementy listy, zoptymalizowane pod kątem obsługi dotykowej. Kliknięcie w repertuar przenosi użytkownika do nowego "Widoku Listy Piosenek w Repertuarze" (`/biesiada/repertoires/:id`).
+    *   **UX:**
+        *   W lewym górnym rogu paska narzędzi (`mat-toolbar`) znajduje się przycisk `mat-icon-button` z ikoną `close` (Zamknij). Kliknięcie ikony zamyka tryb Biesiada i przekierowuje do `/dashboard`.
+        *   Duże, łatwe do kliknięcia elementy listy, zoptymalizowane pod kątem obsługi dotykowej. Kliknięcie w repertuar przenosi użytkownika do nowego "Widoku Listy Piosenek w Repertuarze" (`/biesiada/repertoires/:id`).
     *   **Dostępność:** Duża czcionka, wysoki kontrast.
     *   **Bezpieczeństwo:** Dostęp chroniony.
 
@@ -226,9 +228,12 @@ Zarządzanie stanem aplikacji będzie realizowane za pomocą serwisów Angulara 
 *   **Ścieżka:** `/biesiada/repertoires/:id`
 *   **Główny cel:** Wyświetlenie listy piosenek z wybranego repertuaru, umożliwiając Organizatorowi nawigację podczas biesiady.
 *   **Kluczowe informacje:** Nazwa repertuaru, uporządkowana lista piosenek. Przycisk nawigacji powrotnej do listy repertuarów.
-*   **Kluczowe komponenty:** `mat-toolbar` z przyciskiem "wstecz", `mat-list` z `mat-list-item`.
+*   **Kluczowe komponenty:** `mat-toolbar` z przyciskami "wstecz" i "zamknij", `mat-list` z `mat-list-item`.
 *   **UX, dostępność, bezpieczeństwo:**
-    *   **UX:** Prosty widok listy piosenek. Kliknięcie w tytuł piosenki przenosi do widoku piosenki w trybie biesiada. Przycisk "wstecz" w nagłówku pozwala na powrót do listy wszystkich repertuarów (`/biesiada/repertoires`).
+    *   **UX:**
+        *   **Lewy górny róg:** Przycisk nawigacji "wstecz" (`arrow_back`), który cofa do listy repertuarów (`/biesiada/repertoires`).
+        *   **Prawy górny róg:** Przycisk "zamknij" (`close`), który natychmiastowo przenosi do `/dashboard`.
+        *   Prosty widok listy piosenek. Kliknięcie w tytuł piosenki przenosi do widoku piosenki w trybie biesiada.
     *   **Dostępność:** Duża, czytelna czcionka.
     *   **Bezpieczeństwo:** Dostęp chroniony.
 
@@ -241,7 +246,11 @@ Zarządzanie stanem aplikacji będzie realizowane za pomocą serwisów Angulara 
 *   **Kluczowe informacje:** Tytuł, treść piosenki z akordami, kontrolki transpozycji, kontrolki zmiany wielkości czcionki, przyciski nawigacyjne "Następna" / "Poprzednia", przycisk "Pokaż kod QR". Przycisk nawigacji powrotnej do listy piosenek.
 *   **Kluczowe komponenty:** `SongViewerComponent` (reużywalny komponent prezentacyjny), który wewnętrznie używa `SongDisplayComponent`, `SongNavigationComponent`, `TransposeControlsComponent`, `FontSizeControlsComponent`, `mat-fab` do wyświetlania QR, `ShareDialogComponent` do wyświetlania kodu QR.
 *   **UX, dostępność, bezpieczeństwo:**
-    *   **UX:** Interfejs skupiony na czytelności tekstu z akordami. W toolbarze na stałe widoczne są kontrolki transpozycji oraz zmiany wielkości czcionki. Tytuł piosenki wyświetlany jest poniżej toolbara (w content area). Pływający przycisk akcji (`FAB`) nie zasłania treści. Kliknięcie w niego otwiera modal z dużym, czytelnym kodem QR. Przycisk "wstecz" w nagłówku pozwala na powrót do listy piosenek w repertuarze (`/biesiada/repertoires/:id`).
+    *   **UX:**
+        *   Interfejs skupiony na czytelności tekstu z akordami. W toolbarze na stałe widoczne są kontrolki transpozycji oraz zmiany wielkości czcionki.
+        *   **Lewy górny róg:** Przycisk "wstecz" (powrót do listy piosenek w repertuarze).
+        *   **Prawy górny róg:** Obok innych kontrolek widoczny przycisk "zamknij" (`close`) przekierowujący do `/dashboard`.
+        *   Tytuł piosenki wyświetlany jest poniżej toolbara (w content area). Pływający przycisk akcji (`FAB`) nie zasłania treści. Kliknięcie w niego otwiera modal z dużym, czytelnym kodem QR.
     *   **Dostępność:** Wysoki kontrast, duża czcionka.
     *   **Bezpieczeństwo:** Dostęp chroniony.
 
@@ -308,7 +317,7 @@ Poniższe komponenty są reużywalne i wykorzystywane w wielu miejscach aplikacj
     *   **Dokumentacja:** `docs/results/changes/song-navigation-component-refactoring.md`
 
 *   **`SongDisplayComponent`:**
-    *   **Opis:** Komponent odpowiedzialny za renderowanie treści piosenki. Przyjmuje jako dane wejściowe pełną treść w formacie ChordPro, flagę `showChords: boolean`, numeryczny `transposeOffset` oraz `fontSize`. Na podstawie tych danych, komponent najpierw transponuje akordy (jeśli offset jest różny od zera), a następnie renderuje sam tekst lub tekst z poprawnie sformatowanymi, przetransponowanymi akordami, stosując odpowiednią klasę CSS do zmiany wielkości czcionki. Dodatkowo, komponent jest odpowiedzialny za parsowanie i renderowanie dyrektywy powtórzeń ChordPro (`{c: xN}`). Wskaźnik powtórzenia jest wyświetlany na końcu linii jako `× N` i stylizowany zgodnie z wytycznymi (ten sam rozmiar czcionki, kolor drugorzędny z palety Material).
+    *   **Opis:** Komponent odpowiedzialny za renderowanie treści piosenki. Przyjmuje jako dane wejściowe pełną treść w formacie ChordPro, flagę `showChords: boolean`, numeryczny `transposeOffset` oraz `fontSize`. Na podstawie tych danych, komponent najpierw transponuje akordy (jeśli offset jest różny od zera), a następnie renderuje sam tekst lub tekst z poprawnie sformatowanymi, przetransponowanymi akordami, stosując odpowiednią klasę CSS do zmiany wielkości czcionki. Dodatkowo, komponent jest odpowiedzialny za parsowanie i renderowanie dyrektyw powtórzeń ChordPro, zarówno jednowierszowych (`{c: xN}`), jak i wielowierszowych (`{block_start: xN}` / `{block_end}`). Bloki powtórzeń są wizualnie oznaczane pionową linią po prawej stronie oraz wskaźnikiem `× N` przy ostatnim wierszu bloku, stylizowanymi zgodnie z wytycznymi (ten sam rozmiar czcionki, kolor drugorzędny z palety Material).
     *   **API:** `@Input() content: string`, `@Input() showChords: boolean`, `@Input() transposeOffset: number`, `@Input() fontSize: 'small' | 'medium' | 'large'`
     *   **Użycie:** Wewnętrznie używany przez `SongViewerComponent` do wyświetlania treści piosenki.
     *   **Stan:** ⚠️ Zaktualizowany (grudzień 2025)
