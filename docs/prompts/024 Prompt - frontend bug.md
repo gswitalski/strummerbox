@@ -37,12 +37,12 @@ Zapoznaj się z następującymi materiałami:
 
 <aktualne_zachowanie>
 
-w aktualnym branchu została wprowadzona finkcjonalnosc wyświetlająca pioniwą kreskę i napis x2 dla powtarzających się wierszy. normalnie działa to ok. laoe w branchu develop mialem funkcjonalność która elegancko zawijała wiersze w trybie użądzeia mobilnego gdy się nie mieściły. Teraz ta funkcjonalność przestała działać. 
-
+w aktualnym branchu została wprowadzona finkcjonalnosc wyświetlająca pioniwą kreskę i napis x2 dla powtarzających się wierszy.
+napis x 2 jest na dole tej sekcji
 </aktualne_zachowanie>
 
 <oczekiwane_zachowanie>
-Sprawdź branch 'develop' i poórwnaj co się zmieniło i przywróć zawijanie wierszy jednocześnie zachowując aktualną funkcjonalność wprowadzoną w tym branczhu.
+napis x2 jes wycentrowany pionowo w tej sekcji
 
 </oczekiwane_zachowanie>
 
