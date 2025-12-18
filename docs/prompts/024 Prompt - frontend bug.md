@@ -37,8 +37,11 @@ Zapoznaj się z następującymi materiałami:
 
 <aktualne_zachowanie>
 
-w aktualnym branchu została wprowadzona finkcjonalnosc wyświetlająca pioniwą kreskę i napis x2 dla powtarzających się wierszy.
-napis x 2 jest na dole tej sekcji
+widok edycji piosenki
+wprowadzam akord 'A7+'
+
+system nie rozpoznaje go i traktuje cała linijkę jako tekst
+
 </aktualne_zachowanie>
 
 <oczekiwane_zachowanie>
@@ -46,6 +49,7 @@ napis x2 jes wycentrowany pionowo w tej sekcji
 
 </oczekiwane_zachowanie>
 
+system interptrtuje 'A7+' jako akord
 
 <aktualna_implementacja>
 

@@ -16,12 +16,13 @@ export class ChordConverterService {
      * Wzorzec dla kompletnego akordu muzycznego.
      * Dopasowuje cały token jako akord (nie szuka wewnątrz słów).
      *
-     * Format: [CDEFGAB lub cdefgab lub H/h][#/b opcjonalnie][modyfikator opcjonalnie][cyfra opcjonalnie][* opcjonalnie]
+     * Format: [CDEFGAB lub cdefgab lub H/h][#/b opcjonalnie][modyfikator opcjonalnie][cyfra opcjonalnie][+/- opcjonalnie][* opcjonalnie]
      *
-     * Przykłady poprawnych akordów: C, Am, G#, Bb, Dm7, Csus4, Fmaj7, a, e, H, G*, Am7*
+     * Przykłady poprawnych akordów: C, Am, G#, Bb, Dm7, Csus4, Fmaj7, a, e, H, G*, Am7*, A7+, C+, Dm7-
      * Gwiazdka (*) jest używana do oznaczania szczególnych wariacji akordu (np. muted chords).
+     * Plus (+) oznacza akord zwiększony (augmented), minus (-) oznacza akord zmniejszony (diminished).
      */
-    private readonly CHORD_PATTERN = /^[A-Ga-gHh](#|b)?(m|maj|min|M|aug|dim|sus|add)?\d*\*?(\/[A-Ga-gHh](#|b)?)?$/;
+    private readonly CHORD_PATTERN = /^[A-Ga-gHh](#|b)?(m|maj|min|M|aug|dim|sus|add)?\d*[+-]?\*?(\/[A-Ga-gHh](#|b)?)?$/;
 
     /**
      * Wzorzec dla znacznika repetycji na końcu linii.
