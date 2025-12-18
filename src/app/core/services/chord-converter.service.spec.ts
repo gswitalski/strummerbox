@@ -365,6 +365,23 @@ describe('ChordConverterService', () => {
             expect(result).toContain('[Ddim]');
         });
 
+        it('should handle augmented chords with plus notation (C+, A7+)', () => {
+            // Notacja z plusem (+) jest powszechnie używana jako skrót dla "aug"
+            const input = [
+                'C+       A7+      Dm7-',
+                'Tekst z akordami plus i minus'
+            ].join('\n');
+
+            const result = service.convertFromChordsOverText(input);
+
+            expect(result).toContain('[C+]');
+            expect(result).toContain('[A7+]');
+            expect(result).toContain('[Dm7-]');
+            expect(result).toContain('Tekst');
+            // Sprawdzenie fragmentu słowa, ponieważ akordy mogą być wstawione w środku
+            expect(result).toContain('kordami');
+        });
+
         it('should handle chords with asterisk notation (G*)', () => {
             // Gwiazdka jest używana do oznaczania szczególnych wariacji akordu
             const input = [
