@@ -51,11 +51,19 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install Supabase CLI
-        run: npm install supabase --save-dev
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
 
-      - name: Link Supabase project (non-interactive)
-        run: npx supabase link --project-ref $SUPABASE_PROJECT_ID
+      - name: Validate Supabase secrets
+        run: |
+          [ -n "$SUPABASE_ACCESS_TOKEN" ] || (echo "Missing SUPABASE_ACCESS_TOKEN" && exit 1)
+          [ -n "$SUPABASE_DB_PASSWORD" ] || (echo "Missing SUPABASE_DB_PASSWORD" && exit 1)
+          [ -n "$SUPABASE_PROJECT_ID" ] || (echo "Missing SUPABASE_PROJECT_ID" && exit 1)
+
+      - name: Link Supabase project (non-interactive, debug)
+        run: npx supabase link --project-ref "$SUPABASE_PROJECT_ID" --debug
 
       - name: Push Database Migrations
         run: npx supabase db push
@@ -66,7 +74,7 @@ jobs:
           npx supabase secrets set --env-file .env.production
 
       - name: Deploy Supabase Functions
-        run: npx supabase functions deploy --project-ref $SUPABASE_PROJECT_ID
+        run: npx supabase functions deploy --project-ref "$SUPABASE_PROJECT_ID"
 
   # ==========================================
   # JOB 3: Deploy Frontendu (Firebase)
