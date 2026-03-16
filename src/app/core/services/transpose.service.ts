@@ -53,12 +53,14 @@ const BASS_REGEX = /^(.*)\/([A-Ga-g][#b]?)$/;
     providedIn: 'root',
 })
 export class TransposeService {
+    private static readonly SEMITONES_PER_STEP = 2;
+
     /**
      * Transponuje całą treść piosenki w formacie ChordPro.
      * Znajduje wszystkie akordy w nawiasach kwadratowych i przesuwa je o podany offset.
      *
      * @param content - Treść piosenki w formacie ChordPro
-     * @param offset - Liczba półtonów do przesunięcia (dodatnia = w górę, ujemna = w dół)
+     * @param offset - Liczba kroków transpozycji (1 krok = cały ton, czyli 2 półtony)
      * @returns Treść z transponowanymi akordami
      */
     public transposeContent(content: string, offset: number): string {
@@ -66,8 +68,9 @@ export class TransposeService {
             return content;
         }
 
-        // Normalizuj offset do zakresu -11..11
-        const normalizedOffset = ((offset % 12) + 12) % 12;
+        // 1 krok transpozycji w UI = cały ton (2 półtony).
+        const semitoneOffset = offset * TransposeService.SEMITONES_PER_STEP;
+        const normalizedOffset = ((semitoneOffset % 12) + 12) % 12;
 
         // Znajdź wszystkie akordy w nawiasach kwadratowych i je transponuj
         return content.replace(/\[([^\]]+)\]/g, (match, chord: string) => {

@@ -42,12 +42,13 @@ napis x 2 jest na dole tej sekcji
 </aktualne_zachowanie>
 
 <oczekiwane_zachowanie>
-napis x2 jes wycentrowany pionowo w tej sekcji
+
+
 
 </oczekiwane_zachowanie>
 
-
 <aktualna_implementacja>
+
 
 
 </aktualna_implementacja>
