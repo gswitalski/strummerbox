@@ -32,7 +32,7 @@ import { MatIconModule } from '@angular/material/icon';
                 class="transpose-controls__button"
                 [disabled]="!canDecrement"
                 (click)="decrement()"
-                aria-label="Obniż tonację o półton">
+                aria-label="Obniż tonację o cały ton">
                 <mat-icon>remove</mat-icon>
             </button>
             <span class="transpose-controls__value" aria-live="polite">
@@ -44,7 +44,7 @@ import { MatIconModule } from '@angular/material/icon';
                 class="transpose-controls__button"
                 [disabled]="!canIncrement"
                 (click)="increment()"
-                aria-label="Podnieś tonację o półton">
+                aria-label="Podnieś tonację o cały ton">
                 <mat-icon>add</mat-icon>
             </button>
         </div>
@@ -109,7 +109,7 @@ export class TransposeControlsComponent {
     }
 
     /**
-     * Zwiększa offset o 1 (transpozycja w górę o półton)
+     * Zwiększa offset o 1 (transpozycja w górę o cały ton)
      */
     increment(): void {
         if (this.canIncrement) {
@@ -118,7 +118,7 @@ export class TransposeControlsComponent {
     }
 
     /**
-     * Zmniejsza offset o 1 (transpozycja w dół o półton)
+     * Zmniejsza offset o 1 (transpozycja w dół o cały ton)
      */
     decrement(): void {
         if (this.canDecrement) {

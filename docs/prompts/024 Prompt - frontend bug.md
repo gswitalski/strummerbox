@@ -45,13 +45,15 @@ system nie rozpoznaje go i traktuje cała linijkę jako tekst
 </aktualne_zachowanie>
 
 <oczekiwane_zachowanie>
-napis x2 jes wycentrowany pionowo w tej sekcji
+
+
 
 </oczekiwane_zachowanie>
 
 system interptrtuje 'A7+' jako akord
 
 <aktualna_implementacja>
+
 
 
 </aktualna_implementacja>
