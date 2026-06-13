@@ -252,29 +252,38 @@ export class ChordConverterService {
      * Łączy linię z akordami z linią tekstu, wstawiając akordy w odpowiednich miejscach.
      */
     private mergeChordLineWithText(chordLine: string, textLine: string): string {
-        // Znajdź pozycje i wartości akordów
         const chordPositions = this.extractChordPositions(chordLine);
 
         if (chordPositions.length === 0) {
             return textLine;
         }
 
-        // Buduj wynikową linię od końca, aby uniknąć problemów z przesunięciami indeksów
-        let result = textLine;
-
-        // Sortuj pozycje od końca do początku
-        chordPositions.sort((a, b) => b.position - a.position);
-
+        // Grupujemy akordy po pozycji w tekście źródłowym.
+        // Pozycje wychodzące poza tekst są bezpiecznie przypinane do końca linii.
+        // Dzięki temu nie modyfikujemy wielokrotnie tego samego stringa i nie
+        // uszkadzamy wcześniej wstawionych nawiasów (np. [F7] -> [F[AB]7]).
+        const chordsByPosition = new Map<number, string[]>();
         for (const { position, chord } of chordPositions) {
-            // Wstaw akord w nawiasach kwadratowych na odpowiedniej pozycji
-            const insertPosition = Math.min(position, result.length);
-            result =
-                result.substring(0, insertPosition) +
-                `[${chord}]` +
-                result.substring(insertPosition);
+            const safePosition = Math.min(position, textLine.length);
+            const chordsAtPosition = chordsByPosition.get(safePosition) ?? [];
+            chordsAtPosition.push(chord);
+            chordsByPosition.set(safePosition, chordsAtPosition);
         }
 
-        return result;
+        let merged = '';
+        for (let textPosition = 0; textPosition <= textLine.length; textPosition += 1) {
+            const chordsAtPosition = chordsByPosition.get(textPosition);
+            if (chordsAtPosition && chordsAtPosition.length > 0) {
+                const chordTags = chordsAtPosition.map((chord) => `[${chord}]`);
+                merged += chordTags.join(' ');
+            }
+
+            if (textPosition < textLine.length) {
+                merged += textLine[textPosition];
+            }
+        }
+
+        return merged;
     }
 
     /**

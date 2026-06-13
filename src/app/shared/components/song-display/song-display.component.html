@@ -18,7 +18,10 @@
                                                 @for (word of viewModel.line.words; track $index) {
                                                     <span class="song-display__word-wrapper">
                                                         @for (part of word.parts; track $index) {
-                                                            <span class="song-display__part-group">
+                                                            <span
+                                                                class="song-display__part-group"
+                                                                [class.song-display__part-group--chord-only]="part.text.trim().length === 0"
+                                                            >
                                                                 @if (showChords()) {
                                                                     <span class="song-display__chord">{{ part.chord || nbsp }}</span>
                                                                 }
@@ -63,7 +66,10 @@
                                     @for (word of item.viewModel.line.words; track $index) {
                                         <span class="song-display__word-wrapper">
                                             @for (part of word.parts; track $index) {
-                                                <span class="song-display__part-group">
+                                                <span
+                                                    class="song-display__part-group"
+                                                    [class.song-display__part-group--chord-only]="part.text.trim().length === 0"
+                                                >
                                                     @if (showChords()) {
                                                         <span class="song-display__chord">{{ part.chord || nbsp }}</span>
                                                     }

@@ -537,6 +537,26 @@ describe('ChordConverterService', () => {
             expect(result).toContain('[A]');
         });
 
+        it('should correctly append multiple trailing chords beyond lyric length', () => {
+            const input = [
+                'C    Am      F      G      A  B  F7',
+                'Mam serce jak szafa grająca'
+            ].join('\n');
+
+            const result = service.convertFromChordsOverText(input);
+
+            expect(result).toContain('[C]');
+            expect(result).toContain('[Am]');
+            expect(result).toContain('[F]');
+            expect(result).toContain('[G]');
+            expect(result).toContain('[A]');
+            expect(result).toContain('[B]');
+            expect(result).toContain('[F7]');
+            expect(result).toContain('grająca');
+            expect(result).toContain('grająca[A] [B] [F7]');
+            expect(result).not.toContain('[F[AB]');
+        });
+
         it('should not treat Polish word "a" at line start as chord line', () => {
             // Ten test sprawdza przypadek, gdy linia tekstu zaczyna się od polskiego
             // słowa "a" (spójnik), które nie powinno być traktowane jako akord

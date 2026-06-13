@@ -74,8 +74,18 @@ $font-size-large: 1.6rem;
         display: inline-flex;
         flex-direction: column;
         align-items: flex-start;
+        justify-content: flex-start;
         vertical-align: bottom;
         white-space: pre; // Zachowaj spacje wewnątrz fragmentu
+        // Utrzymuje stałą wysokość "kolumny" akord+tekst (także gdy tekst jest pusty),
+        // dzięki czemu końcowe akordy nie opadają względem pozostałych.
+        min-height: calc(1.2em + 1.4em);
+
+        // Gdy fragment zawiera tylko akord (bez tekstu), dodaj lekki odstęp wizualny,
+        // żeby sekwencje typu [A][F7] nie zlepiały się na podglądzie.
+        &--chord-only {
+            margin-right: 0.35em;
+        }
     }
 
     // Akord nad słowem
@@ -89,6 +99,7 @@ $font-size-large: 1.6rem;
     // Część tekstu pod akordem
     &__text-part {
         line-height: 1.4;
+        min-height: 1.4em;
     }
 
     // Linie zawierające tylko akordy (bez tekstu)
