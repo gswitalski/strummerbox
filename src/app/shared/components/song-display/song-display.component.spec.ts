@@ -186,6 +186,21 @@ Trzecia linia {c: x3}`;
             const chords = compiled.querySelector('.song-display__chord');
             expect(chords).toBeNull();
         });
+
+        it('powinien wyrenderować pierwszy akord z grupy wysuniętej poza tekst', async () => {
+            const content = '[G]Idę sobie [D]ulicą[C] [a] [G] [d]';
+
+            const { compiled } = await setupComponent(content, true);
+
+            const chords = Array.from(compiled.querySelectorAll('.song-display__chord'))
+                .map((element) => element.textContent?.trim())
+                .filter((text): text is string => Boolean(text && text.length > 0));
+
+            expect(chords).toContain('C');
+            expect(chords).toContain('a');
+            expect(chords).toContain('G');
+            expect(chords).toContain('d');
+        });
     });
 });
 

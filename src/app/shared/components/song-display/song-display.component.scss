@@ -80,6 +80,12 @@ $font-size-large: 1.6rem;
         // Utrzymuje stałą wysokość "kolumny" akord+tekst (także gdy tekst jest pusty),
         // dzięki czemu końcowe akordy nie opadają względem pozostałych.
         min-height: calc(1.2em + 1.4em);
+
+        // Gdy fragment zawiera tylko akord (bez tekstu), dodaj lekki odstęp wizualny,
+        // żeby sekwencje typu [A][F7] nie zlepiały się na podglądzie.
+        &--chord-only {
+            margin-right: 0.35em;
+        }
     }
 
     // Akord nad słowem

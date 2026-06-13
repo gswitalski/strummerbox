@@ -399,8 +399,12 @@ function parseLineToWords(line: string): SongWord[] {
 
             if (isWhitespace) {
                 // To jest separator (spacja/tab)
-                // Doklejamy go do ostatniej dodanej części w currentWordParts
-                if (currentWordParts.length > 0) {
+                // Jeśli separator należy do nowego chunka z akordem (np. "[C] "),
+                // musimy zachować ten akord jako osobną część.
+                if (chordForPart) {
+                    currentWordParts.push({ chord: chordForPart, text: part });
+                } else if (currentWordParts.length > 0) {
+                    // Doklejamy separator do ostatniej części tylko gdy nie ma nowego akordu.
                     const lastPart = currentWordParts[currentWordParts.length - 1];
                     lastPart.text += part;
                 } else {
